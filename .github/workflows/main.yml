@@ -1,0 +1,30 @@
+name: CI ecoride
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Configuration PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: pdo_mysql, mbstring #Ajoute les extensions nécessaires
+          tools: composer #installe composer
+
+      - name: Installation des dépendances composer
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader #éxécute composer pour installer les bibliothéques définies dans composer.json - options :pas d’interaction utilisateur , installe les paquets à partir des archives, optimise l'autoload des classes pour la production
+
+      - name: Vérification de la syntaxe PHP (Lint)
+        run: find . -type f -name "*.php" ! -path "./vendor/*" -exec php -l {} \; | (! grep "Errors parsing")
