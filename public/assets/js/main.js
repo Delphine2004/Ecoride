@@ -2,6 +2,8 @@ import { searchRide } from "./Controller/searchController";
 import { connexion } from "./Controller/loginController";
 import { registration } from "./Controller/registerController";
 
+// Importer le router ici
+
 document.addEventListener("DOMContentLoaded", () => {
   try {
     // const role = document.body.dataset.role;
