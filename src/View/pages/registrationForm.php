@@ -1,0 +1,58 @@
+<main>
+    <section id="hero" class="container">
+        <div class="sub-container">
+
+            <div class="card">
+
+                <div class="card-header">
+                    <h3>Inscription</h3>
+                </div>
+
+                <div class="card-body">
+                    <form method="POST" id="registration-form" novalidate>
+
+
+                        <div class="item">
+                            <label class="sr-only" for="first-name">Prénom</label>
+                            <input class="input-form" id="first-name" name="first_name" type="text" data-type="onlytext" placeholder="Prénom" autocomplete="given-name" required>
+                            <div class="error-message" id="error-first-name"></div>
+                        </div>
+
+                        <div class="item">
+                            <label class="sr-only" for="last-name">Nom</label>
+                            <input class="input-form" id="last-name" name="last_name" type="text" data-type="onlytext" placeholder="Nom" autocomplete="family-name" required>
+                            <div class="error-message" id="error-last-name"></div>
+                        </div>
+
+                        <div class="item">
+                            <label class="sr-only" for="email">Email</label>
+                            <input class="input-form" id="email" name="email" type="email" placeholder="Email" autocomplete="email" required>
+                            <div class="error-message" id="error-email"></div>
+                        </div>
+
+                        <div class="item">
+                            <label class="sr-only" for="password">Mot de passe</label>
+                            <input class="input-form" id="password" name="password" type="password" placeholder="Mot de passe" autocomplete="email" required>
+                            <div class="error-message" id="error-password"></div>
+                        </div>
+
+
+
+                        <button class="btn" type="submit" aria-label="Créer un compte sur ecoride">S'inscrire</button>
+
+                        <!--Div pour afficher les messages d'erreur-->
+                        <div id="feedback-form" role="alert"></div>
+
+                    </form>
+
+                    <div>
+                        <p><a href="<?= PUBLIC_PATH ?>connexion">Vous avez déjà un compte?</a></p>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+
+    </section>
+</main>

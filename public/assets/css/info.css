@@ -1,0 +1,91 @@
+/* Section infos */
+#infos {
+  margin: 5rem auto;
+}
+
+#infos .img {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background-size: cover; /* L'image couvre toute la section */
+  background-position: center; /* Centre l'image */
+  background-repeat: no-repeat;
+
+  width: 100%;
+  height: 20rem;
+  max-width: 20rem;
+  margin: 2rem auto; /* Centre l'image dans la section*/
+}
+
+.eco {
+  background-image: url("../img/photo/advantage1.jpg");
+}
+
+.eco-money {
+  background-image: url("../img/photo/advantage2.jpg");
+}
+
+.social {
+  background-image: url("../img/photo/advantage3.jpg");
+}
+
+#infos .text {
+  height: auto;
+}
+
+.driver img {
+  width: 6rem;
+  height: auto;
+  margin-bottom: 2rem;
+}
+
+.small-screen {
+  display: block;
+}
+
+.big-screen {
+  display: none;
+}
+
+/* Ecran moyen*/
+@media (min-width: 768px) {
+  #infos .box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin: 2rem auto;
+    max-width: 30rem;
+  }
+
+  #infos .img,
+  #infos .text {
+    max-width: 30rem;
+    margin: 2rem auto;
+  }
+
+  #infos .img {
+    height: 20rem;
+  }
+
+  #infos .text {
+    height: auto;
+  }
+}
+
+/* Grand écran*/
+@media (min-width: 992px) {
+  .small-screen {
+    display: none;
+  }
+
+  .big-screen {
+    display: block;
+  }
+
+  .advantages {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}

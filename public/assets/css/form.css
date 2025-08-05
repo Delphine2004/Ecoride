@@ -1,0 +1,122 @@
+/* Barre de recherche trajet*/
+
+#nombre-personne {
+  background-image: url("../img/icons/person.png");
+  background-repeat: no-repeat;
+  background-position: 1rem center;
+  background-size: 2rem;
+  padding-left: 3rem; /* pour ne pas que le texte chevauche l'icône */
+}
+
+.small-screen {
+  display: flex;
+  flex-direction: column;
+  max-width: 30rem;
+  margin: 0 auto;
+}
+
+/*-----------------------------*/
+
+.sr-only {
+  position: absolute;
+  height: 1px;
+  overflow: hidden;
+}
+
+.input-form {
+  font-size: 1rem;
+  padding: 0.75rem 1rem;
+  outline: none;
+  transition: border-color 0.3s;
+  height: 3rem;
+}
+
+#search-form input,
+#search-form button,
+#login-form input,
+#registration-form input,
+.error-message {
+  width: 100%;
+  margin: 0.5rem auto;
+}
+
+#feedback-form {
+  display: none; /* Sera affichée dynamiquement via JS */
+  min-height: 2.5rem; /* Pour garder l'espace même vide */
+  margin-top: 0.5rem;
+}
+
+.error-message {
+  color: rgba(222, 21, 21, 0.92);
+  font-size: 0.9em;
+  margin-top: 2px;
+  height: 2rem;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+}
+
+/* La carte */
+.card {
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  width: 100%;
+}
+
+.card-header {
+  padding: 1rem;
+}
+
+.card h3 {
+  margin: 0;
+}
+
+.card-body {
+  padding: 1rem;
+}
+
+@media (min-width: 768px) {
+  .card {
+    max-width: 30rem;
+    width: 80%;
+  }
+}
+
+/* --- Responsive pour écrans plus larges --- */
+@media (min-width: 992px) {
+  .big-screen {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: flex-end; /* aligne les inputs avec le bouton */
+    max-width: 60rem;
+  }
+
+  .big-screen .item {
+    margin: auto 0.2rem;
+  }
+
+  #search-form input,
+  #search-form button {
+    width: 100%;
+  }
+
+  /*Voir pour modifier en button - Present dans searchform*/
+  .search-button {
+    flex: 0 0 auto;
+    padding: 0.75rem 1.5rem;
+  }
+
+  .feedback-form {
+    flex-basis: 100%;
+    margin-top: 0.5rem;
+    white-space: nowrap;
+  }
+}

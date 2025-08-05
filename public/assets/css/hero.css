@@ -1,0 +1,32 @@
+/* Section hero*/
+
+#hero {
+  background-image: url("../img/photo/landing-page-mobile.jpg");
+  background-size: cover; /* L'image couvre toute la section */
+  background-position: center; /* Centre l'image */
+  background-repeat: no-repeat;
+  min-height: 100vh;
+}
+
+.title {
+  margin: 4rem auto 0 auto;
+}
+
+.title h2 {
+  margin-bottom: 0;
+}
+
+.search-bar {
+  margin: 1rem auto;
+}
+
+@media (min-width: 768px), (orientation: landscape) {
+  #hero {
+    background-image: url("../img/photo/landing-page-desktop.jpg");
+    position: relative;
+  }
+
+  .title {
+    margin: 5rem auto;
+  }
+}
