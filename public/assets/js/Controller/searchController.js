@@ -1,5 +1,5 @@
-import { FormManager } from "../Model/FormManager.js";
-import { Api } from "../Api.js";
+import { FormManager } from "";
+import { Api } from "";
 
 export function searchRide() {
   //console.log("JS chargé !");

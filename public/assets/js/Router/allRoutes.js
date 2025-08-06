@@ -11,8 +11,21 @@ export const allRoutes = [
     []
   ),
   // Rajouter disconnected
-  new Route("/signin", "Connexion", "./assets/view/auth/signin.html", []),
-  new Route("/signup", "Inscription", "./assets/view/auth/signup.html", []),
+  new Route(
+    "/login",
+    "Connexion",
+    "./assets/view/auth/login.html",
+    [],
+    "./assets/js/controller/auth/loginController.js"
+  ),
+  new Route(
+    "/registration",
+    "Inscription",
+    "./assets/view/auth/registration.html",
+    [],
+    "./assets/js/controller/auth/registrationController.js"
+  ),
+  "",
 
   // Routes accessibles pour les clients et les utilisateurs
   new Route("public/account", "Mon compte", "./assets/view/auth/account.html", [

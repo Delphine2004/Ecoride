@@ -1,8 +1,9 @@
 import { FormManager } from "../../utils/FormManager";
 import { Api } from "../../Model/Api";
 
-export function registration() {
-  console.log("JS chargé !");
+function registration() {
+  console.log("JS chargé !"); // test de chargement
+
   const registerForm = document.getElementById("registration-form");
   if (!registerForm) return;
 

@@ -1,8 +1,9 @@
 import { FormManager } from "../../utils/FormManager";
 import { Api } from "../../Api";
 
-export function connexion() {
-  // console.log("JS chargé !");
+function login() {
+  console.log("JS chargé !"); // test de chargement
+
   const formLogin = document.getElementById("login-form");
   if (!formLogin) return;
 
