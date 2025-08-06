@@ -2,46 +2,28 @@ import Route from "./Route.js";
 
 export const allRoutes = [
   // Routes accessibles à tous
-  new Route("/", "Accueil", "/public/js/View/home.html", []),
+  new Route("/", "Accueil", "./assets/view/home.html", []),
 
   new Route(
     "/rechercher",
     "Rechercher un trajet",
-    "/public/js/View/reserver.html",
+    "./assets/view/rechercher.html",
     []
   ),
-
-  new Route(
-    "/signin",
-    "Connexion",
-    "/public/js/View/Auth/signin.html",
-    ["disconnected"],
-    "/js/Auth/signin.js"
-  ),
-  new Route(
-    "/signup",
-    "Inscription",
-    "/public/js/View/Auth/signup.html",
-    ["disconnected"],
-    "/js/Auth/signup.js"
-  ),
+  // Rajouter disconnected
+  new Route("/signin", "Connexion", "./assets/view/auth/signin.html", []),
+  new Route("/signup", "Inscription", "./assets/view/auth/signup.html", []),
 
   // Routes accessibles pour les clients et les utilisateurs
-  new Route("/account", "Mon compte", "/public/js/Auth/account.html", [
+  new Route("public/account", "Mon compte", "./assets/view/auth/account.html", [
     "user",
     "admin",
   ]),
   new Route(
     "/editPassword",
     "Changement de mot de passe",
-    "/public/js/View/auth/editPassword.html",
+    "./assets/view/auth/editPassword.html",
     ["user", "admin"]
-  ),
-  new Route(
-    "/allResa",
-    "Vos réservations",
-    "/pages/reservations/allResa.html",
-    ["user"]
   ),
 ];
 
