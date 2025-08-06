@@ -154,10 +154,6 @@ button,
 /* --------------------------------------*/
 
 @media (min-width: 768px) {
-  main {
-    padding-top: 5.6rem;
-  }
-
   /* Taille de la police*/
   a:hover {
     text-decoration: underline;
