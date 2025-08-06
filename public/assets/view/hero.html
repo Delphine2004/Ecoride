@@ -1,0 +1,73 @@
+<section id="hero">
+  <div class="title">
+    <h1>EcoRide</h1>
+    <h2>Voyagez malin, voyagez durable.</h2>
+  </div>
+  <form id="search-form" method="POST" novalidate>
+    <!-- sr-only = screen reader only -->
+    <div class="big-screen small-screen">
+      <div class="item">
+        <label class="sr-only" for="departure-place">Ville de départ</label>
+        <input
+          class="input-form"
+          id="departure-place"
+          name="departure_place"
+          type="text"
+          data-type="onlytext"
+          maxlength="25"
+          placeholder="Ville de départ"
+          required
+        />
+        <div class="error-message" id="error-departure-place"></div>
+      </div>
+      <div class="item">
+        <label class="sr-only" for="arrival-place">Ville d'arrivée</label>
+        <input
+          class="input-form"
+          id="arrival-place"
+          name="arrival_place"
+          type="text"
+          data-type="onlytext"
+          maxlength="25"
+          placeholder="Ville d'arrivée"
+          required
+        />
+        <div class="error-message" id="error-arrival-place"></div>
+      </div>
+      <div class="item">
+        <label class="sr-only" for="departure-date">Date de départ</label>
+        <input
+          class="input-form"
+          id="departure-date"
+          name="departure_date"
+          type="date"
+          required
+        />
+        <div class="error-message" id="error-departure-date"></div>
+      </div>
+      <div class="item">
+        <label class="sr-only" for="number-person">Nombre de personne</label>
+        <input
+          class="input-form"
+          id="number-person"
+          name="number_person"
+          type="number"
+          min="1"
+          max="5"
+          step="1"
+          placeholder="1"
+          required
+        />
+        <div class="error-message" id="error-number-person"></div>
+      </div>
+      <button
+        class="btn"
+        type="submit"
+        aria-label="Rechercher le trajet sur ecoride"
+      >
+        Rechercher
+      </button>
+    </div>
+    <div id="feedback-form" role="alert"></div>
+  </form>
+</section>

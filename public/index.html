@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" />
+    <!-- A FAIRE pour SEO -->
+
+    <!--Google Font-->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="./assets/css/style.css" />
+    <link rel="stylesheet" href="./assets/css/header.css" />
+    <link rel="stylesheet" href="./assets/css/footer.css" />
+    <link rel="stylesheet" href="./assets/css/hero.css" />
+    <link rel="stylesheet" href="./assets/css/info.css" />
+    <link rel="stylesheet" href="./assets/css/form.css" />
+    <link rel="stylesheet" href="./assets/css/dashboard.css" />
+
+    <!-- Script    -->
+    <script type="module" src="/assets/js/Router/Router.js"></script>
+    <script src="/assets/js/script.js" defer></script>
+    <!-- <script src="./assets/js/main.js" defer></script> -->
+
+    <!--Favicon-->
+    <link href="/assets/img/logo/logo.webp" rel="icon" type="image/webp" />
+
+    <title>Ecoride</title>
+  </head>
+
+  <body>
+    <header id="header-banner">
+      <!-- Navbar grand écran -->
+      <div class="bigNav nav">
+        <div class="logo">
+          <!-- Logo avec retour page accueil-->
+          <a href="/"
+            ><img
+              src="/assets/img/logo/logo.webp"
+              alt="Logo de la plateforme de covoiturage EcoRide"
+          /></a>
+        </div>
+
+        <nav>
+          <ul>
+            <!-- Rechercher -->
+            <li><a href="#hero">Rechercher un trajet</a></li>
+            <!-- Publier -->
+            <li><a href="/publier">Publier un trajet</a></li>
+            <!-- Espace client -->
+            <li data-show="connected"><a href="/account">Mon compte</a></li>
+            <!-- Se connecter -->
+            <li data-show="disconnected"><a href="/signin">Connexion</a></li>
+            <!-- Se deconnecter -->
+            <li data-show="connected">
+              <button class="btn" id="signout-btn">Déconnexion</button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+
+      <!-- NavBar petit écran -->
+
+      <!-- VOIR POUR ICON MON COMPTE -->
+      <div class="smallNav nav">
+        <!-- Le logo est à la deuxième place -->
+        <nav>
+          <!-- Se connecter -->
+          <div class="user-icon" data-show="disconnected">
+            <a href="/signin"
+              ><img
+                src="./assets/img/icons/account_circle.png"
+                alt="Espace utilisateur de la plateforme de covoiturage EcoRide"
+            /></a>
+          </div>
+
+          <!-- Se deconnecter - A MODIFIER-->
+          <div class="user-icon" data-show="connected">
+            <a href="/deconnexion"
+              ><img
+                src="./assets/img/icons/account_circle.png"
+                alt="Espace utilisateur de la plateforme de covoiturage EcoRide"
+            /></a>
+          </div>
+
+          <div class="logo">
+            <!-- Logo avec retour page accueil-->
+            <a href="/"
+              ><img
+                src="./assets/img/logo/logo.webp"
+                alt="Logo de la plateforme de covoiturage EcoRide"
+            /></a>
+          </div>
+
+          <div class="icons">
+            <!-- Rechercher -->
+            <a href="#hero"
+              ><img
+                src="./assets/img/icons/search.png"
+                alt="rechercher un trajet sur la plateforme de covoiturage EcoRide"
+            /></a>
+            <!-- Publier -->
+            <a href="/publier"
+              ><img
+                src="./assets/img/icons/add_circle.png"
+                alt="publier un trajet sur la plateforme de covoiturage EcoRide"
+            /></a>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main-page"></main>
+
+    <footer id="footer-banner">
+      <div class="infos">
+        <div class="info">
+          <h3>Suivez-nous</h3>
+          <div class="icons">
+            <a href="facebook"
+              ><img
+                src="./assets/img/icons/Facebook.png"
+                alt="Facebook de la plateforme de covoiturage EcoRide"
+            /></a>
+            <a href="instagram"
+              ><img
+                src="./assets/img/icons/Instagram.png"
+                alt="Instagram de la plateforme de covoiturage EcoRide"
+            /></a>
+          </div>
+        </div>
+        <div class="info">
+          <h3>Autres information</h3>
+          <ul>
+            <li><a href="/faq">FAQ</a></li>
+            <li><a href="/mentions-legales">Mentions Légales</a></li>
+            <li><a href="/conditions-generales-ventes">CGV</a></li>
+            <li><a href="/plan-du-site">Plan du site</a></li>
+          </ul>
+        </div>
+        <div class="info">
+          <h3><a href="/formulaire-contact">Contactez nous</a></h3>
+        </div>
+      </div>
+      <div class="copyright">
+        <p>&copy; 2025 Ecoride. Tous droits réservés.</p>
+      </div>
+    </footer>
+  </body>
+</html>
