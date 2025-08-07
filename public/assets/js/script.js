@@ -1,19 +1,21 @@
-const tokenCookieName = "accesstoken";
 const RoleCookieName = "role";
-const signoutBtn = document.getElementById("signout-btn");
-const apiUrl = "https://127.0.0.1:8000/api/";
-
-signoutBtn.addEventListener("click", signout);
-
-function getRole() {
+export function getRole() {
   return getCookie(RoleCookieName);
 }
 
+// Fonction pour récupérer la route correspondant à une URL donnée
+export function getRouteByUrl(url) {
+  return allRoutes.find((route) => route.url === url) || route404;
+} // route404 est un fallback
+
+const tokenCookieName = "accesstoken";
 function signout() {
   eraseCookie(tokenCookieName);
   eraseCookie(RoleCookieName);
   window.location.reload();
 }
+const signoutBtn = document.getElementById("signout-btn");
+signoutBtn.addEventListener("click", signout);
 
 function setToken(token) {
   setCookie(tokenCookieName, token, 7);
@@ -48,11 +50,11 @@ function eraseCookie(name) {
   document.cookie = name + "=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
 }
 
-function isConnected() {
+export function isConnected() {
   return !(getToken() == null || getToken() == undefined);
 }
 
-function showAndHideElementsForRole() {
+export function showAndHideElementsForRole() {
   const userConnected = isConnected();
   const role = getRole();
 
@@ -96,6 +98,7 @@ function sanitizeHtml(text) {
   return tempHtml.innerHTML;
 }
 
+const apiUrl = "https://127.0.0.1:8000/api/";
 function getInfosUser() {
   let myHeaders = new Headers();
   myHeaders.append("X-AUTH-TOKEN", getToken());

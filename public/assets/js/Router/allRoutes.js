@@ -1,5 +1,13 @@
 import Route from "./Route.js";
 
+// Création d'une route pour la page 404 (page introuvable)
+export const route404 = new Route(
+  "/404",
+  "Page introuvable",
+  "./assets/view/404.html",
+  []
+);
+
 export const allRoutes = [
   // Routes accessibles à tous
   new Route("/", "Accueil", "./assets/view/home.html", []),
@@ -11,24 +19,16 @@ export const allRoutes = [
     []
   ),
   // Rajouter disconnected
-  new Route(
-    "/login",
-    "Connexion",
-    "./assets/view/auth/login.html",
-    [],
-    "./assets/js/controller/auth/loginController.js"
-  ),
+  new Route("/login", "Connexion", "./assets/view/auth/login.html", []),
   new Route(
     "/registration",
     "Inscription",
     "./assets/view/auth/registration.html",
-    [],
-    "./assets/js/controller/auth/registrationController.js"
+    []
   ),
-  "",
 
   // Routes accessibles pour les clients et les utilisateurs
-  new Route("public/account", "Mon compte", "./assets/view/auth/account.html", [
+  new Route("/account", "Mon compte", "./assets/view/auth/account.html", [
     "user",
     "admin",
   ]),
