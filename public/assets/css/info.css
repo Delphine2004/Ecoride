@@ -40,11 +40,11 @@
   margin-bottom: 2rem;
 }
 
-.small-screen {
+h3 .small-screen {
   display: block;
 }
 
-.big-screen {
+h3 .big-screen {
   display: none;
 }
 
@@ -76,11 +76,11 @@
 
 /* Grand écran*/
 @media (min-width: 992px) {
-  .small-screen {
+  h3 .small-screen {
     display: none;
   }
 
-  .big-screen {
+  h3 .big-screen {
     display: block;
   }
 

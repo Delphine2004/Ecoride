@@ -23,10 +23,8 @@
     <link rel="stylesheet" href="./assets/css/form.css" />
     <link rel="stylesheet" href="./assets/css/dashboard.css" />
 
-    <!-- Script    -->
-    <script type="module" src="/assets/js/Router/Router.js"></script>
-    <script src="/assets/js/script.js" defer></script>
-    <!-- <script src="./assets/js/main.js" defer></script> -->
+    <!-- Script -->
+    <script type="module" src="./assets/js/main.js"></script>
 
     <!--Favicon-->
     <link href="/assets/img/logo/logo.webp" rel="icon" type="image/webp" />
@@ -47,7 +45,7 @@
           /></a>
         </div>
 
-        <nav>
+        <nav aria-label="bigNav-links">
           <ul>
             <!-- Rechercher -->
             <li><a href="/rechercher">Rechercher un trajet</a></li>
@@ -70,7 +68,7 @@
       <!-- VOIR POUR ICON MON COMPTE -->
       <div class="smallNav nav">
         <!-- Le logo est à la deuxième place -->
-        <nav>
+        <nav aria-label="smallNav-links">
           <!-- Se connecter -->
           <div class="user-icon" data-show="disconnected">
             <a href="/login"
