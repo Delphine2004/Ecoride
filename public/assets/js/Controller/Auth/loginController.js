@@ -1,10 +1,11 @@
-import { FormManager } from "../../utils/FormManager";
-import { Api } from "../../Api";
+import { FormManager } from "../../Utils/FormManager.js";
+import { Api } from "../../Api.js";
 
-function login() {
-  console.log("JS chargé !"); // test de chargement
+export function login() {
+  //console.log("JS Login chargé !"); // test de chargement
 
   const formLogin = document.getElementById("login-form");
+  console.log("Formulaire trouvé :", formLogin);
   if (!formLogin) return;
 
   const results = document.getElementById("feedback-form");
@@ -19,6 +20,7 @@ function login() {
   };
 
   // Boucle de validation en temps réel sur les éléments du formulaire -(Il faut que les champs aient un attribut type)
+  //----ESSAYER AVEC FORMMANAGER QUAND CE SERA CHARGE
   Object.values(inputs).forEach((input) => {
     input.addEventListener("input", (event) => {
       const { value, id, dataset, type } = event.target;

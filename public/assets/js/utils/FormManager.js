@@ -1,4 +1,4 @@
-import { escapeHTML, showError, clearErrors } from "./utils";
+import { escapeHTML, showError, clearErrors } from "./utils.js";
 import {
   isFreeTextValide,
   isOnlyTextValide,
@@ -8,7 +8,7 @@ import {
   isDatevalide,
   isDateFormatValide,
   isTimeFormatValide,
-} from "./validations";
+} from "./validations.js";
 
 export class FormManager {
   constructor(form) {

@@ -1,10 +1,11 @@
-import { FormManager } from "";
-import { Api } from "";
+import { FormManager } from "../Utils/FormManager.js";
+import { Api } from "../Api.js";
 
 export function searchRide() {
-  //console.log("JS chargé !");
+  //console.log("JS search chargé !");
+
   const formSearch = document.getElementById("search-form");
-  //console.log("Formulaire trouvé :", formSearch);
+  console.log("Formulaire trouvé :", formSearch);
   if (!formSearch) return; // vérification que le formulaire existe
 
   const results = document.getElementById("feedback-form");

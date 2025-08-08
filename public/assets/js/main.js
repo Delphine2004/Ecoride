@@ -5,13 +5,6 @@ import { routeEvent, loadContent } from "./router/Router.js";
 
 //console.log("main chargé"); // test de chargement
 
-// const role = document.body.dataset.role;
-const searchForm = document.getElementById("search-form");
-const addForm = document.getElementById("add-form"); // pas encore fait
-const loginForm = document.getElementById("login-form");
-const registerForm = document.getElementById("registration-form");
-const contactForm = document.getElementById("contact-form"); // pas encore fait
-
 // Gestion de l'événement de retour en arrière dans l'historique du navigateur
 //---MODIFIER AVEC UN ADDEVENTLISTENER
 window.onpopstate = loadContent;
@@ -21,14 +14,28 @@ window.route = routeEvent;
 
 // Chargement du contenu de la page au chargement initial
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   try {
-    loadContent();
-    // Initialisation des formulaires accessibles sans connexion
+    await loadContent(); // attendre que le contenu soit injecté sur la page
 
-    if (searchForm) searchRide();
-    if (loginForm) login();
-    if (registerForm) registration();
+    const path = window.location.pathname;
+
+    const searchForm = document.getElementById("search-form");
+    // const addForm = document.getElementById("add-form"); // pas encore fait
+    const loginForm = document.getElementById("login-form");
+    const registerForm = document.getElementById("registration-form");
+    //  const contactForm = document.getElementById("contact-form"); // pas encore fait
+
+    // Initialisation des formulaires accessibles sans connexion
+    if (path.includes("") && searchForm) {
+      searchRide();
+    }
+    if (path.includes("login") && loginForm) {
+      login();
+    }
+    if (path.includes("registration") && registerForm) {
+      registration();
+    }
   } catch (error) {
     console.error(error);
   }

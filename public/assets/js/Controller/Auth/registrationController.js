@@ -1,10 +1,11 @@
-import { FormManager } from "../../utils/FormManager";
-import { Api } from "../../Model/Api";
+import { FormManager } from "../../Utils/FormManager.js";
+import { Api } from "../../Api.js";
 
-function registration() {
-  console.log("JS chargé !"); // test de chargement
+export function registration() {
+  //console.log("JS Registration chargé !"); // test de chargement
 
   const registerForm = document.getElementById("registration-form");
+  console.log("Formulaire trouvé :", registerForm);
   if (!registerForm) return;
 
   const results = document.getElementById("feedback-form");
@@ -74,3 +75,5 @@ function registration() {
     }
   });
 }
+
+registration();
