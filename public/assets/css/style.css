@@ -16,11 +16,11 @@
 /* Couleur de fond*/
 body,
 .card-body,
-.feedback-form,
-input,
-.error-message {
+#feedback-form,
+input {
   background-color: #f7fff6;
   color: #000000;
+  box-sizing: border-box;
 }
 
 header,
@@ -31,6 +31,7 @@ button,
   background-color: #93b48b;
   color: #f7fff6;
   border: none;
+  transition: background-color 0.3s ease;
 }
 
 button:hover,
@@ -46,7 +47,7 @@ h1 {
   font-family: "Amatic SC", "Open Sans", sans-serif;
   font-weight: bold;
   font-size: 5.6rem;
-  margin-bottom: 0.6rem;
+  margin: 1rem auto;
 }
 
 h2,
@@ -54,7 +55,7 @@ h3,
 h3 a,
 h4,
 h5 {
-  font-family: "Playfair Display", "Open Sans", sans-serif;
+  font-family: "Raleway", "Open Sans", sans-serif;
   font-weight: 800;
   font-style: italic;
   margin-bottom: 0.6rem;
@@ -96,20 +97,24 @@ a,
 }
 
 /* Bordures*/
-input,
-.error-message {
+
+input {
   border: 2px solid #93b48b;
+  font-size: 1rem;
+  padding: 0.75rem 1rem;
+  outline: none;
+  transition: border-color 0.3s;
+  height: 3rem;
+}
+
+input,
+#feedback-form {
   border-radius: 0.4rem;
 }
 
 #infos .img {
   border: 1px solid #000000;
   border-radius: 10%;
-}
-
-.feedback-form {
-  border: 1px solid #8491a3;
-  border-radius: 0.4rem;
 }
 
 /*--------------------*/
@@ -158,7 +163,9 @@ button,
   a:hover {
     text-decoration: underline;
   }
-
+  h1 {
+    margin: 3rem auto 1rem auto;
+  }
   h2 {
     font-size: 2.5rem;
   }
