@@ -5,13 +5,13 @@ export function registration() {
   //console.log("JS Registration chargé !"); // test de chargement
 
   const registerForm = document.getElementById("registration-form");
-  console.log("Formulaire trouvé :", registerForm);
+  //console.log("Formulaire trouvé :", registerForm);
   if (!registerForm) return;
 
   const results = document.getElementById("feedback-form");
 
   // Création du gestionnaire de formulaire qui gére les validation
-  const formManager = new FormManager();
+  const formManager = new FormManager(registerForm);
 
   // Stockage des éléments dans un objet
   const inputs = {

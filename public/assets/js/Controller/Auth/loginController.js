@@ -1,17 +1,18 @@
 import { FormManager } from "../../Utils/FormManager.js";
+import { setToken, setCookie, clearToken } from "./auth.js";
 import { Api } from "../../Api.js";
 
 export function login() {
   //console.log("JS Login chargé !"); // test de chargement
 
   const formLogin = document.getElementById("login-form");
-  console.log("Formulaire trouvé :", formLogin);
+  //console.log("Formulaire trouvé :", formLogin);
   if (!formLogin) return;
 
   const results = document.getElementById("feedback-form");
 
   // Création du gestionnaire de formulaire qui gére les validation
-  const formManager = new FormManager();
+  const formManager = new FormManager(formLogin);
 
   // Stockage des éléments dans un objet
   const inputs = {
@@ -35,9 +36,16 @@ export function login() {
     event.preventDefault();
     //alert("JS a bien intercepté l'envoi !"); // test
 
+    const submitBtn = formLogin.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    results.innerHTML = ""; // reset feedback
+
     // Valider toutes les données avec la fonction validateForm()
     const isValid = formManager.validateForm(inputs);
-    if (!isValid) return;
+    if (!isValid) {
+      submitBtn.disabled = false;
+      return;
+    }
 
     // Puis les stocker dans un objet
     const cleanInputs = formManager.getCleanInputs(inputs);
@@ -52,10 +60,20 @@ export function login() {
 
       // -----------------------------------------Cette partie sera à modifier
       if (userData.success) {
+        if (userData.token) {
+          setToken(userData.token);
+
+          if (userData.role) {
+            setCookie("userRole", userData.role, 7);
+          }
+        }
         results.innerHTML = `<p class="success">Connexion réussie, redirection...</p>`;
         // Redirection ou autre logique après connexion réussie
-        window.location.href = "/ECF/public/index.php?pages=home"; // à modifier
+        setTimeout(() => {
+          window.location.href = "/ECF/public/index.php?pages=home"; // à modifier
+        }, 1500);
       } else {
+        clearToken();
         results.innerHTML = `<p class="error">${
           userData.message || "Identifiants incorrects."
         }</p>`;

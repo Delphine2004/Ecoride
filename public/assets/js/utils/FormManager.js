@@ -1,4 +1,3 @@
-import { escapeHTML, showError, clearErrors } from "./utils.js";
 import {
   isFreeTextValide,
   isOnlyTextValide,
@@ -13,30 +12,65 @@ import {
 export class FormManager {
   constructor(form) {
     this.form = form;
+    this.errors = {};
+  }
+  showError(message, fields) {
+    fields.forEach((field) => {
+      this.errors[field] = message;
+      const input = this.form.querySelector(`[name="${field}"], #${field}`);
+      if (input) input.classList.add("input-error");
+    });
+    this.updateFeedback();
+  }
+
+  clearErrors(fields) {
+    fields.forEach((field) => {
+      delete this.errors[field];
+      const input = this.form.querySelector(`[name="${field}"], #${field}`);
+      if (input) input.classList.remove("input-error");
+    });
+    this.updateFeedback();
+  }
+
+  updateFeedback() {
+    const errorDiv = document.getElementById("feedback-form");
+    const messages = Object.values(this.errors).filter(Boolean);
+    if (messages.length) {
+      errorDiv.innerHTML = messages.join(" <br> ");
+      errorDiv.style.display = "flex";
+    } else {
+      errorDiv.textContent = "";
+      errorDiv.style.display = "none";
+    }
   }
 
   isEmpty(value, id) {
     if (value.trim() === "") {
-      showError(id, "Champ obligatoire.");
+      // Trouver le label associé au champ
+      const label = this.form.querySelector(`label[for="${id}"]`);
+      const fieldName = label ? label.textContent.trim() : id;
+
+      this.showError(`« ${fieldName} » est obligatoire.`, [id]);
       return false;
     } else {
-      clearErrors(id);
+      this.clearErrors([id]);
       return true;
     }
-  }
-
-  sanitize(value) {
-    return escapeHTML(value.trim());
   }
 
   validateFreeText(text, id) {
     if (!this.isEmpty(text, id)) {
       return false;
     } else if (!isFreeTextValide(text)) {
-      showError(id, "Caractères non autorisés.");
+      const label = this.form.querySelector(`label[for="${id}"]`);
+      const fieldName = label ? label.textContent.trim() : id;
+      this.showError(
+        `« ${fieldName} » contient des caractères non autorisés.`,
+        [id]
+      );
       return false;
     } else {
-      clearErrors(id);
+      this.clearErrors([id]);
       return true;
     }
   }
@@ -45,10 +79,14 @@ export class FormManager {
     if (!this.isEmpty(text, id)) {
       return false;
     } else if (!isOnlyTextValide(text)) {
-      showError(id, "Seules les lettres sont autorisées.");
+      const label = this.form.querySelector(`label[for="${id}"]`);
+      const fieldName = label ? label.textContent.trim() : id;
+      this.showError(`« ${fieldName} » doit contenir uniquement des lettres.`, [
+        id,
+      ]);
       return false;
     } else {
-      clearErrors(id);
+      this.clearErrors([id]);
       return true;
     }
   }
@@ -57,10 +95,12 @@ export class FormManager {
     if (!this.isEmpty(number, id)) {
       return false;
     } else if (!isNumberValide(number)) {
-      showError(id, "Mauvais format.");
+      const label = this.form.querySelector(`label[for="${id}"]`);
+      const fieldName = label ? label.textContent.trim() : id;
+      this.showError(`« ${fieldName} » doit être un nombre.`, [id]);
       return false;
     } else {
-      clearErrors(id);
+      this.clearErrors([id]);
       return true;
     }
   }
@@ -69,10 +109,12 @@ export class FormManager {
     if (!this.isEmpty(email, id)) {
       return false;
     } else if (!isEmailValide(email)) {
-      showError(id, "Ne respecte pas le format email.");
+      const label = this.form.querySelector(`label[for="${id}"]`);
+      const fieldName = label ? label.textContent.trim() : id;
+      this.showError(`« ${fieldName} » ne respecte pas le format email.`, [id]);
       return false;
     } else {
-      clearErrors(id);
+      this.clearErrors([id]);
       return true;
     }
   }
@@ -81,10 +123,14 @@ export class FormManager {
     if (!this.isEmpty(password, id)) {
       return false;
     } else if (!isPasswordValide(password)) {
-      showError(id, "Ne respecte pas le format sécurisé.");
+      const label = this.form.querySelector(`label[for="${id}"]`);
+      const fieldName = label ? label.textContent.trim() : id;
+      this.showError(`« ${fieldName} » ne respecte pas le format sécurisé.`, [
+        id,
+      ]);
       return false;
     } else {
-      clearErrors(id);
+      this.clearErrors([id]);
       return true;
     }
   }
@@ -94,10 +140,10 @@ export class FormManager {
       return false;
     }
     if (password !== confirmPassword) {
-      showError(id, "Les mots de passe ne sont pas identiques.");
+      this.showError("Les mots de passe ne sont pas identiques.", [id]);
       return false;
     } else {
-      clearErrors(id);
+      this.clearErrors([id]);
       return true;
     }
   }
@@ -106,13 +152,15 @@ export class FormManager {
     if (!this.isEmpty(date, id)) {
       return false;
     } else if (!isDateFormatValide(date)) {
-      showError(id, "Format date incorrecte.");
+      const label = this.form.querySelector(`label[for="${id}"]`);
+      const fieldName = label ? label.textContent.trim() : id;
+      this.showError(`« ${fieldName} » n'est pas au bon format.`, [id]);
       return false;
     } else if (!isDatevalide(date)) {
-      showError(id, "Date invalide.");
+      this.showError("Date invalide.", [id]);
       return false;
     } else {
-      clearErrors(id);
+      this.clearErrors([id]);
       return true;
     }
   }
@@ -121,13 +169,18 @@ export class FormManager {
     if (!this.isEmpty(time, id)) {
       return false;
     } else if (!isTimeFormatValide(time)) {
-      showError(id, "Format heure incorrecte (HH:MM sous 24heures).");
+      const label = this.form.querySelector(`label[for="${id}"]`);
+      const fieldName = label ? label.textContent.trim() : id;
+      this.showError(
+        `« ${fieldName} » n'est pas au bon format (HH:MM sous 24heures).`,
+        [id]
+      );
       return false;
     } else if (!isDatevalide(time)) {
-      showError(id, "Heure invalide.");
+      this.showError("Heure invalide.", [id]);
       return false;
     } else {
-      clearErrors(id);
+      this.clearErrors([id]);
       return true;
     }
   }
@@ -172,6 +225,29 @@ export class FormManager {
     return isValid;
   }
 
+  // Fonction pour protection contre injections html et XSS
+  escapeHTML(text) {
+    const map = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;",
+      "$": "&#36;",
+      "%": "&#37;",
+      "=": "&#61;",
+      "(": "&#40;",
+      ")": "&#41;",
+    };
+    // console.log(map["$"]); // Devrait afficher : &#36;
+    text = String(text); // converti le texte en chaine de caractère
+    return text.replace(/[&<>"'$%=()]/g, (m) => map[m]);
+  }
+
+  sanitize(value) {
+    return this.escapeHTML(value.trim());
+  }
+
   getCleanInputs(inputs) {
     const cleanInputs = {};
     for (const [key, input] of Object.entries(inputs)) {
@@ -180,6 +256,7 @@ export class FormManager {
     return cleanInputs;
   }
 }
+
 //************************************ */
 /*
   validateSelect(value, id) {

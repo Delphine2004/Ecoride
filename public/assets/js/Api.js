@@ -1,3 +1,5 @@
+import { getToken } from "./Controller/Auth/auth";
+
 export class Api {
   constructor(baseUrl = "") {
     this.baseUrl = baseUrl;
@@ -8,6 +10,10 @@ export class Api {
     const headers = {
       "Content-Type": "application/json",
     };
+
+    if (!token) {
+      token = getToken();
+    }
 
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;

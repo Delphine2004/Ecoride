@@ -5,14 +5,14 @@ export function searchRide() {
   //console.log("JS search chargé !");
 
   const formSearch = document.getElementById("search-form");
-  console.log("Formulaire trouvé :", formSearch);
+  //console.log("Formulaire trouvé :", formSearch);
   if (!formSearch) return; // vérification que le formulaire existe
 
   const results = document.getElementById("feedback-form");
   //console.log("Zone de commentaire :", results);
 
   // Création du gestionnaire de formulaire qui gére les validation
-  const formManager = new FormManager();
+  const formManager = new FormManager(formSearch);
 
   // Stockage des éléments dans un objet
   const inputs = {
@@ -43,16 +43,16 @@ export function searchRide() {
 
   formSearch.addEventListener("submit", async function (event) {
     event.preventDefault();
-    console.log("Soumission interceptée");
+    //console.log("Soumission interceptée");
 
     // Valider toutes les données avec la fonction validateForm()
     const isValid = formManager.validateForm(inputs);
-    console.log("Validation globale :", isValid);
+    //console.log("Validation globale :", isValid);
     if (!isValid) return;
 
     // Puis les stocker dans un objet
     const cleanInputs = formManager.getCleanInputs(inputs);
-    console.log("Données nettoyées à envoyer :", cleanInputs);
+    //console.log("Données nettoyées à envoyer :", cleanInputs);
 
     // Instanciation de la class Api
     const api = new Api("/ECF/public/api.php");
