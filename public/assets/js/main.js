@@ -37,10 +37,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     /* ---------------------------------------------------- */
 
     // Initialisation des formulaires accessibles sans connexion
-    if (path.includes("") && searchForm) {
+    if (path.includes("/") && searchForm) {
       searchRide();
     }
-    if (path.includes("login") && loginForm) {
+    if (path.includes("connexion") && loginForm) {
       login();
     }
     if (path.includes("registration") && registerForm) {

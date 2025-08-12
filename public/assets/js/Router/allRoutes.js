@@ -11,15 +11,14 @@ export const route404 = new Route(
 export const allRoutes = [
   // Routes accessibles à tous
   new Route("/", "Accueil", "./assets/view/home.html", []),
-
   new Route(
     "/rechercher",
     "Rechercher un trajet",
-    "./assets/view/rechercher.html",
+    "./assets/view/home.html",
     []
   ),
-  // Rajouter disconnected
-  new Route("/login", "Connexion", "./assets/view/auth/login.html", []),
+  new Route("/publier", "Publier un trajet", "./assets/view/addRide.html"),
+  new Route("/connexion", "Connexion", "./assets/view/auth/login.html", []),
   new Route(
     "/registration",
     "Inscription",
@@ -28,7 +27,7 @@ export const allRoutes = [
   ),
 
   // Routes accessibles pour les clients et les utilisateurs
-  new Route("/account", "Mon compte", "./assets/view/auth/account.html", [
+  new Route("/compte", "Mon compte", "./assets/view/auth/account.html", [
     "connected",
   ]),
   new Route(
