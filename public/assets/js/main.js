@@ -1,11 +1,13 @@
 import { searchRide } from "./Controller/searchController.js";
+import { addRide } from "./Controller/addRideController.js";
 import { login } from "./Controller/Auth/loginController.js";
 import { registration } from "./Controller/Auth/registrationController.js";
-import { routeEvent, loadContent } from "./router/Router.js";
 import { logout } from "./Controller/Auth/logout.js";
+import { routeEvent, loadContent } from "./router/Router.js";
+
 import { showAndHideElementsForRole } from "./Controller/Auth/role.js";
 
-//console.log("main chargé"); // test de chargement
+// console.log("main chargé"); // test de chargement
 
 // Gestion de l'événement de retour en arrière dans l'historique du navigateur
 //---MODIFIER AVEC UN ADDEVENTLISTENER
@@ -26,7 +28,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Formulaires
     const searchForm = document.getElementById("search-form");
-    // const addForm = document.getElementById("add-form"); // pas encore fait
+    const addForm = document.getElementById("addRide-form");
     const loginForm = document.getElementById("login-form");
     const registerForm = document.getElementById("registration-form");
     //  const contactForm = document.getElementById("contact-form"); // pas encore fait
@@ -45,6 +47,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     if (path.includes("registration") && registerForm) {
       registration();
+    }
+
+    if (path.includes("publier") && addForm) {
+      addRide();
     }
 
     if (logoutBtn) {

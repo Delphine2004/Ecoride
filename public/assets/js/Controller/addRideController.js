@@ -1,33 +1,29 @@
 import { FormManager } from "../Utils/FormManager.js";
 import { Api } from "../Model/Api.js";
 
-export function searchRide() {
-  //console.log("JS search chargé !");
+export function addRide() {
+  console.log("JS add chargé !");
 
-  const searchForm = document.getElementById("search-form");
-  //console.log("Formulaire trouvé :", searchForm);
-  if (!searchForm) return; // vérification que le formulaire existe
+  const addForm = document.getElementById("addRide-form");
+
+  if (!addForm) return; // Vérification si le fomulaire existe
 
   const results = document.getElementById("feedback-form");
   //console.log("Zone de commentaire :", results);
 
   // Création du gestionnaire de formulaire qui gére les validation
-  const formManager = new FormManager(searchForm);
+  const formManager = new FormManager(addForm);
 
   // Stockage des éléments dans un objet
   const inputs = {
     ville_Depart: document.getElementById("departure-place"),
     ville_arrivee: document.getElementById("arrival-place"),
     date_depart: document.getElementById("departure-date"),
-    nombre_personne: document.getElementById("number-person"),
+    heure_depart: document.getElementById("departure-time"),
+    siege_dispo: document.getElementById("available_seats"),
+    prix: document.getElementById("price"),
+    vehicule: document.getElementById("car"), // voir si modifié dans addform
   };
-
-  /*
-  // Récupération du jeton
-  const csrfToken = document
-    .querySelector('meta[name="csrf-token"]')
-    .getAttribute("content");
-    */
 
   // Boucle de validation en temps réel sur les éléments du formulaire -(Il faut que les champs aient un attribut type)
   Object.values(inputs).forEach((input) => {
@@ -41,7 +37,7 @@ export function searchRide() {
 
   // -------------------------Envoi du formulaire ------------------
 
-  searchForm.addEventListener("submit", async function (event) {
+  addForm.addEventListener("submit", async function (event) {
     event.preventDefault();
     //console.log("Soumission interceptée");
 
