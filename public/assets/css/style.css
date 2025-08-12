@@ -17,7 +17,8 @@
 body,
 .card-body,
 #feedback-form,
-input {
+input,
+select {
   background-color: #f7fff6 !important;
   color: #000000;
   box-sizing: border-box;
@@ -92,13 +93,16 @@ a,
 }
 
 #departure-date,
-.input-form::placeholder {
+.input-form::placeholder,
+select:invalid {
   color: #8491a3;
 }
 
 /* Bordures*/
 
-.input-form {
+.input-form,
+.input-form option,
+.input-form select {
   border: 2px solid #93b48b;
   font-size: 1rem;
   padding: 0.75rem 1rem;

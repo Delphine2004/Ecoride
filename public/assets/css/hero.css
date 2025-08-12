@@ -6,6 +6,10 @@
   background-position: center; /* Centre l'image */
   background-repeat: no-repeat;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .hero-title {
@@ -23,7 +27,7 @@
   }
 
   .hero-title {
-    margin: 4rem auto;
+    margin: 5rem auto;
   }
 
   .hero-title h2 {
@@ -32,7 +36,7 @@
 }
 
 @media (min-width: 992px) {
-  #hero {
-    min-height: 70vh;
+  #hero.search {
+    min-height: 60vh;
   }
 }
