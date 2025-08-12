@@ -24,13 +24,12 @@ export const allRoutes = [
     "/registration",
     "Inscription",
     "./assets/view/auth/registration.html",
-    []
+    ["disconnected"]
   ),
 
   // Routes accessibles pour les clients et les utilisateurs
   new Route("/account", "Mon compte", "./assets/view/auth/account.html", [
-    "user",
-    "admin",
+    "connected",
   ]),
   new Route(
     "/editPassword",

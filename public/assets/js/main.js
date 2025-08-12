@@ -3,6 +3,7 @@ import { login } from "./Controller/Auth/loginController.js";
 import { registration } from "./Controller/Auth/registrationController.js";
 import { routeEvent, loadContent } from "./router/Router.js";
 import { logout } from "./Controller/Auth/logout.js";
+import { showAndHideElementsForRole } from "./Controller/Auth/role.js";
 
 //console.log("main chargé"); // test de chargement
 
@@ -18,7 +19,7 @@ window.route = routeEvent;
 document.addEventListener("DOMContentLoaded", async () => {
   try {
     await loadContent(); // attendre que le contenu soit injecté sur la page
-
+    showAndHideElementsForRole();
     //------- Récupération des éléments aprés le chargement de la page
 
     const path = window.location.pathname;

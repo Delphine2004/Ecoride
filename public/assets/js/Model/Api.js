@@ -1,4 +1,4 @@
-import { getToken } from "./Controller/Auth/auth";
+import { getToken } from "../Controller/Auth/auth.js";
 
 export class Api {
   constructor(baseUrl = "") {

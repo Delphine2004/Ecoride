@@ -61,7 +61,7 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   width: 100%;
-  margin-top: 2rem;
+  margin-top: 3rem;
 }
 
 .card-header {
@@ -94,18 +94,23 @@
   margin: 0.5rem auto;
 }
 
+#search-form #feedback-form {
+  height: auto;
+  padding: 0.5rem 0;
+}
+
 .input-error {
   border: 2px solid rgba(222, 21, 21, 0.92);
 }
 
 @media (min-width: 768px) {
+  .search-form {
+    margin: 0 auto;
+  }
+
   .card {
     max-width: 30rem;
     width: 80%;
-  }
-
-  #number-person {
-    width: 15%;
   }
 
   #search-form .item {
@@ -123,6 +128,10 @@
 }
 
 @media (min-width: 992px) {
+  .search-form {
+    margin: 5rem auto;
+  }
+
   #search-form .big-screen {
     display: flex;
     flex-direction: row;
@@ -131,7 +140,6 @@
     width: 100%;
     gap: 0.2rem;
     margin: 0 auto;
-    padding: 0 10px;
   }
 
   #search-form input,
@@ -139,5 +147,25 @@
   #login-form input,
   #registration-form input {
     margin: 0.5rem auto;
+  }
+
+  #search-form .city {
+    width: 40%;
+  }
+
+  #search-form .date {
+    width: 30%;
+  }
+
+  #search-form .person {
+    width: 20%;
+  }
+
+  #search-form button {
+    width: 30%;
+  }
+
+  #feedback-form {
+    height: auto;
   }
 }

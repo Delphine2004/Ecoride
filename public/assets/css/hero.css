@@ -8,11 +8,11 @@
   min-height: 100vh;
 }
 
-.hero.title {
+.hero-title {
   margin: 4rem auto 2rem auto;
 }
 
-.hero.title h2 {
+.hero-title h2 {
   width: 80%;
   margin-bottom: 0;
 }
@@ -20,10 +20,19 @@
 @media (min-width: 768px) {
   #hero {
     background-image: url("../img/photo/landing-page-desktop.webp");
-    position: relative;
   }
 
-  .hero.title {
-    margin-top: 5rem;
+  .hero-title {
+    margin: 4rem auto;
+  }
+
+  .hero-title h2 {
+    margin-bottom: 2rem;
+  }
+}
+
+@media (min-width: 992px) {
+  #hero {
+    min-height: 70vh;
   }
 }

@@ -1,6 +1,7 @@
 import { FormManager } from "../../Utils/FormManager.js";
 import { setToken, setCookie, clearToken } from "./auth.js";
-import { Api } from "../../Api.js";
+import { Api } from "../../Model/Api.js";
+import { showAndHideElementsForRole } from "./role.js";
 
 export function login() {
   //console.log("JS Login chargé !"); // test de chargement
@@ -67,6 +68,9 @@ export function login() {
             setCookie("userRole", userData.role, 7);
           }
         }
+
+        showAndHideElementsForRole();
+
         results.innerHTML = `<p class="success">Connexion réussie, redirection...</p>`;
         // Redirection ou autre logique après connexion réussie
         setTimeout(() => {

@@ -1,5 +1,5 @@
 import { FormManager } from "../../Utils/FormManager.js";
-import { Api } from "../../Api.js";
+import { Api } from "../../Model/Api.js";
 
 export function registration() {
   //console.log("JS Registration chargé !"); // test de chargement

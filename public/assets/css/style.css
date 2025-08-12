@@ -18,7 +18,7 @@ body,
 .card-body,
 #feedback-form,
 input {
-  background-color: #f7fff6;
+  background-color: #f7fff6 !important;
   color: #000000;
   box-sizing: border-box;
 }
@@ -98,7 +98,7 @@ a,
 
 /* Bordures*/
 
-input {
+.input-form {
   border: 2px solid #93b48b;
   font-size: 1rem;
   padding: 0.75rem 1rem;
@@ -107,7 +107,7 @@ input {
   height: 3rem;
 }
 
-input,
+.input-form,
 #feedback-form {
   border-radius: 0.4rem;
 }

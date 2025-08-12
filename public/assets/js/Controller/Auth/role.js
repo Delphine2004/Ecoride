@@ -1,3 +1,5 @@
+import { getToken, getCookie } from "./auth.js";
+
 const RoleCookieName = "role";
 export function getRole() {
   return getCookie(RoleCookieName);
@@ -40,7 +42,7 @@ export function showAndHideElementsForRole() {
 }
 
 const apiUrl = "https://127.0.0.1:8000/api/";
-function getInfosUser() {
+export function getInfosUser() {
   let myHeaders = new Headers();
   myHeaders.append("X-AUTH-TOKEN", getToken());
 

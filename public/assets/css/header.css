@@ -15,6 +15,10 @@
   display: none;
 }
 
+.d-none {
+  display: none;
+}
+
 .smallNav {
   display: flex;
   width: 100%;
