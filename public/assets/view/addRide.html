@@ -1,0 +1,131 @@
+<section id="hero" class="container">
+  <div class="sub-container addRide-form">
+    <div class="card">
+      <div class="card-header">
+        <h3>Publier un trajet</h3>
+      </div>
+      <div class="card-body">
+        <form id="addRide-form" method="POST" novalidate>
+          <div class="big-screen small-screen">
+            <div class="cities">
+              <div class="item city">
+                <label class="sr-only" for="departure-place"
+                  >Ville de départ</label
+                >
+                <input
+                  class="input-form"
+                  id="departure-place"
+                  name="departure_place"
+                  type="text"
+                  data-type="onlytext"
+                  maxlength="25"
+                  placeholder="Ville de départ"
+                  required
+                />
+              </div>
+              <div class="item city">
+                <label class="sr-only" for="arrival-place"
+                  >Ville d'arrivée</label
+                >
+                <input
+                  class="input-form"
+                  id="arrival-place"
+                  name="arrival_place"
+                  type="text"
+                  data-type="onlytext"
+                  maxlength="25"
+                  placeholder="Ville d'arrivée"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="period">
+              <div class="item date">
+                <label class="sr-only" for="departure-date"
+                  >Date de départ</label
+                >
+                <input
+                  class="input-form"
+                  id="departure-date"
+                  name="departure_date"
+                  type="date"
+                  required
+                />
+              </div>
+              <div class="item time">
+                <label class="sr-only" for="departure-time"
+                  >Heure de départ</label
+                >
+                <input
+                  class="input-form"
+                  id="departure-time"
+                  name="departure_time"
+                  type="time"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="others">
+              <div class="item person">
+                <label class="sr-only" for="available_seats"
+                  >Nombre de place disponible</label
+                >
+                <input
+                  class="input-form"
+                  id="available_seats"
+                  name="available_seats"
+                  type="number"
+                  min="1"
+                  max="5"
+                  step="1"
+                  placeholder="1"
+                  required
+                />
+              </div>
+
+              <div class="item price">
+                <label class="sr-only" for="price">Prix</label>
+                <input
+                  class="input-form"
+                  id="price"
+                  name="price"
+                  type="number"
+                  min="1"
+                  max="100"
+                  placeholder="Prix du trajet"
+                  required
+                />
+              </div>
+            </div>
+            <div class="vehicules">
+              <!-- Voir quelle nom pour car -->
+              <div class="item vehicule">
+                <label class="sr-only" for="car">Choisir un véhicule</label>
+                <select name="car" id="car" class="input-form" required>
+                  <option value="" disabled selected hidden>
+                    Choisir un véhicule
+                  </option>
+                  <option value="test">test</option>
+                  <!-- Rajouter dynamiquement les voitures disponibles en fonction de l'utilisateur -->
+                </select>
+              </div>
+            </div>
+
+            <!--Div pour afficher les messages d'erreur-->
+            <div id="feedback-form" role="alert"></div>
+
+            <button
+              class="btn"
+              type="submit"
+              aria-label="Publier un trajet sur ecoride"
+            >
+              Publier
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>

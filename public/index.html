@@ -49,12 +49,12 @@
           <ul>
             <!-- Rechercher -->
             <li><a href="/rechercher">Rechercher un trajet</a></li>
-            <!-- Publier -->
+            <!-- Publier /// Rajouter connected quand page ok -->
             <li><a href="/publier">Publier un trajet</a></li>
-            <!-- Espace client -->
-            <li data-show="connected"><a href="/account">Mon compte</a></li>
+            <!-- Espace client  /// Rajouter connected quand page ok-->
+            <li data-show="connected"><a href="/compte">Mon compte</a></li>
             <!-- Se connecter -->
-            <li data-show="disconnected"><a href="/login">Connexion</a></li>
+            <li data-show="disconnected"><a href="/connexion">Connexion</a></li>
             <!-- Se deconnecter -->
             <li data-show="connected">
               <a href="#" id="logout-btn">Déconnexion</a>
@@ -71,15 +71,22 @@
         <nav aria-label="smallNav-links">
           <!-- Se connecter -->
           <div class="user-icon" data-show="disconnected">
-            <a href="/login"
+            <a href="/connexion"
+              ><img
+                src="./assets/img/icons/account_circle.png"
+                alt="Connexion à l'espace utilisateur de la plateforme de covoiturage EcoRide"
+            /></a>
+          </div>
+          <!-- Espace client -->
+          <div class="user-icon" data-show="connected">
+            <a href="/compte"
               ><img
                 src="./assets/img/icons/account_circle.png"
                 alt="Espace utilisateur de la plateforme de covoiturage EcoRide"
             /></a>
           </div>
-
+          <!-- Logo avec retour page accueil-->
           <div class="logo">
-            <!-- Logo avec retour page accueil-->
             <a href="/"
               ><img
                 src="./assets/img/logo/logo.webp"
