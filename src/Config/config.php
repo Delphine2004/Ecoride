@@ -1,25 +1,46 @@
 <?php
 
-define('ROOT_PATH', dirname(dirname(__DIR__)) . DIRECTORY_SEPARATOR); // Répertoire racine du projet (au-dessus de public)
+namespace App\Config;
 
-// Chemins des dossiers principaux
-define('SRC_PATH', ROOT_PATH . 'src' . DIRECTORY_SEPARATOR); // C:\wamp64\www\ECF\src\
-define('CORE_PATH', SRC_PATH . 'Core' . DIRECTORY_SEPARATOR); // C:\wamp64\www\ECF\src\Core\
-define('VIEW_PATH', SRC_PATH . 'View' . DIRECTORY_SEPARATOR);
-define('PAGES_PATH', VIEW_PATH . 'Pages' . DIRECTORY_SEPARATOR);
-define('LAYOUT_PATH', VIEW_PATH . 'Layout' . DIRECTORY_SEPARATOR);
-define('ROUTES_PATH', SRC_PATH . 'Routes' . DIRECTORY_SEPARATOR);
-define('CONFIG_PATH', SRC_PATH . 'Config' . DIRECTORY_SEPARATOR);
-define('CONTROLLER_PATH', SRC_PATH . 'Controller' . DIRECTORY_SEPARATOR);
+use Dotenv\Dotenv;
 
+class Config
+{
+    /** 
+     * @param string $path le chemin vers le dossier contenant le fichier .env
+     */
 
+    public static function load(?string $path = null): void
+    {
+        if ($path === null) {
+            $path = realpath(__DIR__ . '/../../') . '/';
+        }
+        //on verifie si le fichier .env existe avant de tenter de le charger
+        if (file_exists($path . '.env')) {
+            $dotenv = Dotenv::createImmutable($path);
+            $dotenv->load();
+        }
+    }
 
+    /**
+     * @param string $key le nom de la variable 
+     * @param mixed $default une valeur par défaut à retourner si la variable n'existe pas
+     * @return mixed la valeur de la variable ou la valeur par defaut
+     */
 
+    public static function get(string $key, $default = null)
+    {
+        return $_ENV[$key] ?? getenv($key) ?: $default;
+    }
 
-
-
-/* Front */
-define('PUBLIC_PATH', '/ECF/ecoride/public/');
-define('CSS_PATH', PUBLIC_PATH . 'assets/css/');
-define('IMG_PATH', PUBLIC_PATH . 'assets/img/');
-define('JS_PATH', PUBLIC_PATH . 'assets/js/');
+    /**
+     * Indique si une variable d'environnement est définie
+     * 
+     * @param string $key
+     * @return bool
+     */
+    public static function has(string $key): bool
+    {
+        return isset($_ENV[$key]) || getenv($key) !== false;
+    }
+}
