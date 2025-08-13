@@ -2,14 +2,13 @@ import { FormManager } from "../Utils/FormManager.js";
 import { Api } from "../Model/Api.js";
 
 export function addRide() {
-  console.log("JS add chargé !");
+  //console.log("JS add chargé !");
 
   const addForm = document.getElementById("addRide-form");
-
+  //console.log("Formulaire trouvé :", addForm);
   if (!addForm) return; // Vérification si le fomulaire existe
 
   const results = document.getElementById("feedback-form");
-  //console.log("Zone de commentaire :", results);
 
   // Création du gestionnaire de formulaire qui gére les validation
   const formManager = new FormManager(addForm);
@@ -39,11 +38,10 @@ export function addRide() {
 
   addForm.addEventListener("submit", async function (event) {
     event.preventDefault();
-    //console.log("Soumission interceptée");
+    console.log("Soumission d'ajout de trajet interceptée"); // test
 
     // Valider toutes les données avec la fonction validateForm()
     const isValid = formManager.validateForm(inputs);
-    //console.log("Validation globale :", isValid);
     if (!isValid) return;
 
     // Puis les stocker dans un objet
@@ -51,21 +49,17 @@ export function addRide() {
     //console.log("Données nettoyées à envoyer :", cleanInputs);
 
     // Instanciation de la class Api
-    const api = new Api("/ECF/public/api.php");
+    const api = new Api("./api.php");
 
     try {
       // appel de la méthode post de la classe api
-      const trajets = await api.post("/recherche-covoiturage", cleanInputs);
+      const trajets = await api.post("/publier", cleanInputs);
       console.log("Réponse de l’API :", trajets);
-      // -----------------------------------------Cette partie sera à modifier
-      results.innerHTML = trajets.length
-        ? trajets
-            .map((t) => `<div>${t.ville_depart} → ${t.ville_arrivee}</div>`)
-            .join("")
-        : "<p>Aucun résultat trouvé.</p>";
+
+      results.textContent = "Votre trajet a bien été ajouté.";
     } catch (error) {
       console.error("Erreur lors de l’appel à l’API :", error);
-      results.innerHTML = `<p class="error">Erreur : ${error.message}</p>`;
-    }
+      results.textContent = `Erreur : ${error.message}`;
+    } // rajouter finally
   });
 }

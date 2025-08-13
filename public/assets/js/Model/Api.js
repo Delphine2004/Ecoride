@@ -1,11 +1,10 @@
-import { getToken } from "../Controller/Auth/auth.js";
+import { getToken } from "../Utils/auth.js";
 
 export class Api {
   constructor(baseUrl = "") {
     this.baseUrl = baseUrl;
   }
 
-  // fonction request utiliser dans la classe Api
   async request(endpoint, method = "GET", data = null, token = null) {
     const headers = {
       "Content-Type": "application/json",

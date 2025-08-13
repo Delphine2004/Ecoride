@@ -1,4 +1,6 @@
 import { FormManager } from "../../Utils/FormManager.js";
+import { setToken, setCookie, clearToken } from "../../Utils/auth.js";
+import { showAndHideElementsForRole } from "../../Utils/role.js";
 import { Api } from "../../Model/Api.js";
 
 export function registration() {
@@ -34,7 +36,7 @@ export function registration() {
 
   registerForm.addEventListener("submit", async function (event) {
     event.preventDefault();
-    //console.log("JS a bien intercepté l'envoi !"); // test
+    console.log("Soumission d'inscription interceptée"); // test
 
     // Valider toutes les données avec la fonction validateForm()
     const isValid = formManager.validateForm(inputs);
@@ -42,24 +44,22 @@ export function registration() {
 
     // Puis les stocker dans un objet
     const cleanInputs = formManager.getCleanInputs(inputs);
+    //console.log("Données nettoyées à envoyer :", cleanInputs);
 
     // Instanciation de la class Api
-    const api = new Api("/ECF/public/api.php");
-
-    // TODO à rajouter sur les autres formulaires
-    const submitBtn = registerForm.querySelector("button[type=submit]");
-    submitBtn.disabled = true;
+    const api = new Api("./api.php");
 
     try {
       // appel de la méthode post de la classe api
       const userData = await api.post("/inscription", cleanInputs);
-      //console.log("Réponse de l’API :", userData); // test
+      console.log("Réponse de l’API :", userData); // test
 
+      //---- Partie à modifier ---- /
       if (userData.success) {
         // TODO - Redirection ou autre logique après connexion réussie
         results.innerHTML = `<p class="success">Inscription réussie. Redirection en cours...</p>`;
         setTimeout(() => {
-          window.location.href = "/ECF/public/index.php?pages=home"; // à modifier
+          window.location.href = "/connexion";
         }, 1500);
       } else {
         results.innerHTML = `<p class="error">${
@@ -67,12 +67,10 @@ export function registration() {
         }</p>`;
       }
     } catch (error) {
+      console.error("Erreur lors de l’appel à l’API :", error);
       // TODO - ne pas afficher les erreurs mais plutot un message
       results.innerHTML = `<p class="error">Erreur : ${error.message}</p>`;
-    } finally {
-      // TODO - rajouter finally sur les autres formulaires
-      submitBtn.disabled = false;
-    }
+    } // rajouter finally
   });
 }
 

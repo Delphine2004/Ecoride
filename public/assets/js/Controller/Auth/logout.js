@@ -1,5 +1,5 @@
-import { clearToken, eraseCookie } from "./auth.js";
-import { showAndHideElementsForRole } from "./role.js";
+import { clearToken, eraseCookie } from "../../Utils/auth.js";
+import { showAndHideElementsForRole } from "../../Utils/role.js";
 
 export function logout() {
   clearToken();

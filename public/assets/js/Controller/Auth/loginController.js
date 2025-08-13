@@ -1,7 +1,7 @@
 import { FormManager } from "../../Utils/FormManager.js";
-import { setToken, setCookie, clearToken } from "./auth.js";
+import { setToken, setCookie, clearToken } from "../../Utils/auth.js";
+import { showAndHideElementsForRole } from "../../Utils/role.js";
 import { Api } from "../../Model/Api.js";
-import { showAndHideElementsForRole } from "./role.js";
 
 export function login() {
   //console.log("JS Login chargé !"); // test de chargement
@@ -21,8 +21,7 @@ export function login() {
     password: document.getElementById("password"),
   };
 
-  // Boucle de validation en temps réel sur les éléments du formulaire -(Il faut que les champs aient un attribut type)
-  //----ESSAYER AVEC FORMMANAGER QUAND CE SERA CHARGE
+  // Boucle de validation en temps réel sur les éléments du formulaire -(Il faut que les champs aient un attribut type) ----ESSAYER AVEC FORMMANAGER QUAND CE SERA CHARGE
   Object.values(inputs).forEach((input) => {
     input.addEventListener("input", (event) => {
       const { value, id, dataset, type } = event.target;
@@ -35,31 +34,25 @@ export function login() {
 
   formLogin.addEventListener("submit", async function (event) {
     event.preventDefault();
-    //alert("JS a bien intercepté l'envoi !"); // test
-
-    const submitBtn = formLogin.querySelector('button[type="submit"]');
-    submitBtn.disabled = true;
-    results.innerHTML = ""; // reset feedback
+    console.log("Soumission de connexion interceptée"); // test
 
     // Valider toutes les données avec la fonction validateForm()
     const isValid = formManager.validateForm(inputs);
-    if (!isValid) {
-      submitBtn.disabled = false;
-      return;
-    }
+    if (!isValid) return;
 
     // Puis les stocker dans un objet
     const cleanInputs = formManager.getCleanInputs(inputs);
+    //console.log("Données nettoyées à envoyer :", cleanInputs);
 
     // Instanciation de la class Api
-    const api = new Api("/ECF/public/api.php");
+    const api = new Api("./api.php");
 
     try {
       // appel de la méthode post de la classe api
       const userData = await api.post("/connexion", cleanInputs);
       console.log("Réponse de l’API :", userData);
 
-      // -----------------------------------------Cette partie sera à modifier
+      //---- Partie à modifier ---- /
       if (userData.success) {
         if (userData.token) {
           setToken(userData.token);
@@ -85,7 +78,9 @@ export function login() {
 
       /* Il faut définir l'action */
     } catch (error) {
+      console.error("Erreur lors de l’appel à l’API :", error);
+      // TODO - ne pas afficher les erreurs mais plutot un message
       results.innerHTML = `<p class="error">Erreur : ${error.message}</p>`;
-    }
+    } // rajouter finally
   });
 }

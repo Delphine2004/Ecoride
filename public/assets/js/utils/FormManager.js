@@ -4,7 +4,7 @@ import {
   isNumberValide,
   isEmailValide,
   isPasswordValide,
-  isDatevalide,
+  isDateValide,
   isDateFormatValide,
   isTimeFormatValide,
 } from "./validations.js";
@@ -14,6 +14,8 @@ export class FormManager {
     this.form = form;
     this.errors = {};
   }
+
+  //Fonctions qui gérent l'affichage des div errors
   showError(message, fields) {
     fields.forEach((field) => {
       this.errors[field] = message;
@@ -44,6 +46,7 @@ export class FormManager {
     }
   }
 
+  // Méthode qui vérifie si un champ obligatoire est rempli
   isEmpty(value, id) {
     if (value.trim() === "") {
       // Trouver le label associé au champ
@@ -58,6 +61,7 @@ export class FormManager {
     }
   }
 
+  //Méthodes qui vérifie si les champs textes sont propres
   validateFreeText(text, id) {
     if (!this.isEmpty(text, id)) {
       return false;
@@ -91,13 +95,15 @@ export class FormManager {
     }
   }
 
+  /* Peut être créer une fonction dans formManager pour valider le prix et le nombre de place?? */
+
   validateNumber(number, id) {
     if (!this.isEmpty(number, id)) {
       return false;
     } else if (!isNumberValide(number)) {
       const label = this.form.querySelector(`label[for="${id}"]`);
       const fieldName = label ? label.textContent.trim() : id;
-      this.showError(`« ${fieldName} » doit être un nombre.`, [id]);
+      this.showError(`« ${fieldName} » doit être supérieure à 0.`, [id]);
       return false;
     } else {
       this.clearErrors([id]);
@@ -105,6 +111,7 @@ export class FormManager {
     }
   }
 
+  // Méthode qui vérifie l'email
   validateEmail(email, id) {
     if (!this.isEmpty(email, id)) {
       return false;
@@ -119,6 +126,7 @@ export class FormManager {
     }
   }
 
+  // Méthodes qui vérifie les mots de passe
   validatePassword(password, id) {
     if (!this.isEmpty(password, id)) {
       return false;
@@ -148,16 +156,20 @@ export class FormManager {
     }
   }
 
+  // Méthodes qui vérifient la date et l'heure - A VERIFIER
   validateDate(date, id) {
+    // Vérifie si c'est vide
     if (!this.isEmpty(date, id)) {
       return false;
-    } else if (!isDateFormatValide(date)) {
+    }
+    // Vérifie si le format est bon
+    if (!isDateFormatValide(date)) {
       const label = this.form.querySelector(`label[for="${id}"]`);
       const fieldName = label ? label.textContent.trim() : id;
       this.showError(`« ${fieldName} » n'est pas au bon format.`, [id]);
       return false;
-    } else if (!isDatevalide(date)) {
-      this.showError("Date invalide.", [id]);
+    } else if (!isDateValide(date)) {
+      this.showError("Merci de selectionner une date à venir.", [id]);
       return false;
     } else {
       this.clearErrors([id]);
@@ -165,19 +177,29 @@ export class FormManager {
     }
   }
 
-  validateTime(time, id) {
-    if (!this.isEmpty(time, id)) {
+  validateTime(time, timeId) {
+    // Vérifie si c'est vide
+    if (!this.isEmpty(time, timeId)) {
       return false;
-    } else if (!isTimeFormatValide(time)) {
+    }
+    // vérifie si l'heure respecte le format
+    if (!isTimeFormatValide(time)) {
       const label = this.form.querySelector(`label[for="${id}"]`);
       const fieldName = label ? label.textContent.trim() : id;
       this.showError(
         `« ${fieldName} » n'est pas au bon format (HH:MM sous 24heures).`,
-        [id]
+        [timeId]
       );
       return false;
-    } else if (!isDatevalide(time)) {
-      this.showError("Heure invalide.", [id]);
+    }
+  }
+
+  // Methode qui vérifie les listes
+  validateSelect(value, id) {
+    if (!this.isEmpty(value, id)) {
+      return false;
+    } else if (!value || value === "default") {
+      this.showError("Veuillez sélectionner une option.", [id]);
       return false;
     } else {
       this.clearErrors([id]);
@@ -185,6 +207,7 @@ export class FormManager {
     }
   }
 
+  // Méthode qui centralise les vérifications en fonction des types
   validateInputs(value, id, type) {
     // console.log(`Validation en cours pour ${id} avec type ${type}`);
 
@@ -203,6 +226,8 @@ export class FormManager {
         return this.validateDate(value, id);
       case "time":
         return this.validateTime(value, id);
+      case "select-one":
+        return this.validateSelect(value, id);
       default:
         console.warn(`Type non géré : ${type}`);
         return true;
@@ -256,16 +281,3 @@ export class FormManager {
     return cleanInputs;
   }
 }
-
-//************************************ */
-/*
-  validateSelect(value, id) {
-    if (!value || value === "default") {
-      showError(id, "Veuillez sélectionner une option.");
-      return false;
-    } else {
-      clearErrors(id);
-      return true;
-    }
-  }
-  */

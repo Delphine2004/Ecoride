@@ -2,7 +2,7 @@ import {
   showAndHideElementsForRole,
   getRole,
   isConnected,
-} from "../Controller/Auth/role.js";
+} from "../Utils/role.js";
 
 export default class Route {
   constructor(url, title, pathHtml, authorize = []) {

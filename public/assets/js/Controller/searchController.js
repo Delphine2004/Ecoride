@@ -9,7 +9,6 @@ export function searchRide() {
   if (!searchForm) return; // vérification que le formulaire existe
 
   const results = document.getElementById("feedback-form");
-  //console.log("Zone de commentaire :", results);
 
   // Création du gestionnaire de formulaire qui gére les validation
   const formManager = new FormManager(searchForm);
@@ -21,13 +20,6 @@ export function searchRide() {
     date_depart: document.getElementById("departure-date"),
     nombre_personne: document.getElementById("number-person"),
   };
-
-  /*
-  // Récupération du jeton
-  const csrfToken = document
-    .querySelector('meta[name="csrf-token"]')
-    .getAttribute("content");
-    */
 
   // Boucle de validation en temps réel sur les éléments du formulaire -(Il faut que les champs aient un attribut type)
   Object.values(inputs).forEach((input) => {
@@ -43,11 +35,10 @@ export function searchRide() {
 
   searchForm.addEventListener("submit", async function (event) {
     event.preventDefault();
-    //console.log("Soumission interceptée");
+    console.log("Soumission de recherche interceptée"); // test
 
     // Valider toutes les données avec la fonction validateForm()
     const isValid = formManager.validateForm(inputs);
-    //console.log("Validation globale :", isValid);
     if (!isValid) return;
 
     // Puis les stocker dans un objet
@@ -55,13 +46,14 @@ export function searchRide() {
     //console.log("Données nettoyées à envoyer :", cleanInputs);
 
     // Instanciation de la class Api
-    const api = new Api("/ECF/public/api.php");
+    const api = new Api("./api.php");
 
     try {
       // appel de la méthode post de la classe api
-      const trajets = await api.post("/recherche-covoiturage", cleanInputs);
+      const trajets = await api.get("/rechercher", cleanInputs);
       console.log("Réponse de l’API :", trajets);
-      // -----------------------------------------Cette partie sera à modifier
+
+      //---- Partie à modifier ---- /
       results.innerHTML = trajets.length
         ? trajets
             .map((t) => `<div>${t.ville_depart} → ${t.ville_arrivee}</div>`)
@@ -69,7 +61,8 @@ export function searchRide() {
         : "<p>Aucun résultat trouvé.</p>";
     } catch (error) {
       console.error("Erreur lors de l’appel à l’API :", error);
+      // TODO - ne pas afficher les erreurs mais plutot un message
       results.innerHTML = `<p class="error">Erreur : ${error.message}</p>`;
-    }
+    } // rajouter finally
   });
 }
