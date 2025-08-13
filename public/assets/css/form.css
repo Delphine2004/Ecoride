@@ -85,7 +85,7 @@
 /* ------ Formulaire d'ajout de trajet */
 #addRide-form {
   width: 100%;
-  height: 35rem;
+  height: 100%;
 }
 
 /* ---- La carte ------*/
@@ -150,7 +150,8 @@
   }
 
   #feedback-form {
-    height: 10rem;
+    height: auto;
+    min-height: 5rem;
   }
 
   /* Les cartes*/

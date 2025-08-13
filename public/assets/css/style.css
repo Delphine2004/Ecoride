@@ -80,13 +80,13 @@ a {
 #hero h1,
 #hero h2,
 #header-banner a,
-.small-screen {
+.small-screen.title {
   color: #f7fff6;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 #infos h2,
-.big-screen,
+.big-screen.title,
 a,
 #footer-banner {
   color: #000000;
