@@ -1,13 +1,18 @@
 <?php
 
+// Finie mais à vérifier
+
 namespace App\Models;
 
-use DateTimeImmutable;
+use App\Models\BaseModel;
+use App\Models\CarPower;
 use InvalidArgumentException;
+use DateTimeImmutable;
 
 
 /** 
  * Cette classe représente une voiture dans la BDD.
+ * Elle contient seulement la validation des données.
  */
 
 class Car extends BaseModel
@@ -20,14 +25,14 @@ class Car extends BaseModel
     protected string $table = 'cars';
 
 
-
+    // déclaration des propriétés façon moderne
     function __construct(
         private ?int $id = null,
         private string $brand,
         private string $model,
         private string $color,
         private int $year,
-        private string $power,
+        private CarPower $power,
         private int $seatsNumber,
         private string $registrationNumber,
         private \DateTimeImmutable $registrationDate
@@ -63,7 +68,7 @@ class Car extends BaseModel
         return $this->year;
     }
 
-    public function getPower(): string
+    public function getPower(): CarPower
     {
         return $this->power;
     }
@@ -130,15 +135,9 @@ class Car extends BaseModel
         return $this;
     }
 
-    public function setPower(string $power): self
+    public function setPower(CarPower $power): self
     {
-        $allowed = ['thermique', 'electrique', 'hybride'];
-        if (!in_array(strtolower($power), $allowed, true)) {
-            throw new InvalidArgumentException("Type d'energie invalide.");
-        };
-
-        $this->power = trim($power);
-
+        $this->power = $power;
         return $this;
     }
 

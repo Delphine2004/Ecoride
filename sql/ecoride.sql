@@ -23,7 +23,7 @@ CREATE TABLE users(
         user_name VARCHAR (50) NULL UNIQUE,
         email VARCHAR (150) NOT NULL UNIQUE,
         password VARCHAR (255) NOT NULL,
-        role ENUM('passenger', 'driver', 'both', 'employee', 'admin') NOT NULL DEFAULT 'passenger',
+        role ENUM('passager', 'conduteur', 'lesdeux', 'employer', 'admin') NOT NULL DEFAULT 'passager',
         phone VARCHAR (20) NULL,
         address VARCHAR (100) NULL,
         city VARCHAR (50) NULL,
