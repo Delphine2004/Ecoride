@@ -5,7 +5,7 @@
 namespace App\Models;
 
 use App\Models\BaseModel;
-use App\Models\CarPower;
+use App\Enum\CarPower;
 use InvalidArgumentException;
 use DateTimeImmutable;
 

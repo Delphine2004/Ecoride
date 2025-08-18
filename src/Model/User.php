@@ -1,16 +1,18 @@
 <?php
 
+// Rajouter les méthodes sp
 
 namespace App\Models;
 
 use App\Models\BaseModel;
-use App\Models\UserStatus;
+use App\Enum\UserStatus;
 use InvalidArgumentException;
 
 
 /** 
  * Cette classe représente un utilisateur dans la BDD.
- * Elle contient seulement la validation des données.
+ * Elle contient la validation des données 
+ * ainsi que les actions réalisables par les utilisateurs en fonction de leur status.
  */
 
 class User extends BaseModel
@@ -41,7 +43,6 @@ class User extends BaseModel
         return $this->id;
     }
 
-
     public function getLogin(): string
     {
         return $this->login;
@@ -51,7 +52,6 @@ class User extends BaseModel
     {
         return $this->password;
     }
-
 
     public function getRole(): UserStatus
     {
@@ -89,7 +89,7 @@ class User extends BaseModel
         return $this;
     }
 
-    // ----- Autres méthodes -----
+    // ----- Autres méthodes de vérification -----
 
     public function verifyPassword(string $inputPassword): bool
     {
@@ -100,4 +100,16 @@ class User extends BaseModel
     {
         return $this->role === $roleToCheck;
     }
+
+
+    // ----- Méthodes en fonction du status ----- 
+
+    // Méthodes communes à tous les status
+    // modifier mdp
+    // modifier email
+    // modifier info
+
+
+
+
 }

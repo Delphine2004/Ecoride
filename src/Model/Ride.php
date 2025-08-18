@@ -6,7 +6,7 @@ namespace App\Models;
 
 use App\Models\BaseModel;
 use App\Models\User;
-use App\Models\RideStatus;
+use App\Enum\RideStatus;
 use InvalidArgumentException;
 use DateTime;
 
