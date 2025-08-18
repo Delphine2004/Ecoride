@@ -23,7 +23,6 @@ CREATE TABLE users(
         user_name VARCHAR (50) NULL UNIQUE,
         email VARCHAR (150) NOT NULL UNIQUE,
         password VARCHAR (255) NOT NULL,
-        role ENUM('passager', 'conduteur', 'lesdeux', 'employer', 'admin') NOT NULL DEFAULT 'passager',
         phone VARCHAR (20) NULL,
         address VARCHAR (100) NULL,
         city VARCHAR (50) NULL,
@@ -36,6 +35,26 @@ CREATE TABLE users(
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+#------------------------------------------------------------
+# Table: roles
+#------------------------------------------------------------
+
+CREATE TABLE roles(
+        role_id INT AUTO_INCREMENT PRIMARY KEY,
+        role_name VARCHAR(50) UNIQUE NOT NULL
+);
+
+
+#------------------------------------------------------------
+# Table: user_roles
+#------------------------------------------------------------
+CREATE TABLE user_roles (
+        user_id INT NOT NULL,
+        role_id INT NOT NULL,
+        PRIMARY KEY(user_id, role_id),
+        FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+        FOREIGN KEY(role_id) REFERENCES roles(role_id) ON DELETE CASCADE
+);
 
 #------------------------------------------------------------
 # Table: cars
@@ -63,9 +82,9 @@ CREATE TABLE cars(
 CREATE TABLE rides(
         ride_id INT AUTO_INCREMENT PRIMARY KEY ,
         driver_id INT NOT NULL,
-        departure_date_time DATE NOT NULL ,
+        departure_date_time DATETIME NOT NULL ,
         departure_place VARCHAR (100) NOT NULL ,
-        arrival_date_time DATE NOT NULL ,
+        arrival_date_time DATETIME NOT NULL ,
         arrival_place VARCHAR (100) NOT NULL ,
         duration_minutes INT UNSIGNED NOT NULL ,
         price DECIMAL(6,2) NOT NULL ,
@@ -107,7 +126,14 @@ CREATE TABLE reviews(
         statut ENUM('pending', 'approved', 'rejected')NOT NULL DEFAULT 'pending',
         created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
         validated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-FOREIGN KEY (ride_id) REFERENCES rides(ride_id) ON DELETE CASCADE,
-FOREIGN KEY (author_id) REFERENCES users(user_id) ON DELETE CASCADE,
-FOREIGN KEY (target_id) REFERENCES users(user_id) ON DELETE CASCADE
+        FOREIGN KEY (ride_id) REFERENCES rides(ride_id) ON DELETE CASCADE,
+        FOREIGN KEY (author_id) REFERENCES users(user_id) ON DELETE CASCADE,
+        FOREIGN KEY (target_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
+
+
+
+
+
+/*--------------- remplissage de la table rôles avec la définission des rôles*/
+INSERT INTO roles(role_name) VALUES ('passager'), ('conducteur'), ('employé'), ('admin');
