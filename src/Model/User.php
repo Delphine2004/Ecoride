@@ -4,7 +4,7 @@
 
 namespace App\Models;
 
-use App\Models\BaseModel;
+
 use App\Enum\UserStatus;
 use InvalidArgumentException;
 
@@ -15,14 +15,10 @@ use InvalidArgumentException;
  * ainsi que les actions réalisables par les utilisateurs en fonction de leur status.
  */
 
-class User extends BaseModel
+class User
 {
 
-    /**
-     * @var string Le nom de la table en BDD
-     */
 
-    protected string $table = 'users';
 
 
     // déclaration des propriétés façon moderne

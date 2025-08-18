@@ -4,7 +4,7 @@
 
 namespace App\Models;
 
-use App\Models\BaseModel;
+
 use App\Enum\CarPower;
 use InvalidArgumentException;
 use DateTimeImmutable;
@@ -15,15 +15,8 @@ use DateTimeImmutable;
  * Elle contient seulement la validation des données.
  */
 
-class Car extends BaseModel
+class Car
 {
-
-    /**
-     * @var string Le nom de la table en BDD.
-     */
-
-    protected string $table = 'cars';
-
 
     // déclaration des propriétés façon moderne
     function __construct(

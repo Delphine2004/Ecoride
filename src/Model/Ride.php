@@ -4,7 +4,7 @@
 
 namespace App\Models;
 
-use App\Models\BaseModel;
+
 use App\Models\User;
 use App\Enum\RideStatus;
 use InvalidArgumentException;
@@ -16,14 +16,10 @@ use DateTime;
  */
 
 
-class Ride extends BaseModel
+class Ride
 {
 
-    /**
-     * @var string Le nom de la table en BDD
-     */
 
-    protected const TABLE = 'rides';
 
     // déclaration des propriétés façon moderne
     public function __construct(
