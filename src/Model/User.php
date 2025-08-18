@@ -4,6 +4,7 @@
 namespace App\Models;
 
 use App\Models\BaseModel;
+use App\Models\UserStatus;
 use InvalidArgumentException;
 
 
@@ -22,12 +23,12 @@ class User extends BaseModel
     protected string $table = 'users';
 
 
-
+    // déclaration des propriétés façon moderne
     function __construct(
-        private ?int $id = null, // utilisation de l'identifiant UUID
+        private ?int $id = null,
         private string $login,
         private string $password,
-        private array $role = [], // en tableau car multi rôle possible
+        private UserStatus $role,
     ) {
         // Affectation avec valisation
         $this->setLogin($login)->setPassword($password)->setRole($role);
@@ -52,7 +53,7 @@ class User extends BaseModel
     }
 
 
-    public function getRole(): array
+    public function getRole(): UserStatus
     {
         return $this->role;
     }
@@ -65,28 +66,26 @@ class User extends BaseModel
         if (empty(trim($login))) {
             throw new InvalidArgumentException("Le login ne peut pas être vide. ");
         }
-        $this->login = $login;
+        $this->login = trim($login);
         return $this;
     }
 
-    public function setPassword(string $password): self
+    public function setPassword(string $password, bool $isHashed = false): self
     {
-        if (strlen(trim($password < 8))) {
-            // modifier la longueur pour 14 plus tard
-            throw new InvalidArgumentException("Le mot de passe doit contenir au moins 14 caractéres.");
-        }
-        $this->password = password_hash($password, PASSWORD_DEFAULT);
-        return $this;
-    }
-
-    public function setRole(array $roles): self
-    {
-        foreach ($roles as $role) {
-            if (!is_string($role)) {
-                throw new InvalidArgumentException("Chaque rôle doit être une chaine de caractères.");
+        if (!$isHashed) {
+            if (strlen(trim($password)) < 8) {
+                // modifier la longueur pour 14 plus tard
+                throw new InvalidArgumentException("Le mot de passe doit contenir au moins 8 caractéres.");
             }
+            $password = password_hash(trim($password), PASSWORD_DEFAULT);
         }
-        $this->role = $roles;
+        $this->password = $password;
+        return $this;
+    }
+
+    public function setRole(UserStatus $role): self
+    {
+        $this->role = $role;
         return $this;
     }
 
@@ -97,8 +96,8 @@ class User extends BaseModel
         return password_verify($inputPassword, $this->password);
     }
 
-    public function hasRole(string $roleToCheck): bool
+    public function hasRole(UserStatus $roleToCheck): bool
     {
-        return in_array($roleToCheck, $this->role);
+        return $this->role === $roleToCheck;
     }
 }
