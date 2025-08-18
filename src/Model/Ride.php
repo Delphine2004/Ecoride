@@ -5,7 +5,7 @@
 namespace App\Models;
 
 use App\Models\BaseModel;
-use App\Models\Driver;
+use App\Models\User;
 use App\Models\RideStatus;
 use InvalidArgumentException;
 use DateTime;
@@ -36,7 +36,7 @@ class Ride extends BaseModel
         private int $price,
         private int $availableSeat,
         private RideStatus $status,
-        private Driver $driver
+        private User $driver
     ) {
         // Affectation avec valisation
         $this->setDepartureDateTime($departureDateTime)->setDeparturePlace($departurePlace)->setArrivalDateTime($arrivalDateTime)->setArrivalPlace($arrivalPlace)->setDuration($duration)->setPrice($price)->setAvailableSeat($availableSeat)->setStatus($status)->setDriver($driver);
@@ -80,7 +80,7 @@ class Ride extends BaseModel
     {
         return $this->status;
     }
-    public function getDriver(): Driver
+    public function getDriver(): User
     {
         return $this->driver;
     }
@@ -164,7 +164,7 @@ class Ride extends BaseModel
         return $this;
     }
 
-    public function setDriver(Driver $driver): self
+    public function setDriver(User $driver): self
     {
         $this->driver = $driver;
         return $this;
