@@ -20,9 +20,9 @@ CREATE TABLE users(
         user_id INT AUTO_INCREMENT PRIMARY KEY,
         last_name VARCHAR (50) NOT NULL,
         first_name VARCHAR (50) NOT NULL,
-        user_name VARCHAR (50) NULL UNIQUE,
         email VARCHAR (150) NOT NULL UNIQUE,
         password VARCHAR (255) NOT NULL,
+        user_name VARCHAR (50) NULL UNIQUE,
         phone VARCHAR (20) NULL,
         address VARCHAR (100) NULL,
         city VARCHAR (50) NULL,
@@ -47,6 +47,7 @@ CREATE TABLE roles(
 
 #------------------------------------------------------------
 # Table: user_roles
+# Permet d'associer plusieurs rôles à un utilisateur
 #------------------------------------------------------------
 CREATE TABLE user_roles (
         user_id INT NOT NULL,
