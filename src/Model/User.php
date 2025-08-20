@@ -1,25 +1,22 @@
 <?php
 
-// Rajouter les méthodes sp
+// Rajouter les méthodes liées à userRepository
 
 namespace App\Models;
 
 
-use App\Enum\UserStatus;
+use App\Enum\UserRoles;
 use InvalidArgumentException;
 
 
 /** 
  * Cette classe représente un utilisateur dans la BDD.
  * Elle contient la validation des données 
- * ainsi que les actions réalisables par les utilisateurs en fonction de leur status.
+ * ainsi que les actions réalisables par les utilisateurs en fonction de leur rôle.
  */
 
 class User
 {
-
-
-
 
     // déclaration des propriétés façon moderne
     function __construct(
@@ -37,8 +34,8 @@ class User
         private ?string $uriPicture = null,
         private ?string $licenceNo = null,
         private ?int $credit = null,
-        /**@var UserStatus[] */
-        private array $roles = [UserStatus::PASSAGER] // Pour pouvoir stoker plusieurs rôles pour un utilisateur
+        /**@var UserRoles[] */
+        private array $roles = [UserRoles::PASSAGER] // Pour pouvoir stoker plusieurs rôles pour un utilisateur
     ) {
         // Affectation avec valisation
         $this
@@ -57,7 +54,9 @@ class User
             ->setRoles($roles);
     }
 
+
     // ---------Les Getters ---------
+
 
     public function getId(): ?int
     {
@@ -131,6 +130,7 @@ class User
 
 
     // ---------Les Setters ---------
+
 
     public function setLastName(string $lastName): self
     {
@@ -247,8 +247,8 @@ class User
     public function setRoles(array $roles): self
     {
         foreach ($roles as $role) {
-            if (!$role instanceof UserStatus) {
-                throw new InvalidArgumentException('Chaque rôle doit être une instance de UserStatus.');
+            if (!$role instanceof UserRoles) {
+                throw new InvalidArgumentException('Chaque rôle doit être une instance de UserRoles.');
             }
         }
         $this->roles = $roles;
@@ -257,7 +257,7 @@ class User
 
     // ----- Méthodes de manipulation -----
 
-    public function addRole(UserStatus $role): self
+    public function addRole(UserRoles $role): self
     {
         if (!in_array($role, $this->roles, true)) {
             $this->roles[] = $role;
@@ -265,8 +265,7 @@ class User
         return $this;
     }
 
-
-    public function removeRole(UserStatus $role): self
+    public function removeRole(UserRoles $role): self
     {
         $this->roles = array_filter($this->roles, fn($r) => $r !== $role);
         return $this;
@@ -279,7 +278,7 @@ class User
         return password_verify($inputPassword, $this->password);
     }
 
-    public function hasRole(UserStatus $roleToCheck): bool
+    public function hasRole(UserRoles $roleToCheck): bool
     {
         return in_array($roleToCheck, $this->roles, true);
     }
@@ -294,10 +293,9 @@ class User
         return false;
     }
 
-    // ----- Méthodes en fonction du status ----- 
+    // ----- Méthodes en fonction du rôle ----- 
 
-    // Méthodes communes à tous les status
-    // modifier mdp
+    // Méthodes communes à tous les rôle
     public function changePassword(string $oldPassword, string $newPassword): void
     {
         if (!$this->verifyPassword($oldPassword)) {
@@ -309,101 +307,142 @@ class User
         $this->setPassword($newPassword);
     }
 
-    // modifier info
     public function updateProfile(array $newData): void
     {
-        if (isset($newData['email'])) {
-            $this->setemail($newData['email']);
+        if (isset($newData['last_name'])) {
+            $this->setLastName($newData['last_name']);
         }
-
-        // ---- rajouter les autres données
-
+        if (isset($newData['first_name'])) {
+            $this->setFirstName($newData['first_name']);
+        }
+        if (isset($newData['email'])) {
+            $this->setEmail($newData['email']);
+        }
+        if (isset($newData['user_name'])) {
+            $this->setUserName($newData['user_name']);
+        }
+        if (isset($newData['phone'])) {
+            $this->setPhone($newData['phone']);
+        }
+        if (isset($newData['address'])) {
+            $this->setAddress($newData['address']);
+        }
+        if (isset($newData['city'])) {
+            $this->setCity($newData['city']);
+        }
+        if (isset($newData['zip_code'])) {
+            $this->setZipCode($newData['zip_code']);
+        }
+        if (isset($newData['picture'])) {
+            $this->setUriPicture($newData['picture']);
+        }
+        if (isset($newData['licence_no'])) {
+            $this->setLicenceNo($newData['licence_no']);
+        }
     }
 
-    // Supprimer son compte
+    // cette fonction uniquement pour les conducteurs et les passagers
+    // à compléter
     public function deleteAccount(): void
     {
-        if (empty($this->roles)) {
-            throw new InvalidArgumentException("Un utilisateur doit avoir un rôle pour supprimer son compte.");
+        if ($this->hasRole(UserRoles::ADMIN) || $this->hasRole(UserRoles::EMPLOYE)) {
+            throw new InvalidArgumentException("Un admin ou un employé ne peut pas supprimer son compte.");
         }
 
         // Faire appelle à UserRepository::delete($this->id);
     }
 
-    // Annuler un trajet (passager, chauffeur, employé, admin)
-    public function cancelRide(): void
-    {
-        if ($this->hasAnyRole([UserStatus::CONDUCTEUR, UserStatus::EMPLOYE, UserStatus::ADMIN])) {
-            throw new InvalidArgumentException("Il est necessaire d'être chauffeur, employé ou admin pour annuler un trajet.");
-        }
-    }
-
-    // méthodes pour les passagers
-    // changer de statut
+    // Méthodes pour le rôle passager
     public function changeToDriver(): void
     {
-        if (!$this->hasRole(UserStatus::PASSAGER)) {
-            throw new InvalidArgumentException("Seulement les passagers peuvent devenir chaufeur.");
-        } else {
-            $this->addRole(UserStatus::CONDUCTEUR);
+        if ($this->hasRole(UserRoles::CONDUCTEUR)) {
+            throw new InvalidArgumentException("L'utilisateur est déjà conducteur.");
         }
+        if (!$this->hasRole(UserRoles::PASSAGER)) {
+            throw new InvalidArgumentException("Seulement les passagers peuvent devenir chaufeur.");
+        }
+        $this->addRole(UserRoles::CONDUCTEUR);
     }
 
-    // Participer à un trajet
     public function joinRide(): void
     {
-        if (!$this->hasRole(UserStatus::PASSAGER)) {
+        if (!$this->hasRole(UserRoles::PASSAGER)) {
             throw new InvalidArgumentException("Seulement les passagers peuvent participer à un trajet.");
         }
     }
 
-    // Laisser un message
     public function leaveReview(): void
     {
-        if (!$this->hasRole(UserStatus::PASSAGER)) {
-            throw new InvalidArgumentException("Seulement les passager peuvent laisser un commentaire au chauffeur.");
+        if (!$this->hasRole(UserRoles::PASSAGER)) {
+            throw new InvalidArgumentException("Seulement les passager peuvent laisser un commentaire au conducteur.");
         }
     }
 
-    // méthodes pour les conducteurs
-    // Ajouter une voiture
+
+    // Méthodes pour le rôle conducteur
     public function addCar(): void
     {
-        if (!$this->hasRole(UserStatus::CONDUCTEUR)) {
+        if (!$this->hasRole(UserRoles::CONDUCTEUR)) {
             throw new InvalidArgumentException("Seulement les conducteurs peuvent ajouter une voiture.");
         }
     }
-    // Supprimer une voiture
+
     public function removeCar(): void
     {
-        if (!$this->hasRole(UserStatus::CONDUCTEUR)) {
+        if (!$this->hasRole(UserRoles::CONDUCTEUR)) {
             throw new InvalidArgumentException("Seulement les conducteurs peuvent supprimer une voiture.");
         }
     }
-    // Publier un trajet
+
     public function publishRide(): void
     {
-        if (!$this->hasRole(UserStatus::CONDUCTEUR)) {
+        if (!$this->hasRole(UserRoles::CONDUCTEUR)) {
             throw new InvalidArgumentException("Seulement les conducteurs peuvent publier un trajet.");
         }
     }
-    // Finir un trajet
+
+    public function cancelRide(): void
+    {
+        if (!$this->hasRole(UserRoles::CONDUCTEUR)) {
+            throw new InvalidArgumentException("Il faut avoir le rôle conducteur pour annuler un trajet.");
+        }
+    }
+
     public function finishRide(): void
     {
-        if (!$this->hasRole(UserStatus::CONDUCTEUR)) {
+        if (!$this->hasRole(UserRoles::CONDUCTEUR)) {
             throw new InvalidArgumentException("Seulement les conducteurs peuvent finir un trajet.");
         }
     }
 
-    // Méthodes pour les employés
-    // Approuver les commentaires
-    public function approveReview() {}
-    // Annuler un trajet
+
+    // Méthodes pour le rôle employé
+    public function approveReview(): void
+    {
+        if (!$this->hasRole(UserRoles::EMPLOYE)) {
+            throw new InvalidArgumentException("Seulement les employés peuvent approuver un commentaire.");
+        }
+        // faire appel à la validation via userRepository
+    }
 
 
-    //Méthode pour les admins
-    // création de compte employé
-    public function createEmployee() {}
-    // suppression de n'importe quel compte
-    public function deleteUser() {}
+    // Méthodes pour le rôle admin
+    // à compléter
+    public function createEmployee(): void
+    {
+        if (!$this->hasRole(UserRoles::ADMIN)) {
+            throw new InvalidArgumentException("Seulement les admins peuvent créer un employé.");
+        }
+        // faire appel à la création via userRepository
+    }
+
+    // à compléter
+    public function deleteUser(): void
+    {
+        if (!$this->hasRole(UserRoles::ADMIN)) {
+            throw new InvalidArgumentException("Seulement les admins peuvent supprimer un autre compte.");
+        }
+        // faire appel à la suppression via userRepository
+        // $userRepository->delete($this->id);
+    }
 }
