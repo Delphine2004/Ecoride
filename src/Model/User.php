@@ -34,6 +34,9 @@ class User
         private ?string $uriPicture = null,
         private ?string $licenceNo = null,
         private ?int $credit = null,
+        private ?string $apiToken, // elle n'a pas de valeur au moment de l'instanciation
+        private ?string $createdAt, // elle n'a pas de valeur au moment de l'instanciation
+        private ?string $updatedAt, // elle n'a pas de valeur au moment de l'instanciation
         /**@var UserRoles[] */
         private array $roles = [UserRoles::PASSAGER] // Pour pouvoir stoker plusieurs rôles pour un utilisateur
     ) {
@@ -51,6 +54,7 @@ class User
             ->setUriPicture($uriPicture)
             ->setLicenceNo($licenceNo)
             ->setCredit($credit)
+            ->setApiToken($apiToken)
             ->setRoles($roles);
     }
 
@@ -121,6 +125,21 @@ class User
     public function getCredit(): ?int
     {
         return $this->credit;
+    }
+
+    public function getApiToken(): ?string
+    {
+        return $this->apiToken;
+    }
+
+    public function getCreatedAt(): ?string
+    {
+        return $this->createdAt;
+    }
+
+    public function getUpdatedAt(): ?string
+    {
+        return $this->updatedAt;
     }
 
     public function getRoles(): array
@@ -241,6 +260,12 @@ class User
             throw new InvalidArgumentException("Le crédit ne peut pas être négatif.");
         }
         $this->credit = $credit;
+        return $this;
+    }
+
+    public function setApiToken(?string $apiToken): self
+    {
+        $this->apiToken = $apiToken;
         return $this;
     }
 
