@@ -5,6 +5,7 @@
 namespace App\Models;
 
 
+use App\Models\User;
 use App\Enum\CarPower;
 use InvalidArgumentException;
 use DateTimeImmutable;
@@ -21,6 +22,7 @@ class Car
     // déclaration des propriétés façon moderne
     function __construct(
         private ?int $id = null,
+        private User $owner,
         private string $brand,
         private string $model,
         private string $color,
@@ -28,17 +30,32 @@ class Car
         private CarPower $power,
         private int $seatsNumber,
         private string $registrationNumber,
-        private \DateTimeImmutable $registrationDate
+        private \DateTimeImmutable $registrationDate,
+        private ?string $createdAt // elle n'a pas de valeur au moment de l'instanciation
+
     ) {
 
         // Affectation avec valisation
-        $this->setBrand($brand)->setModel($model)->setColor($color)->setYear($year)->setPower($power)->setSeatsNumber($seatsNumber)->setRegistrationNumber($registrationNumber)->setRegistrationDate($registrationDate);
+        $this->setBrand($brand)
+            ->setCarOwner($owner)
+            ->setModel($model)
+            ->setColor($color)
+            ->setYear($year)
+            ->setPower($power)
+            ->setSeatsNumber($seatsNumber)
+            ->setRegistrationNumber($registrationNumber)
+            ->setRegistrationDate($registrationDate);
     }
 
     // ---------Les Getters ---------
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getCarOwner(): User
+    {
+        return $this->owner;
     }
 
     public function getBrand(): string
@@ -81,10 +98,20 @@ class Car
         return $this->registrationDate;
     }
 
+    public function getCreatedAt(): ?string
+    {
+        return $this->createdAt;
+    }
 
     // ---------Les Setters ---------
 
     // Pas de setId car définit automatiquement par la BD
+
+    public function setCarOwner(User $owner): self
+    {
+        $this->owner = $owner;
+        return $this;
+    }
 
     public function setBrand(string $brand): self
     {

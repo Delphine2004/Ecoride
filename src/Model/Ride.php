@@ -19,8 +19,6 @@ use DateTime;
 class Ride
 {
 
-
-
     // déclaration des propriétés façon moderne
     public function __construct(
         private ?int $id = null,
@@ -32,10 +30,20 @@ class Ride
         private int $price,
         private int $availableSeat,
         private RideStatus $status,
+        private ?string $createdAt, // elle n'a pas de valeur au moment de l'instanciation
+        private ?string $updatedAt, // elle n'a pas de valeur au moment de l'instanciation
         private User $driver
     ) {
         // Affectation avec valisation
-        $this->setDepartureDateTime($departureDateTime)->setDeparturePlace($departurePlace)->setArrivalDateTime($arrivalDateTime)->setArrivalPlace($arrivalPlace)->setDuration($duration)->setPrice($price)->setAvailableSeat($availableSeat)->setStatus($status)->setDriver($driver);
+        $this->setDepartureDateTime($departureDateTime)
+            ->setDeparturePlace($departurePlace)
+            ->setArrivalDateTime($arrivalDateTime)
+            ->setArrivalPlace($arrivalPlace)
+            ->setDuration($duration)
+            ->setPrice($price)
+            ->setAvailableSeat($availableSeat)
+            ->setStatus($status)
+            ->setDriver($driver);
     }
 
     // ---------Les Getters ---------
@@ -43,30 +51,37 @@ class Ride
     {
         return $this->id;
     }
+
     public function getDepartureDateTime(): \DateTime
     {
         return $this->departureDateTime;
     }
+
     public function getDeparturePlace(): string
     {
         return $this->departurePlace;
     }
+
     public function getArrivalDateTime(): \DateTime
     {
         return $this->arrivalDateTime;
     }
+
     public function getArrivalPlace(): string
     {
         return $this->arrivalPlace;
     }
+
     public function getDuration(): int
     {
         return $this->duration;
     }
+
     public function getPrice(): int
     {
         return $this->price;
     }
+
     public function getAvailableSeat(): int
     {
         return $this->availableSeat;
@@ -76,6 +91,17 @@ class Ride
     {
         return $this->status;
     }
+
+    public function getCreatedAt(): ?string
+    {
+        return $this->createdAt;
+    }
+
+    public function getUpdatedAt(): ?string
+    {
+        return $this->updatedAt;
+    }
+
     public function getDriver(): User
     {
         return $this->driver;
@@ -97,6 +123,7 @@ class Ride
 
         return $this;
     }
+
     public function setDeparturePlace(string $departurePlace): self
     {
         if (empty(trim($departurePlace))) {

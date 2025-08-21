@@ -72,6 +72,7 @@ CREATE TABLE cars(
         seats_number TINYINT UNSIGNED NOT NULL ,
         registration_number VARCHAR (20) UNIQUE NOT NULL ,
         registration_date DATE NOT NULL ,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
