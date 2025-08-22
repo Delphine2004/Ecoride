@@ -4,80 +4,80 @@ namespace App\Models;
 
 use App\Models\BaseModel;
 use App\Models\Ride;
-use App\Config\Database;
 use PDO;
-use PDOException;
 
-class RideRepository extends Ride
+use App\Config\Database; // pas besoin de database car instancié par BaseModel
+use PDOException; // Utilise si try et catch mais pas necessaire car utilisé dans DataBase
+
+
+class RideRepository extends BaseModel
 {
 
     /**
      * @var string Le nom de la table en BDD
      */
 
-    protected const TABLE = 'rides';
+    protected string $table = 'rides';
 
-    // à Modifier 
-    public function search(array $criteria)
+    /**
+     * Hydrate un tableau BDD en objet Ride
+     *
+     * @param array $data
+     * @return Ride
+     */
+    private function hydrateRide(array $data): Ride
     {
-        // Exemple simple avec 2 critères
-        $sql = "SELECT * FROM trajets WHERE ville_depart = :ville_depart AND ville_arrivee = :ville_arrivee";
-        //$stmt = $this->db->prepare($sql);
+        return new Ride(
+            id: $data['ride_id'] ?? null,
+            driver: $data['driver_id'] ?? null,
+            departureDateTime: $data['departure_date_time'] ?? null,
+            departurePlace: $data['departure_place'] ?? '',
+            arrivalDateTime: $data['arrival_date_time'] ?? null,
+            arrivalPlace: $data['arrival_place'] ?? null,
+            duration: $data['duration_minute'] ?? null,
+            price: $data['price'] ?? null,
+            availableSeats: $data['available_seats'] ?? null,
+            status: $data['status'] ?? '',
+            createdAt: $data['created_at'] ?? null,
+            updatedAt: $data['updated_at'] ?? null,
 
-        //$stmt->execute([            ':ville_depart' => $criteria['ville_Depart'] ?? '',             ':ville_arrivee' => $criteria['ville_arrivee'] ?? '', ]);
-
-        //return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        );
     }
 
-
-    // inclure la requête dans la classe ride
-    function searchRide()
+    /**
+     * Trouver un trajet par des critéres précis
+     *
+     * @param array $criteria
+     * @return Ride[]
+     */
+    public function findRideByCriteria(array $criteria = []): array
     {
-        // Lire le JSON envoyé
-        $json = file_get_contents("php://input");
-        $data = json_decode($json, true);
 
-        // Sécurité : vérifier si les champs existent
-        $departurePlace = $data['departure_place'] ?? null;
-        $arrivalPlace = $data['arrival_place'] ?? null;
-        $departureDate = $data['departure_date'] ?? null;
-        $availableSeats = $data['available_seats'] ?? null;
-
-        // Connexion à la BDD
-        //$db = (new Database())->getInstance();
-
-        // Préparation de la requête SQL (exemple simple)
-        $query = "SELECT * FROM trajets WHERE 1=1";
+        $sql = "SELECT * FROM {$this->table} WHERE 1=1";
         $params = [];
 
-        if ($departurePlace) {
-            $query .= " AND departure_place LIKE :departure_place";
-            $params[':departure_place'] = "%$departurePlace%";
+        if (!empty($criteria['departure_date_time'])) {
+            $sql .= " AND departure_date_time >= :departure_date_time";
+            $params[':departure_date_time'] = $criteria['departure_date_time'];
         }
-        if ($arrivalPlace) {
-            $query .= " AND arrival_place LIKE :arrival_place";
-            $params[':arrival_place'] = "%$arrivalPlace%";
+        if (!empty($criteria['departure_place'])) {
+            $sql .= " AND departure_place LIKE :departure_place";
+            $params[':departure_place'] = "%{$criteria['departure_place']}%";
         }
-        if ($departureDate) {
-            $query .= " AND departure_date = :departure_date";
-            $params[':departure_date'] = $departureDate;
+        if (!empty($criteria['arrival_place'])) {
+            $sql .= " AND arrival_place LIKE :arrival_place";
+            $params[':arrival_place'] = "%{$criteria['arrival_place']}%";
         }
-        if ($availableSeats >= 1) {
-            $query .= "WHERE available_seats >= 1";
-            $params[':available_seats'] = $availableSeats;
+        if (isset($criteria['available_seats']) && $criteria['available_seats'] > 0) {
+            $sql .= " AND available_seats >= :available_seats";
+            $params[':available_seats'] = $criteria['available_seats'];
         }
 
+        $sql .= " ORDER BY departure_date_time ASC LIMIT 10";
 
-        //$stmt = $db->prepare($query);
-        //$stmt->execute($params);
-        //$trajets = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        // Réponse JSON
-        //header('Content-Type: application/json');
-        //echo json_encode($trajets);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        return array_map(fn($row) => $this->hydrateRide($row), $rows);
     }
-
-
-
-    function addRide() {}
 }

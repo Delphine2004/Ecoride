@@ -28,7 +28,7 @@ class Ride
         private string $arrivalPlace,
         private int $duration,
         private int $price,
-        private int $availableSeat,
+        private int $availableSeats,
         private RideStatus $status,
         private ?string $createdAt, // elle n'a pas de valeur au moment de l'instanciation
         private ?string $updatedAt, // elle n'a pas de valeur au moment de l'instanciation
@@ -41,7 +41,7 @@ class Ride
             ->setArrivalPlace($arrivalPlace)
             ->setDuration($duration)
             ->setPrice($price)
-            ->setAvailableSeat($availableSeat)
+            ->setAvailableSeats($availableSeats)
             ->setStatus($status)
             ->setDriver($driver);
     }
@@ -82,9 +82,9 @@ class Ride
         return $this->price;
     }
 
-    public function getAvailableSeat(): int
+    public function getAvailableSeats(): int
     {
-        return $this->availableSeat;
+        return $this->availableSeats;
     }
 
     public function getStatus(): RideStatus
@@ -171,12 +171,12 @@ class Ride
         return $this;
     }
 
-    public function setAvailableSeat(int $availableSeat): self
+    public function setAvailableSeats(int $availableSeats): self
     {
-        if ($availableSeat <= 0) {
+        if ($availableSeats <= 0) {
             throw new InvalidArgumentException("Le nombre de place disponible doit être supérieure à 0.");
         }
-        $this->availableSeat = $availableSeat;
+        $this->availableSeats = $availableSeats;
 
         return $this;
     }
