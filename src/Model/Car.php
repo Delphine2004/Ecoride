@@ -10,6 +10,7 @@ use App\Enum\CarPower;
 use InvalidArgumentException;
 use DateTimeImmutable;
 
+//Pas besoin de base model dans une entité
 
 /** 
  * Cette classe représente une voiture dans la BDD.
@@ -19,9 +20,9 @@ use DateTimeImmutable;
 class Car
 {
 
-    // déclaration des propriétés façon moderne
+    // Promotion des propriétés (depuis PHP 8)
     function __construct(
-        private ?int $id = null,
+        private ?int $id = null, // n'a pas de valeur au moment de l'instanciation
         private User $owner,
         private string $brand,
         private string $model,
@@ -30,12 +31,13 @@ class Car
         private CarPower $power,
         private int $seatsNumber,
         private string $registrationNumber,
+
         private \DateTimeImmutable $registrationDate,
-        private ?string $createdAt // elle n'a pas de valeur au moment de l'instanciation
+        private ?\DateTimeImmutable $createdAt = null // n'a pas de valeur au moment de l'instanciation
 
     ) {
 
-        // Affectation avec valisation
+        // Affectation avec validation
         $this->setBrand($brand)
             ->setCarOwner($owner)
             ->setModel($model)
@@ -45,6 +47,8 @@ class Car
             ->setSeatsNumber($seatsNumber)
             ->setRegistrationNumber($registrationNumber)
             ->setRegistrationDate($registrationDate);
+
+        $this->createdAt = $createdAt ?? new DateTimeImmutable();
     }
 
     // ---------Les Getters ---------
@@ -98,14 +102,16 @@ class Car
         return $this->registrationDate;
     }
 
-    public function getCreatedAt(): ?string
+    public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
     }
 
+
+
     // ---------Les Setters ---------
 
-    // Pas de setId car définit automatiquement par la BD
+    // Pas de setId et de setCreatedAt car définis automatiquement par la BD
 
     public function setCarOwner(User $owner): self
     {
@@ -163,8 +169,8 @@ class Car
 
     public function setSeatsNumber(int $seatsNumber): self
     {
-        if ($seatsNumber <= 0 || $seatsNumber > 6) {
-            throw new InvalidArgumentException("Le nombre de siége ne peut pas être égale à 0 ou supérieure à 6");
+        if ($seatsNumber <= 0 || $seatsNumber > 7) {
+            throw new InvalidArgumentException("Le nombre de siége ne peut pas être égale à 0 ou supérieure à 7");
         }
         $this->seatsNumber = $seatsNumber;
 
@@ -176,7 +182,15 @@ class Car
         if (empty(trim($registrationNumber))) {
             throw new InvalidArgumentException("La plaque d'immatriculation ne peut pas être vide.");
         }
-        $this->registrationNumber = trim($registrationNumber);
+
+        $oldFormat = '/^[1-9]\d{0,3}\s?[A-Z]{1,3}\s?(?:0[1-9]|[1-8]\d|9[0-5]|2[AB])$/';
+        $newFormat = '/^[A-Z]{2}-\d{3}-[A-Z]{2}$/';
+
+        // La plaque d'immatriculation doit correspondre à l'un ou l'autre format
+        if (!preg_match($newFormat, strtoupper($registrationNumber)) && !preg_match($oldFormat, strtoupper($registrationNumber))) {
+            throw new InvalidArgumentException("Le format de la plaque d'immatriculation est invalide.");
+        }
+        $this->registrationNumber = strtoupper(trim($registrationNumber));
 
         return $this;
     }

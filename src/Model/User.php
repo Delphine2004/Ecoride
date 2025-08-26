@@ -7,7 +7,9 @@ namespace App\Models;
 
 use App\Enum\UserRoles;
 use InvalidArgumentException;
+use DateTimeImmutable;
 
+//Pas besoin de base model dans une entité
 
 /** 
  * Cette classe représente un utilisateur dans la BDD.
@@ -18,29 +20,32 @@ use InvalidArgumentException;
 class User
 {
 
-    // déclaration des propriétés façon moderne
+    // Promotion des propriétés (depuis PHP 8)
     function __construct(
-        private ?int $id = null,
+        private ?int $id = null, // n'a pas de valeur au moment de l'instanciation
         private string $lastName,
         private string $firstName,
         private string $email,
         private string $password,
         private bool $isHashed = false,
-        private ?string $userName = null,
-        private ?string $phone = null,
-        private ?string $address = null,
-        private ?string $city = null,
-        private ?string $zipCode = null,
-        private ?string $uriPicture = null,
-        private ?string $licenceNo = null,
-        private ?int $credit = null,
-        private ?string $apiToken, // elle n'a pas de valeur au moment de l'instanciation
-        private ?string $createdAt, // elle n'a pas de valeur au moment de l'instanciation
-        private ?string $updatedAt, // elle n'a pas de valeur au moment de l'instanciation
+
+        private ?string $userName = null, // Champ optionnel en fonction du rôle
+        private ?string $phone = null, // Champ optionnel en fonction du rôle
+        private ?string $address = null, // Champ optionnel en fonction du rôle
+        private ?string $city = null, // Champ optionnel en fonction du rôle
+        private ?string $zipCode = null, // Champ optionnel en fonction du rôle
+        private ?string $uriPicture = null, // Champ optionnel en fonction du rôle
+        private ?string $licenceNo = null, // Champ optionnel en fonction du rôle
+        private ?int $credit = null, // Champ optionnel en fonction du rôle
+
+        private ?string $apiToken = null, // n'a pas de valeur au moment de l'instanciation
         /**@var UserRoles[] */
-        private array $roles = [UserRoles::PASSAGER] // Pour pouvoir stoker plusieurs rôles pour un utilisateur
+        private array $roles = [UserRoles::PASSAGER], // Pour pouvoir stoker plusieurs rôles pour un utilisateur
+
+        private ?DateTimeImmutable $createdAt = null, // n'a pas de valeur au moment de l'instanciation
+        private ?DateTimeImmutable $updatedAt = null // n'a pas de valeur au moment de l'instanciation
     ) {
-        // Affectation avec valisation
+        // Affectation avec validation
         $this
             ->setLastName($lastName)
             ->setFirstName($firstName)
@@ -56,6 +61,9 @@ class User
             ->setCredit($credit)
             ->setApiToken($apiToken)
             ->setRoles($roles);
+
+        $this->createdAt = $createdAt ?? new DateTimeImmutable();
+        $this->updatedAt = $updatedAt ?? new DateTimeImmutable();
     }
 
 
@@ -132,20 +140,21 @@ class User
         return $this->apiToken;
     }
 
-    public function getCreatedAt(): ?string
-    {
-        return $this->createdAt;
-    }
-
-    public function getUpdatedAt(): ?string
-    {
-        return $this->updatedAt;
-    }
-
     public function getRoles(): array
     {
         return $this->roles;
     }
+
+    public function getCreatedAt(): ?DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function getUpdatedAt(): ?DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
 
 
     // ---------Les Setters ---------
@@ -154,12 +163,14 @@ class User
     public function setLastName(string $lastName): self
     {
         $this->lastName = trim($lastName);
+        $this->updateTimesStamp();
         return $this;
     }
 
     public function setFirstName(string $firstName): self
     {
         $this->firstName = trim($firstName);
+        $this->updateTimesStamp();
         return $this;
     }
 
@@ -173,20 +184,19 @@ class User
             throw new InvalidArgumentException("L'email est invalide.");
         }
         $this->email = strtolower(trim($email));
+        $this->updateTimesStamp();
         return $this;
     }
 
     public function setPassword(string $password, bool $isHashed = false): self
     {
-        $password = trim($password);
         if (!$isHashed) {
-            if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $password)) {
-                // modifier la longueur pour 14 plus tard
-                throw new InvalidArgumentException('Le mot de passe doit contenir au minimun une minuscule, une majuscule, un chiffre, un caractère spécial et contenir 8 caractéres au total.');
-            }
+            $this->validatePassword($password);
             $password = password_hash($password, PASSWORD_DEFAULT);
         }
+
         $this->password = $password;
+        $this->updateTimesStamp();
         return $this;
     }
 
@@ -196,6 +206,7 @@ class User
             throw new InvalidArgumentException("Le nom d'utilisateur est trop long.");
         }
         $this->userName = $userName !== null ? trim($userName) : null;
+        $this->updateTimesStamp();
         return $this;
     }
 
@@ -205,6 +216,7 @@ class User
             throw new InvalidArgumentException("Le numéro de téléphone doit contenir 10 chiffres.");
         }
         $this->phone = $phone !== null ? trim($phone) : null;
+        $this->updateTimesStamp();
         return $this;
     }
 
@@ -214,6 +226,7 @@ class User
             throw new InvalidArgumentException("L'adresse est trop longue.");
         }
         $this->address = $address !== null ? trim($address) : null;
+        $this->updateTimesStamp();
         return $this;
     }
 
@@ -223,6 +236,7 @@ class User
             throw new InvalidArgumentException("Le nom de la ville est trop long.");
         }
         $this->city = $city !== null ? trim($city) : null;
+        $this->updateTimesStamp();
         return $this;
     }
 
@@ -232,6 +246,7 @@ class User
             throw new InvalidArgumentException("Le code postal doit contenir exactement 5 chiffres.");
         }
         $this->zipCode = $zipCode !== null ? trim($zipCode) : null;
+        $this->updateTimesStamp();
         return $this;
     }
 
@@ -242,6 +257,7 @@ class User
         }
 
         $this->uriPicture = $uriPicture !== null ? trim($uriPicture) : null;
+        $this->updateTimesStamp();
         return $this;
     }
 
@@ -251,6 +267,7 @@ class User
             throw new InvalidArgumentException("Le numéro de permis est trop long.");
         }
         $this->licenceNo = $licenceNo !== null ? trim($licenceNo) : null;
+        $this->updateTimesStamp();
         return $this;
     }
 
@@ -260,12 +277,14 @@ class User
             throw new InvalidArgumentException("Le crédit ne peut pas être négatif.");
         }
         $this->credit = $credit;
+        $this->updateTimesStamp();
         return $this;
     }
 
     public function setApiToken(?string $apiToken): self
     {
         $this->apiToken = $apiToken;
+        $this->updateTimesStamp();
         return $this;
     }
 
@@ -277,6 +296,7 @@ class User
             }
         }
         $this->roles = $roles;
+        $this->updateTimesStamp();
         return $this;
     }
 
@@ -287,20 +307,35 @@ class User
         if (!in_array($role, $this->roles, true)) {
             $this->roles[] = $role;
         }
+        $this->updateTimesStamp();
         return $this;
     }
 
     public function removeRole(UserRoles $role): self
     {
         $this->roles = array_filter($this->roles, fn($r) => $r !== $role);
+        $this->updateTimesStamp();
         return $this;
     }
+
 
     // ----- Méthodes de vérification -----
 
     public function verifyPassword(string $inputPassword): bool
     {
         return password_verify($inputPassword, $this->password);
+    }
+
+    private function validatePassword(string $password): void
+    {
+        $password = trim($password);
+        // modifier la longueur pour 14 plus tard
+        $regexPassword = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/';
+
+        if (!preg_match($regexPassword, $password)) {
+
+            throw new InvalidArgumentException('Le mot de passe doit contenir au minimun une minuscule, une majuscule, un chiffre, un caractère spécial et contenir 8 caractéres au total.');
+        };
     }
 
     public function hasRole(UserRoles $roleToCheck): bool
@@ -318,20 +353,31 @@ class User
         return false;
     }
 
-    // ----- Méthodes en fonction du rôle ----- 
 
-    // Méthodes communes à tous les rôle
+    // ----- Fonctions selon le rôle ----- 
+
+    // Communes à tous les rôle
+    /**
+     * Fonction qui permet à chaque utilisateur de modifier son MDP.
+     *
+     * @param string $oldPassword
+     * @param string $newPassword
+     * @return void
+     */
     public function changePassword(string $oldPassword, string $newPassword): void
     {
         if (!$this->verifyPassword($oldPassword)) {
             throw new InvalidArgumentException("Le mot de passe actuel est incorrect.");
         }
-        if (strlen(trim($newPassword)) < 8) {
-            throw new InvalidArgumentException("Le nouveau mot de passe est trop court.");
-        }
+        $this->validatePassword($newPassword);
         $this->setPassword($newPassword);
     }
-
+    /**
+     * Fonction qui permet aux utilisateurs de modifier les informations relatives à leur compte.
+     *
+     * @param array $newData
+     * @return void
+     */
     public function updateProfile(array $newData): void
     {
         if (isset($newData['last_name'])) {
@@ -368,6 +414,11 @@ class User
 
     // cette fonction uniquement pour les conducteurs et les passagers
     // à compléter
+    /**
+     * Fonction qui permet à un utilisateur conducteur ou passager de supprimer son compte.
+     *
+     * @return void
+     */
     public function deleteAccount(): void
     {
         if ($this->hasRole(UserRoles::ADMIN) || $this->hasRole(UserRoles::EMPLOYE)) {
@@ -378,6 +429,11 @@ class User
     }
 
     // Méthodes pour le rôle passager
+    /**
+     * Fonction qui permet à un passager d'ajouter le rôle conducteur.'
+     *
+     * @return void
+     */
     public function changeToDriver(): void
     {
         if ($this->hasRole(UserRoles::CONDUCTEUR)) {
@@ -389,6 +445,11 @@ class User
         $this->addRole(UserRoles::CONDUCTEUR);
     }
 
+    /**
+     * Fonction qui permet à un passager de participer à un trajet.
+     *
+     * @return void
+     */
     public function joinRide(): void
     {
         if (!$this->hasRole(UserRoles::PASSAGER)) {
@@ -396,15 +457,23 @@ class User
         }
     }
 
+    // à revoir
     public function leaveReview(): void
     {
+
+
         if (!$this->hasRole(UserRoles::PASSAGER)) {
-            throw new InvalidArgumentException("Seulement les passager peuvent laisser un commentaire au conducteur.");
+            throw new InvalidArgumentException("Seulement les passagers peuvent laisser un commentaire au conducteur.");
         }
     }
 
 
     // Méthodes pour le rôle conducteur
+    /**
+     * Fonction qui permet à un conducteur d'ajouter une voiture.
+     *
+     * @return void
+     */
     public function addCar(): void
     {
         if (!$this->hasRole(UserRoles::CONDUCTEUR)) {
@@ -412,6 +481,11 @@ class User
         }
     }
 
+    /**
+     * Fonction qui permet à un conducteur de supprimer une voiture.
+     *
+     * @return void
+     */
     public function removeCar(): void
     {
         if (!$this->hasRole(UserRoles::CONDUCTEUR)) {
@@ -419,6 +493,11 @@ class User
         }
     }
 
+    /**
+     * Fonction qui permet à un conducteur de publier un trajet.
+     *
+     * @return void
+     */
     public function publishRide(): void
     {
         if (!$this->hasRole(UserRoles::CONDUCTEUR)) {
@@ -426,6 +505,11 @@ class User
         }
     }
 
+    /**
+     * Fonction qui permet à un conducteur d'annuler un trajet.
+     *
+     * @return void
+     */
     public function cancelRide(): void
     {
         if (!$this->hasRole(UserRoles::CONDUCTEUR)) {
@@ -433,6 +517,11 @@ class User
         }
     }
 
+    /**
+     * Fonction qui permet à un conducteur de finir un trajet.
+     *
+     * @return void
+     */
     public function finishRide(): void
     {
         if (!$this->hasRole(UserRoles::CONDUCTEUR)) {
@@ -442,6 +531,11 @@ class User
 
 
     // Méthodes pour le rôle employé
+    /**
+     * Fonction qui permet à un employé d'approuver un commentaire.
+     *
+     * @return void
+     */
     public function approveReview(): void
     {
         if (!$this->hasRole(UserRoles::EMPLOYE)) {
@@ -453,6 +547,11 @@ class User
 
     // Méthodes pour le rôle admin
     // à compléter
+    /**
+     * Fonction qui permet à l'admin de créer un employé.
+     *
+     * @return void
+     */
     public function createEmployee(): void
     {
         if (!$this->hasRole(UserRoles::ADMIN)) {
@@ -462,6 +561,11 @@ class User
     }
 
     // à compléter
+    /**
+     * Fonction qui permet à l'admin de supprimer un employé.
+     *
+     * @return void
+     */
     public function deleteUser(): void
     {
         if (!$this->hasRole(UserRoles::ADMIN)) {
@@ -469,5 +573,15 @@ class User
         }
         // faire appel à la suppression via userRepository
         // $userRepository->delete($this->id);
+    }
+
+
+
+
+    // ---- Mise à jour de la date de modification
+
+    private function updateTimesStamp(): void
+    {
+        $this->updatedAt = new DateTimeImmutable();
     }
 }

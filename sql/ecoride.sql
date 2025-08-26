@@ -83,18 +83,17 @@ CREATE TABLE cars(
 
 CREATE TABLE rides(
         ride_id INT AUTO_INCREMENT PRIMARY KEY ,
-        driver_id INT NOT NULL,
+        owner_id INT NOT NULL,
         departure_date_time DATETIME NOT NULL ,
         departure_place VARCHAR (100) NOT NULL ,
         arrival_date_time DATETIME NOT NULL ,
         arrival_place VARCHAR (100) NOT NULL ,
-        duration_minutes INT UNSIGNED NOT NULL ,
         price DECIMAL(6,2) NOT NULL ,
         available_seats TINYINT UNSIGNED NOT NULL ,
         status ENUM('disponible', 'complet', 'annulé', 'passé'),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        FOREIGN KEY (driver_id) REFERENCES users(user_id) ON DELETE CASCADE
+        FOREIGN KEY (owner_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
 
