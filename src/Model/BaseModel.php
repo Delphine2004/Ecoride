@@ -21,6 +21,11 @@ abstract class BaseModel
 
     protected string $table;
 
+    protected string $primaryKey = 'id';
+
+    protected string $entityClass;
+
+
 
     public function __construct(?PDO $db = null)
     {
@@ -28,26 +33,25 @@ abstract class BaseModel
     }
 
     /**
-     * Récupére tous les enregistrements d'une table
+     * Récupére tous les enregistrements d'une table en objets.
      */
-
     public function getAll(): array
     {
         $sql = "SELECT * FROM `{$this->table}`";
         $stmt = $this->db->query($sql);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $stmt->fetchAll(PDO::FETCH_CLASS, $this->entityClass);
     }
 
     /**
-     * Récupére un enregistrement par son id
+     * Récupére un enregistrement par son id en objet.
      */
-
-    public function getById(int $id): ?array
+    public function getById(int $id): ?object
     {
-        $sql = "SELECT * FROM `{$this->table}` WHERE id = :id";
+        $sql = "SELECT * FROM `{$this->table}` WHERE {$this->primaryKey} = :id";
         $stmt = $this->db->prepare($sql);
         $stmt->execute(['id' => $id]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->setFetchMode(PDO::FETCH_CLASS, $this->entityClass); // confirme comment PDO va transformer les resultats
+        $result = $stmt->fetch();
         return $result ?: null;
     }
 
