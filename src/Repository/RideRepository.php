@@ -101,13 +101,13 @@ class RideRepository extends BaseModel
     }
 
     /**
-     * Récupére tous les trajets.
+     * Récupére tous les trajets avec pagination et tri.
      *
      * @return array
      */
-    public function findAllRides(): array
+    public function findAllRides(int $limit = 50, int $offset = 0, ?string $orderBy = null, string $orderDirection = 'DESC'): array
     {
-        $rows = parent::findAll();
+        $rows = parent::findAll($limit, $offset, $orderBy, $orderDirection);
         return array_map(fn($row) => $this->hydrateRide((array) $row), $rows);
     }
 
@@ -129,19 +129,19 @@ class RideRepository extends BaseModel
     }
 
     /**
-     * Récupére tous les trajets selon un champ spécifique.
+     * Récupére tous les trajets selon un champ spécifique avec pagination et tri.
      *
      * @param string $field
      * @param mixed $value
      * @return array
      */
-    public function findAllRidesByField(string $field, mixed $value): array
+    public function findAllRidesByField(string $field, mixed $value, int $limit = 50, int $offset = 0, ?string $orderBy = null, string $orderDirection = 'DESC'): array
     {
         if (!in_array($field, $this->allowedFields)) {
             throw new InvalidArgumentException("Champ non autorisé ; $field");
         }
 
-        $rows = parent::findAllByField($field, $value);
+        $rows = parent::findAllByField($field, $value, $limit, $offset, $orderBy, $orderDirection);
         return array_map(fn($row) => $this->hydrateRide((array) $row), $rows);
     }
 
