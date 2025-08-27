@@ -4,7 +4,6 @@ namespace App\Repositories;
 
 use App\Models\BaseModel;
 use App\Models\Car;
-use App\Models\User;
 use App\Enum\CarPower;
 use PDO;
 use InvalidArgumentException;
@@ -19,10 +18,9 @@ class CarRepository extends BaseModel
     /**
      * @var string Le nom de la table en BDD.
      */
-
     protected string $table = 'cars';
-    protected string $primaryKey = 'car_id';
-    protected string $entityClass = Car::class;
+
+    protected string $primaryKey = 'car_id'; // Utile car utiliser dans BaseModel
 
     private UserRepository $userRepository;
     private array $allowedFields = ['car_id', 'car_brand', 'car_model', 'car_color', 'car_year', 'car_power', 'seats_number', 'registration_number', 'user_id'];
@@ -44,14 +42,14 @@ class CarRepository extends BaseModel
     private function hydrateCar(array $data): Car
     {
 
-        $owner = $this->userRepository->getUserById($data['user_id']);
+        $owner = $this->userRepository->findUserById($data['user_id']);
 
         if (!$owner) {
             throw new InvalidArgumentException("Le propriétaire de la voiture {$data['car_id']} est introuvable.");
         }
 
         return new Car(
-            id: $data['car_id'],
+            id: (int)$data['car_id'],
             owner: $owner,
             brand: $data['car_brand'],
             model: $data['car_model'],
@@ -88,8 +86,9 @@ class CarRepository extends BaseModel
 
 
     // ------ Récupération ------ 
+
     /**
-     * Fonction qui permet de rechercher une voiture par son id.
+     * Récupére une voiture par son id.
      *
      * @param integer $id
      * @return Car|null
@@ -129,7 +128,7 @@ class CarRepository extends BaseModel
     }
 
     /**
-     * Fonction qui permet de rechercher des voitures par un champs spécifique.
+     * Récupére toutes les voitures selon un champ spécifique.
      *
      * @param string $field
      * @param mixed $value
