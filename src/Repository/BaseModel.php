@@ -54,6 +54,10 @@ abstract class BaseModel
     /**
      * Récupére tous les enregistrements avec pagination et tri.
      *
+     * @param integer $limit
+     * @param integer $offset
+     * @param string|null $orderBy
+     * @param string $orderDirection
      * @return array
      */
     public function findAll(int $limit = 50, int $offset = 0, ?string $orderBy = null, string $orderDirection = 'DESC'): array
@@ -88,10 +92,14 @@ abstract class BaseModel
     }
 
     /**
-     * Récupére tous les enregistrements en fonction d'un champ
+     * Récupére tous les enregistrements en fonction d'un champ avec pagination et tri.
      *
      * @param string $field
      * @param mixed $value
+     * @param integer $limit
+     * @param integer $offset
+     * @param string|null $orderBy
+     * @param string $orderDirection
      * @return array
      */
     public function findAllByField(string $field, mixed $value, int $limit = 50, int $offset = 0, ?string $orderBy = null, string $orderDirection = 'DESC'): array
