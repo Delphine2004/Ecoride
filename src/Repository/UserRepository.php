@@ -2,7 +2,7 @@
 
 namespace App\Repositories;
 
-use App\Models\BaseModel;
+use App\Repository\BaseModel;
 use App\Models\User; // Utile si le repository hydrate les objets au lieu de tableaux
 use App\Enum\UserRoles;
 use PDO;
@@ -25,7 +25,7 @@ class UserRepository extends BaseModel
 
     protected string $primaryKey = 'user_id'; // Utile car utiliser dans BaseModel
 
-    private array $allowedFields = [];
+    private array $allowedFields = ['user_id', 'last_name', 'first_name', 'email', 'user_name', 'phone', 'address', 'city', 'zip_code', 'picture', 'licence_no', 'credit', 'api_token'];
 
     public function __construct(PDO $db)
     {
@@ -42,7 +42,7 @@ class UserRepository extends BaseModel
      */
     private function hydrateUser(array $data): User
     {
-        return new User(
+        $user = new User(
             id: (int)$data['user_id'],
             lastName: $data['last_name'],
             firstName: $data['first_name'],
@@ -58,10 +58,13 @@ class UserRepository extends BaseModel
             licenceNo: $data['licence_no'] ?? null,
             credit: (int)$data['credit'] ?? null,
             apiToken: $data['api_token'] ?? null,
-            roles: UserRoles::from($data['roles']) ?? [UserRoles::PASSAGER], // RAJOUTER VALEUR PAR DEAFUT
-            createdAt: new \DateTimeImmutable($data['created_at']),
-            updatedAt: new \DateTimeImmutable($data['updated_at'])
+            roles: $this->getUserRoles((int)$data['user_id']), // Récupération du rôle via la table pivot 
+            createdAt: !empty($data['created_at']) ? new \DateTimeImmutable($data['created_at']) : null,
+            updatedAt: !empty($data['updated_at']) ? new \DateTimeImmutable($data['updated_at']) : null
         );
+
+
+        return $user;
     }
 
     private function mapUserToArray(User $user): array
@@ -79,25 +82,43 @@ class UserRepository extends BaseModel
             'picture' => $user->getUriPicture(),
             'licence_no' => $user->getLicenceNo(),
             'credit' => $user->getCredit(),
-            'api_token' => $user->getApiToken(),
-            'roles' => $user->getRoles()
+            'api_token' => $user->getApiToken()
         ];
     }
 
+    // ------- Gestion des rôles ---------- 
+    private function getUserRoles(int $userId): array
+    {
+        $sql = "SELECT r.role_name
+        FROM user_roles ur
+        INNER JOIN roles r ON ur.role_id = r.role_id
+        WHERE ur.user_id = :id";
 
-    // ------ Récupération ------ 
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['id' => $userId]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $roles = [];
+
+        foreach ($rows as $row) {
+            $roles[] = UserRoles::from($row['role_name']);
+        }
+
+        // Ajouter le rôle Passager si absent
+        if (!in_array(UserRoles::PASSAGER, $roles, true)) {
+            $roles[] = UserRoles::PASSAGER;
+        }
+
+        return $roles;
+    }
+
+
+    // ------ Récupérations ------ 
 
     public function findUserById(int $id): ?User
     {
-        $sql = "SELECT * FROM {$this->table} WHERE {$this->primaryKey} = :id LIMIT 1";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute(['id' => $id]);
-        $data = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$data) {
-            return null;
-        }
-        return $this->hydrateUser($data);
+        $row = parent::findById($id);
+        return $row ? $this->hydrateUser((array) $row) : null;
     }
 
     public function findAllUsers(): array
@@ -126,17 +147,27 @@ class UserRepository extends BaseModel
         return array_map(fn($row) => $this->hydrateUser((array) $row), $rows);
     }
 
-    // ----------------------------------------------
+    //  ------ Récupérations scpécifiques ---------
 
-    public function findUsersByEmail(string $email): array
+    public function findUserByEmail(string $email): ?User
     {
-        return $this->findAllUsersByField('email', $email);
+        return $this->findUserByField('email', $email);
     }
 
-    public function findUsersByRole(string $role): array
+    public function findUserByRole(UserRoles $role): array
     {
-        return $this->findAllUsersByField('role', $role);
+        $sql = "SELECT u.* FROM users u 
+            INNER JOIN user_roles ur ON u.user_id = ur.user_id 
+            INNER JOIN roles r ON ur.role_id = r.role_id 
+            WHERE r.role_name =:role";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['role' => $role->value]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return array_map(fn($row) => $this->hydrateUser((array) $row), $rows);
     }
+
 
     // ------ Mise à jour ------ 
 
