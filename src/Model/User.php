@@ -295,6 +295,10 @@ class User
                 throw new InvalidArgumentException('Chaque rôle doit être une instance de UserRoles.');
             }
         }
+
+        if (!in_array(UserRoles::PASSAGER, $roles, true)) {
+            $roles[] = UserRoles::PASSAGER; //conserve le rôle passager
+        }
         $this->roles = $roles;
         $this->updateTimesStamp();
         return $this;
