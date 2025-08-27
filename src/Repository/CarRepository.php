@@ -101,13 +101,17 @@ class CarRepository extends BaseModel
     }
 
     /**
-     * Récupére toutes les voitures.
+     * Récupére toutes les voitures avec pagination et tri.
      *
+     * @param integer $limit
+     * @param integer $offset
+     * @param string|null $orderBy
+     * @param string $orderDirection
      * @return array
      */
-    public function findAllCars(): array
+    public function findAllCars(int $limit = 50, int $offset = 0, ?string $orderBy = null, string $orderDirection = 'DESC'): array
     {
-        $rows = parent::findAll();
+        $rows = parent::findAll($limit, $offset, $orderBy, $orderDirection);
         return array_map(fn($row) => $this->hydrateCar((array) $row), $rows);
     }
 
@@ -129,19 +133,23 @@ class CarRepository extends BaseModel
     }
 
     /**
-     * Récupére toutes les voitures selon un champ spécifique.
+     * Récupére toutes les voitures selon un champ spécifique avec pagination et tri.
      *
      * @param string $field
      * @param mixed $value
+     * @param integer $limit
+     * @param integer $offset
+     * @param string|null $orderBy
+     * @param string $orderDirection
      * @return array
      */
-    public function findAllCarsByField(string $field, mixed $value): array
+    public function findAllCarsByField(string $field, mixed $value, int $limit = 50, int $offset = 0, ?string $orderBy = null, string $orderDirection = 'DESC'): array
     {
         if (!in_array($field, $this->allowedFields)) {
             throw new InvalidArgumentException("Champ non autorisé ; $field");
         }
 
-        $rows = parent::findAllByField($field, $value);
+        $rows = parent::findAllByField($field, $value, $limit, $offset, $orderBy, $orderDirection);
         return array_map(fn($row) => $this->hydrateCar((array) $row), $rows);
     }
 
