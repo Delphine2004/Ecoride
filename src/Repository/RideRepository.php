@@ -2,7 +2,7 @@
 
 namespace App\Repositories;
 
-use App\Models\BaseModel;
+use App\Repository\BaseModel;
 use App\Models\Ride;
 use App\Enum\RideStatus;
 use PDO;
@@ -25,7 +25,8 @@ class RideRepository extends BaseModel
 
     private UserRepository $userRepository;
 
-    private array $allowedFields = ['ride_id', 'departure_date_time', 'departure_place', 'arrival_date_time', 'arrival_place', 'price', 'available_seats', 'status', 'user_id'];
+    private array $allowedFields = ['ride_id', 'departure_date_time', 'departure_place', 'arrival_date_time', 'arrival_place', 'price', 'available_seats', 'status', 'owner_id'];
+
 
     public function __construct(PDO $db, UserRepository $userRepository)
     {
@@ -35,35 +36,41 @@ class RideRepository extends BaseModel
 
 
     /**
-     * Hydrate un tableau BDD en objet Ride
+     * Fonction qui remplit un objet Ride avec les données de la table Ride lors de l'instanciation.
      *
      * @param array $data
      * @return Ride
      */
     private function hydrateRide(array $data): Ride
     {
-
-        $driver = $this->userRepository->findUserById($data['user_id']);
+        // Rechercher le conducteur du trajet.
+        $driver = $this->userRepository->findUserById($data['owner_id']);
 
         if (!$driver) {
             throw new InvalidArgumentException("Le conducteur du trajet {$data['ride_id']} est introuvable.");
         }
         return new Ride(
             id: (int)$data['ride_id'],
-            driver: $driver,
-            departureDateTime: $data['departure_date_time'],
+            driver: $this->userRepository->findUserById($data['owner_id']),
+            departureDateTime: new \DateTimeImmutable($data['departure_date_time']),
             departurePlace: $data['departure_place'],
-            arrivalDateTime: $data['arrival_date_time'],
+            arrivalDateTime: new \DateTimeImmutable($data['arrival_date_time']),
             arrivalPlace: $data['arrival_place'],
-            price: (int)$data['price'],
+            price: (float)$data['price'],
             availableSeats: (int)$data['available_seats'],
-            status: RideStatus::from($data['status']), //RAJOUTER DISPONIBLE PAR DEFAUT
-            createdAt: new \DateTimeImmutable($data['created_at']),
-            updatedAt: new \DateTimeImmutable($data['updated_at']),
+            status: RideStatus::from($data['status']),
+            createdAt: !empty($data['created_at']) ? new \DateTimeImmutable($data['created_at']) : null,
+            updatedAt: !empty($data['updated_at']) ? new \DateTimeImmutable($data['updated_at']) : null
 
         );
     }
 
+    /**
+     * Transforme Ride en tableau pour insert et update.
+     *
+     * @param Ride $ride
+     * @return array
+     */
     private function mapRideToArray(Ride $ride): array
     {
         return [
@@ -139,8 +146,147 @@ class RideRepository extends BaseModel
     }
 
 
-    // ---------------------
 
+
+    //  ------ Récupérations scpécifiques ---------
+
+    /**
+     * Récupére tous les trajets selon la date, le lieu de depart et le lieu d'arrivée.
+     *
+     * @param \DateTimeInterface $date
+     * @param string $departurePlace
+     * @param string|null $arrivalPlace
+     * @return array
+     */
+    public function findRideByDateAndPlace(\DateTimeInterface $date, string $departurePlace, ?string $arrivalPlace = null): array
+    {
+        $sql = "SELECT * 
+        FROM {$this->table} r
+        WHERE DATE(r.departure_date_time) = :date
+        AND r.departure_place = :departurePlace";
+
+        $params = [
+            'date' => $date->format('Y-m-d'),
+            'departurePlace' => $departurePlace
+        ];
+
+        if ($arrivalPlace !== null) {
+            $sql .= " AND r.arrival_place = :arrivalPlace";
+            $params['arrivalPlace'] = $arrivalPlace;
+        }
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return array_map(fn($row) => $this->hydrateRide((array) $row), $rows);
+    }
+
+    // Pour les conducteurs
+    /**
+     * Trouver tous les trajets d'un conducteur
+     *
+     * @param integer $driverId
+     * @param string|null $status
+     * @return array
+     */
+    public function findRidesByDriver(int $driverId, ?string $status = null): array
+    {
+        $sql = "SELECT r.*
+                FROM {$this->table} r
+                INNER JOIN users u ON r.owner_id = u.user_id
+                WHERE u.user_id = :driverId";
+
+        $params = ['driverId' => $driverId];
+
+        if ($status !== null) {
+            $sql .= " AND r.status = :status";
+            $params['status'] = $status;
+        }
+
+        $sql .= " ORDER BY r.departure_date_time DESC";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return array_map(fn($row) => $this->hydrateRide((array) $row), $rows);
+    }
+
+    /**
+     * Trouver tous les trajets à venir d'un conducteur
+     *
+     * @param integer $driverId
+     * @return array
+     */
+    public function findUpcomingRidesByDriver(int $driverId): array
+    {
+        return $this->findRidesByDriver($driverId, RideStatus::DISPONIBLE->value);
+    }
+
+    /**
+     * Trouver tous les trajets passés d'un conducteur
+     *
+     * @param integer $driverId
+     * @return array
+     */
+    public function findPastRidesByDriver(int $driverId): array
+    {
+        return $this->findRidesByDriver($driverId, RideStatus::PASSE->value);
+    }
+
+    //Pour les passagers
+    /**
+     * Trouver tous les trajets d'un passager
+     *
+     * @param integer $userId
+     * @param string|null $status
+     * @return array
+     */
+    public function findRidesByPassenger(int $userId, ?string $status = null): array
+    {
+        $sql = "SELECT r.*
+                FROM {$this->table} r
+                INNER JOIN ride_passengers rp ON r.ride_id = rp.ride_id
+                WHERE rp.user_id = :id";
+        $params = ['id' => $userId];
+
+        if ($status !== null) {
+            $sql .= " AND r.status = :status";
+            $params['status'] = $status;
+        }
+
+        $sql .= "ORDER BY r.departure_date_time DESC";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return array_map(fn($row) => $this->hydrateRide((array) $row), $rows);
+    }
+
+    /**
+     * Trouver tous les trajets à venir d'un passager
+     *
+     * @param integer $userId
+     * @return array
+     */
+    public function findUpcomingRidesByPassenger(int $userId): array
+    {
+        return $this->findRidesByPassenger($userId, RideStatus::DISPONIBLE->value);
+    }
+
+    /**
+     * Trouver tous les trajets passés d'un passager
+     *
+     * @param integer $userId
+     * @return array
+     */
+    public function findPastRidesByPassenger(int $userId): array
+    {
+        return $this->findRidesByPassenger($userId, RideStatus::PASSE->value);
+    }
 
 
     // ------ Mise à jour ------ 
@@ -166,7 +312,6 @@ class RideRepository extends BaseModel
     {
         return $this->insert($this->mapRideToArray($ride));
     }
-
 
     // ------ Suppression ------ 
     /**
