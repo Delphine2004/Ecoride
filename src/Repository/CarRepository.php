@@ -2,7 +2,7 @@
 
 namespace App\Repositories;
 
-use App\Models\BaseModel;
+use App\Repository\BaseModel;
 use App\Models\Car;
 use App\Enum\CarPower;
 use PDO;
@@ -23,6 +23,7 @@ class CarRepository extends BaseModel
     protected string $primaryKey = 'car_id'; // Utile car utiliser dans BaseModel
 
     private UserRepository $userRepository;
+
     private array $allowedFields = ['car_id', 'car_brand', 'car_model', 'car_color', 'car_year', 'car_power', 'seats_number', 'registration_number', 'user_id'];
 
 
@@ -41,7 +42,7 @@ class CarRepository extends BaseModel
      */
     private function hydrateCar(array $data): Car
     {
-
+        // Rechercher le propriétaire de la voiture.
         $owner = $this->userRepository->findUserById($data['user_id']);
 
         if (!$owner) {
@@ -59,7 +60,7 @@ class CarRepository extends BaseModel
             seatsNumber: (int) $data['seats_number'],
             registrationNumber: $data['registration_number'],
             registrationDate: new \DateTimeImmutable($data['registration_date']),
-            createdAt: new \DateTimeImmutable($data['created_at']),
+            createdAt: !empty($data['created_at']) ? new \DateTimeImmutable($data['created_at']) : null,
 
         );
     }
@@ -145,7 +146,7 @@ class CarRepository extends BaseModel
     }
 
 
-    // ----------------------------
+    //  ------ Récupérations scpécifiques ---------
 
     /**
      * Fonction qui permet de retourner toutes les voitures d'un propriétaire.
@@ -186,14 +187,13 @@ class CarRepository extends BaseModel
     /**
      * Insert une voiture dans la BD.
      *
-     * @param array $data
+     * @param Car $car
      * @return integer
      */
     public function insertCar(Car $car): int
     {
         return $this->insert($this->mapCarToArray($car));
     }
-
 
     // ------ Suppression ------ 
     /**
