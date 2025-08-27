@@ -98,6 +98,18 @@ CREATE TABLE rides(
 
 
 #------------------------------------------------------------
+# Table: ride_passengers
+#------------------------------------------------------------
+CREATE TABLE ride_passengers (
+        ride_id INT NOT NULL,
+        user_id INT NOT NULL,
+        PRIMARY KEY (ride_id, user_id),
+        FOREIGN KEY (ride_id) REFERENCES rides(ride_id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE
+);
+
+
+#------------------------------------------------------------
 # Table: bookings
 #------------------------------------------------------------
 
