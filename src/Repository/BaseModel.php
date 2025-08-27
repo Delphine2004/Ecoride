@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Models;
+namespace App\Repository;
 
 use App\Config\Database;
 use InvalidArgumentException;
 use PDO;
-use PhpParser\Node\Expr\Cast\Object_;
+
 
 abstract class BaseModel
 {
@@ -52,14 +52,25 @@ abstract class BaseModel
     }
 
     /**
-     * Récupére tous les enregistrements.
+     * Récupére tous les enregistrements avec pagination et tri.
      *
      * @return array
      */
-    public function findAll(): array
+    public function findAll(int $limit = 50, int $offset = 0, ?string $orderBy = null, string $orderDirection = 'DESC'): array
     {
         $sql = "SELECT * FROM `{$this->table}`";
-        $stmt = $this->db->query($sql);
+
+        if ($orderBy !== null && $this->isAllowedField($orderBy)) {
+            $orderDirection = strtoupper($orderDirection) === 'ASC' ? 'ASC' : 'DESC';
+            $sql .= " ORDER BY $orderBy $orderDirection";
+        }
+        $sql .= " LIMIT :limit OFFSET :offset";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+
         return $stmt->fetchAll(PDO::FETCH_CLASS, $this->entityClass);
     }
 
@@ -72,15 +83,8 @@ abstract class BaseModel
      */
     public function findOneByField(string $field, mixed $value): ?Object
     {
-        if (!$this->isAllowedField($field)) {
-            throw new InvalidArgumentException("Champ non autorisé : $field");
-        }
-        $sql = "SELECT * FROM {$this->table} WHERE $field = :value LIMIT 1";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute(['value' => $value]);
-        $stmt->setFetchMode(PDO::FETCH_CLASS, $this->entityClass);
-        $result = $stmt->fetch();
-        return $result ?: null;
+        $result = $this->findAllByField($field, $value);
+        return $result[0] ?? null;
     }
 
     /**
@@ -90,7 +94,7 @@ abstract class BaseModel
      * @param mixed $value
      * @return array
      */
-    public function findAllByField(string $field, mixed $value): array
+    public function findAllByField(string $field, mixed $value, int $limit = 50, int $offset = 0, ?string $orderBy = null, string $orderDirection = 'DESC'): array
     {
 
         if (!$this->isAllowedField($field)) {
@@ -98,8 +102,19 @@ abstract class BaseModel
         }
 
         $sql = "SELECT * FROM {$this->table} WHERE $field = :value";
+
+        if ($orderBy !== null && $this->isAllowedField($orderBy)) {
+            $orderDirection = strtoupper($orderDirection) === 'ASC' ? 'ASC' : 'DESC';
+            $sql .= " ORDER BY $orderBy $orderDirection";
+        }
+        $sql .= " LIMIT :limit OFFSET :offset";
+
         $stmt = $this->db->prepare($sql);
-        $stmt->execute(['value' => $value]);
+        $stmt->bindValue(':value', $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+
         return $stmt->fetchAll(PDO::FETCH_CLASS, $this->entityClass);
     }
 
