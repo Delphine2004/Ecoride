@@ -24,7 +24,8 @@ class Ride
 
     // Promotion des propriétés (depuis PHP 8)
     public function __construct(
-        private ?int $id = null, // n'a pas de valeur au moment de l'instanciation
+        private ?int $rideId = null, // n'a pas de valeur au moment de l'instanciation
+        private User $driver,
         private \DateTimeImmutable $departureDateTime,
         private string $departurePlace,
         private \DateTimeImmutable $arrivalDateTime,
@@ -32,7 +33,7 @@ class Ride
         private int $price,
         private int $availableSeats,
         private RideStatus $status,
-        private User $driver,
+
 
         private ?\DateTimeImmutable $createdAt = null, // n'a pas de valeur au moment de l'instanciation
         private ?\DateTimeImmutable $updatedAt = null // n'a pas de valeur au moment de l'instanciation
@@ -53,9 +54,9 @@ class Ride
     }
 
     // ---------Les Getters ---------
-    public function getId(): ?int
+    public function getRideId(): ?int
     {
-        return $this->id;
+        return $this->rideId;
     }
 
     public function getDepartureDateTime(): \DateTimeImmutable
@@ -133,7 +134,7 @@ class Ride
 
 
         if (isset($this->arrivalDateTime)) {
-            $this->updateTimesStamp();
+            $this->updateTimestamp();
             $this->validateDuration();
         }
         return $this;
@@ -141,11 +142,12 @@ class Ride
 
     public function setDeparturePlace(string $departurePlace): self
     {
+        // Vérifier si la valeur n'est pas vide et utiliser trim pour que la valeur ne soit pas considéré comme rempli avec un espace
         if (empty(trim($departurePlace))) {
             throw new InvalidArgumentException("La ville de départ ne peut pas être vide");
         }
         $this->departurePlace = trim($departurePlace);
-        $this->updateTimesStamp();
+        $this->updateTimestamp();
         return $this;
     }
 
@@ -156,7 +158,7 @@ class Ride
             throw new InvalidArgumentException("La date d'arrivée doit être supérieure à la date de départ.");
         }
         $this->arrivalDateTime = $arrivalDateTime;
-        $this->updateTimesStamp();
+        $this->updateTimestamp();
         $this->validateDuration();
         return $this;
     }
@@ -167,7 +169,7 @@ class Ride
             throw new InvalidArgumentException("La ville d'arrivée ne peut pas être vide");
         }
         $this->arrivalPlace = trim($arrivalPlace);
-        $this->updateTimesStamp();
+        $this->updateTimestamp();
         return $this;
     }
 
@@ -177,7 +179,7 @@ class Ride
             throw new InvalidArgumentException("Le prix doit être supérieure à 0.");
         }
         $this->price = $price;
-        $this->updateTimesStamp();
+        $this->updateTimestamp();
         return $this;
     }
 
@@ -187,21 +189,21 @@ class Ride
             throw new InvalidArgumentException("Le nombre de place disponible doit être supérieure à 0.");
         }
         $this->availableSeats = $availableSeats;
-        $this->updateTimesStamp();
+        $this->updateTimestamp();
         return $this;
     }
 
     public function setStatus(RideStatus $status): self
     {
         $this->status = $status;
-        $this->updateTimesStamp();
+        $this->updateTimestamp();
         return $this;
     }
 
     public function setDriver(User $driver): self
     {
         $this->driver = $driver;
-        $this->updateTimesStamp();
+        $this->updateTimestamp();
         return $this;
     }
 
@@ -215,7 +217,7 @@ class Ride
     }
 
     // ---- Mise à jour de la date de modification
-    private function updateTimesStamp(): void
+    private function updateTimestamp(): void
     {
         $this->updatedAt = new DateTimeImmutable();
     }

@@ -31,8 +31,8 @@ class Car
         private CarPower $power,
         private int $seatsNumber,
         private string $registrationNumber,
-
         private \DateTimeImmutable $registrationDate,
+
         private ?\DateTimeImmutable $createdAt = null // n'a pas de valeur au moment de l'instanciation
 
     ) {

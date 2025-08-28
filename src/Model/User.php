@@ -22,7 +22,7 @@ class User
 
     // Promotion des propriétés (depuis PHP 8)
     function __construct(
-        private ?int $id = null, // n'a pas de valeur au moment de l'instanciation
+        private ?int $userId = null, // n'a pas de valeur au moment de l'instanciation
         private string $lastName,
         private string $firstName,
         private string $email,
@@ -70,9 +70,9 @@ class User
     // ---------Les Getters ---------
 
 
-    public function getId(): ?int
+    public function getUserId(): ?int
     {
-        return $this->id;
+        return $this->userId;
     }
 
     public function getLastName(): string
@@ -145,12 +145,12 @@ class User
         return $this->roles;
     }
 
-    public function getCreatedAt(): ?DateTimeImmutable
+    public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): ?DateTimeImmutable
+    public function getUpdatedAt(): DateTimeImmutable
     {
         return $this->updatedAt;
     }
@@ -163,14 +163,14 @@ class User
     public function setLastName(string $lastName): self
     {
         $this->lastName = trim($lastName);
-        $this->updateTimesStamp();
+        $this->updateTimestamp();
         return $this;
     }
 
     public function setFirstName(string $firstName): self
     {
         $this->firstName = trim($firstName);
-        $this->updateTimesStamp();
+        $this->updateTimestamp();
         return $this;
     }
 
@@ -184,7 +184,7 @@ class User
             throw new InvalidArgumentException("L'email est invalide.");
         }
         $this->email = strtolower(trim($email));
-        $this->updateTimesStamp();
+        $this->updateTimestamp();
         return $this;
     }
 
@@ -196,7 +196,7 @@ class User
         }
 
         $this->password = $password;
-        $this->updateTimesStamp();
+        $this->updateTimestamp();
         return $this;
     }
 
@@ -206,7 +206,7 @@ class User
             throw new InvalidArgumentException("Le nom d'utilisateur est trop long.");
         }
         $this->userName = $userName !== null ? trim($userName) : null;
-        $this->updateTimesStamp();
+        $this->updateTimestamp();
         return $this;
     }
 
@@ -216,7 +216,7 @@ class User
             throw new InvalidArgumentException("Le numéro de téléphone doit contenir 10 chiffres.");
         }
         $this->phone = $phone !== null ? trim($phone) : null;
-        $this->updateTimesStamp();
+        $this->updateTimestamp();
         return $this;
     }
 
@@ -226,7 +226,7 @@ class User
             throw new InvalidArgumentException("L'adresse est trop longue.");
         }
         $this->address = $address !== null ? trim($address) : null;
-        $this->updateTimesStamp();
+        $this->updateTimestamp();
         return $this;
     }
 
@@ -236,7 +236,7 @@ class User
             throw new InvalidArgumentException("Le nom de la ville est trop long.");
         }
         $this->city = $city !== null ? trim($city) : null;
-        $this->updateTimesStamp();
+        $this->updateTimestamp();
         return $this;
     }
 
@@ -246,7 +246,7 @@ class User
             throw new InvalidArgumentException("Le code postal doit contenir exactement 5 chiffres.");
         }
         $this->zipCode = $zipCode !== null ? trim($zipCode) : null;
-        $this->updateTimesStamp();
+        $this->updateTimestamp();
         return $this;
     }
 
@@ -257,7 +257,7 @@ class User
         }
 
         $this->uriPicture = $uriPicture !== null ? trim($uriPicture) : null;
-        $this->updateTimesStamp();
+        $this->updateTimestamp();
         return $this;
     }
 
@@ -267,7 +267,7 @@ class User
             throw new InvalidArgumentException("Le numéro de permis est trop long.");
         }
         $this->licenceNo = $licenceNo !== null ? trim($licenceNo) : null;
-        $this->updateTimesStamp();
+        $this->updateTimestamp();
         return $this;
     }
 
@@ -277,14 +277,14 @@ class User
             throw new InvalidArgumentException("Le crédit ne peut pas être négatif.");
         }
         $this->credit = $credit;
-        $this->updateTimesStamp();
+        $this->updateTimestamp();
         return $this;
     }
 
     public function setApiToken(?string $apiToken): self
     {
         $this->apiToken = $apiToken;
-        $this->updateTimesStamp();
+        $this->updateTimestamp();
         return $this;
     }
 
@@ -300,7 +300,7 @@ class User
             $roles[] = UserRoles::PASSAGER; //conserve le rôle passager
         }
         $this->roles = $roles;
-        $this->updateTimesStamp();
+        $this->updateTimestamp();
         return $this;
     }
 
@@ -311,14 +311,14 @@ class User
         if (!in_array($role, $this->roles, true)) {
             $this->roles[] = $role;
         }
-        $this->updateTimesStamp();
+        $this->updateTimestamp();
         return $this;
     }
 
     public function removeRole(UserRoles $role): self
     {
         $this->roles = array_filter($this->roles, fn($r) => $r !== $role);
-        $this->updateTimesStamp();
+        $this->updateTimestamp();
         return $this;
     }
 
@@ -584,7 +584,7 @@ class User
 
     // ---- Mise à jour de la date de modification
 
-    private function updateTimesStamp(): void
+    private function updateTimestamp(): void
     {
         $this->updatedAt = new DateTimeImmutable();
     }
