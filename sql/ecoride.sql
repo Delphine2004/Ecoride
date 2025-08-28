@@ -31,8 +31,8 @@ CREATE TABLE users(
         licence_no VARCHAR (50) NULL,
         credit INT UNSIGNED NULL DEFAULT 0,
         api_token CHAR(64) NOT NULL UNIQUE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        created_at TIMESTAMP NOT NULL,
+        updated_at TIMESTAMP NOT NULL
 );
 
 #------------------------------------------------------------
@@ -68,11 +68,11 @@ CREATE TABLE cars(
         car_model VARCHAR (100) NOT NULL ,
         car_color VARCHAR (50) NOT NULL ,
         car_year YEAR NOT NULL,
-        car_power ENUM ('diesel', 'essence', 'electrique', 'hybride', 'gpl') NOT NULL,
+        car_power VARCHAR(20) NOT NULL,
         seats_number TINYINT UNSIGNED NOT NULL ,
         registration_number VARCHAR (20) UNIQUE NOT NULL ,
         registration_date DATE NOT NULL ,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP NOT NULL,
         FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
@@ -90,9 +90,9 @@ CREATE TABLE rides(
         arrival_place VARCHAR (100) NOT NULL ,
         price DECIMAL(6,2) NOT NULL ,
         available_seats TINYINT UNSIGNED NOT NULL ,
-        status ENUM('disponible', 'complet', 'annulé', 'passé'),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        status VARCHAR(20) NOT NULL,
+        created_at TIMESTAMP NOT NULL,
+        updated_at TIMESTAMP NOT NULL,
         FOREIGN KEY (owner_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
@@ -112,23 +112,23 @@ CREATE TABLE ride_passengers (
 #------------------------------------------------------------
 # Table: bookings
 #------------------------------------------------------------
-
 CREATE TABLE bookings(
         booking_id INT AUTO_INCREMENT PRIMARY KEY ,
         ride_id INT NOT NULL,
         passenger_id INT NOT NULL,
-        booked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        status ENUM ('confirmed', 'canceled', 'invoiced') NOT NULL,
+        driver_id INT NOT NULL,
+        status VARCHAR(20) NOT NULL,
+        created_at TIMESTAMP NOT NULL,
+        updated_at TIMESTAMP NOT NULL,
         FOREIGN KEY (ride_id) REFERENCES rides(ride_id) ON DELETE CASCADE,
-        FOREIGN KEY (passenger_id) REFERENCES users(user_id) ON DELETE CASCADE
+        FOREIGN KEY (passenger_id) REFERENCES users(user_id) ON DELETE CASCADE,
+        FOREIGN KEY (driver_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
 
 #------------------------------------------------------------
 # Table: reviews
 #------------------------------------------------------------
-
 CREATE TABLE reviews(
         review_id INT AUTO_INCREMENT PRIMARY KEY,
         ride_id INT NOT NULL,
@@ -137,8 +137,8 @@ CREATE TABLE reviews(
         content VARCHAR(1000),
         note TINYINT UNSIGNED NOT NULL CHECK (note BETWEEN 0 AND 10),
         statut ENUM('pending', 'approved', 'rejected')NOT NULL DEFAULT 'pending',
-        created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-        validated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        created_at TIMESTAMP NOT NULL,
+        validated_at TIMESTAMP NOT NULL,
         FOREIGN KEY (ride_id) REFERENCES rides(ride_id) ON DELETE CASCADE,
         FOREIGN KEY (author_id) REFERENCES users(user_id) ON DELETE CASCADE,
         FOREIGN KEY (target_id) REFERENCES users(user_id) ON DELETE CASCADE
