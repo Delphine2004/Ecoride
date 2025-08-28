@@ -50,7 +50,7 @@ class RideRepository extends BaseRepository
             throw new InvalidArgumentException("Le conducteur du trajet {$data['ride_id']} est introuvable.");
         }
         return new Ride(
-            id: (int)$data['ride_id'],
+            rideId: (int)$data['ride_id'],
             driver: $this->userRepository->findUserById($data['owner_id']),
             departureDateTime: new \DateTimeImmutable($data['departure_date_time']),
             departurePlace: $data['departure_place'],
@@ -298,7 +298,7 @@ class RideRepository extends BaseRepository
      */
     public function updateRide(Ride $ride): bool
     {
-        return $this->updateById($ride->getId(), $this->mapRideToArray($ride));
+        return $this->updateById($ride->getRideId(), $this->mapRideToArray($ride));
     }
 
     // ------ Insertion ------ 

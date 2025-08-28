@@ -43,7 +43,7 @@ class UserRepository extends BaseRepository
     private function hydrateUser(array $data): User
     {
         $user = new User(
-            id: (int)$data['user_id'],
+            userId: (int)$data['user_id'],
             lastName: $data['last_name'],
             firstName: $data['first_name'],
             email: $data['email'],
@@ -173,7 +173,7 @@ class UserRepository extends BaseRepository
 
     public function updateUser(User $user): bool
     {
-        return $this->updateById($user->getId(), $this->mapUserToArray($user));
+        return $this->updateById($user->getUserId(), $this->mapUserToArray($user));
     }
 
     // ------ Insertion ------ 

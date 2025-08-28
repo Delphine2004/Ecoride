@@ -50,7 +50,7 @@ class CarRepository extends BaseRepository
         }
 
         return new Car(
-            id: (int)$data['car_id'],
+            carId: (int)$data['car_id'],
             owner: $owner,
             brand: $data['car_brand'],
             model: $data['car_model'],
@@ -188,7 +188,7 @@ class CarRepository extends BaseRepository
      */
     public function updateCar(Car $car): bool
     {
-        return $this->updateById($car->getId(), $this->mapCarToArray($car));
+        return $this->updateById($car->getCarId(), $this->mapCarToArray($car));
     }
 
     // ------ Insertion ------ 

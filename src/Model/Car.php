@@ -22,7 +22,7 @@ class Car
 
     // Promotion des propriétés (depuis PHP 8)
     function __construct(
-        private ?int $id = null, // n'a pas de valeur au moment de l'instanciation
+        private ?int $carId = null, // n'a pas de valeur au moment de l'instanciation
         private User $owner,
         private string $brand,
         private string $model,
@@ -52,9 +52,9 @@ class Car
     }
 
     // ---------Les Getters ---------
-    public function getId(): ?int
+    public function getCarId(): ?int
     {
-        return $this->id;
+        return $this->carId;
     }
 
     public function getCarOwner(): User
