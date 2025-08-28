@@ -40,14 +40,14 @@ class Ride
 
     ) {
         // Affectation avec validation
-        $this->setDepartureDateTime($departureDateTime)
-            ->setDeparturePlace($departurePlace)
-            ->setArrivalDateTime($arrivalDateTime)
-            ->setArrivalPlace($arrivalPlace)
-            ->setPrice($price)
-            ->setAvailableSeats($availableSeats)
-            ->setStatus($status)
-            ->setDriver($driver);
+        $this->setRideDepartureDateTime($departureDateTime)
+            ->setRideDeparturePlace($departurePlace)
+            ->setRideArrivalDateTime($arrivalDateTime)
+            ->setRideArrivalPlace($arrivalPlace)
+            ->setRidePrice($price)
+            ->setRideAvailableSeats($availableSeats)
+            ->setRideStatus($status)
+            ->setRideDriver($driver);
 
         $this->createdAt = $createdAt ?? new DateTimeImmutable();
         $this->updatedAt = $updatedAt ?? new DateTimeImmutable();
@@ -59,27 +59,27 @@ class Ride
         return $this->rideId;
     }
 
-    public function getDepartureDateTime(): \DateTimeImmutable
+    public function getRideDepartureDateTime(): \DateTimeImmutable
     {
         return $this->departureDateTime;
     }
 
-    public function getDeparturePlace(): string
+    public function getRideDeparturePlace(): string
     {
         return $this->departurePlace;
     }
 
-    public function getArrivalDateTime(): \DateTimeImmutable
+    public function getRideArrivalDateTime(): \DateTimeImmutable
     {
         return $this->arrivalDateTime;
     }
 
-    public function getArrivalPlace(): string
+    public function getRideArrivalPlace(): string
     {
         return $this->arrivalPlace;
     }
 
-    public function getDuration(): int
+    public function getRideDuration(): int
     {
         // Calcule de la différence en seconde
         $interval = $this->arrivalDateTime->getTimestamp() - $this->departureDateTime->getTimestamp();
@@ -87,32 +87,32 @@ class Ride
         return (int)($interval / 60);
     }
 
-    public function getPrice(): int
+    public function getRidePrice(): int
     {
         return $this->price;
     }
 
-    public function getAvailableSeats(): int
+    public function getRideAvailableSeats(): int
     {
         return $this->availableSeats;
     }
 
-    public function getStatus(): RideStatus
+    public function getRideStatus(): RideStatus
     {
         return $this->status;
     }
 
-    public function getDriver(): User
+    public function getRideDriver(): User
     {
         return $this->driver;
     }
 
-    public function getCreatedAt(): DateTimeImmutable
+    public function getRideCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): DateTimeImmutable
+    public function getRideUpdatedAt(): DateTimeImmutable
     {
         return $this->updatedAt;
     }
@@ -122,7 +122,7 @@ class Ride
     // ---------Les Setters ---------
 
     // Pas de setId, de setCreatedAtcar et de setUpadetedAt car définis automatiquement par la BD
-    public function setDepartureDateTime(\DateTimeImmutable $departureDateTime): self
+    public function setRideDepartureDateTime(\DateTimeImmutable $departureDateTime): self
     {
         $today = new \DateTimeImmutable();
         $nextYear = (clone $today)->modify('+1 year');
@@ -140,7 +140,7 @@ class Ride
         return $this;
     }
 
-    public function setDeparturePlace(string $departurePlace): self
+    public function setRideDeparturePlace(string $departurePlace): self
     {
         // Vérifier si la valeur n'est pas vide et utiliser trim pour que la valeur ne soit pas considéré comme rempli avec un espace
         if (empty(trim($departurePlace))) {
@@ -151,7 +151,7 @@ class Ride
         return $this;
     }
 
-    public function setArrivalDateTime(\DateTimeImmutable $arrivalDateTime): self
+    public function setRideArrivalDateTime(\DateTimeImmutable $arrivalDateTime): self
     {
 
         if (isset($this->departureDateTime) && $arrivalDateTime <= $this->departureDateTime) {
@@ -163,7 +163,7 @@ class Ride
         return $this;
     }
 
-    public function setArrivalPlace(string $arrivalPlace): self
+    public function setRideArrivalPlace(string $arrivalPlace): self
     {
         if (empty(trim($arrivalPlace))) {
             throw new InvalidArgumentException("La ville d'arrivée ne peut pas être vide");
@@ -173,7 +173,7 @@ class Ride
         return $this;
     }
 
-    public function setPrice(int $price): self
+    public function setRidePrice(int $price): self
     {
         if ($price <= 0) {
             throw new InvalidArgumentException("Le prix doit être supérieure à 0.");
@@ -183,7 +183,7 @@ class Ride
         return $this;
     }
 
-    public function setAvailableSeats(int $availableSeats): self
+    public function setRideAvailableSeats(int $availableSeats): self
     {
         if ($availableSeats <= 0) {
             throw new InvalidArgumentException("Le nombre de place disponible doit être supérieure à 0.");
@@ -193,14 +193,14 @@ class Ride
         return $this;
     }
 
-    public function setStatus(RideStatus $status): self
+    public function setRideStatus(RideStatus $status): self
     {
         $this->status = $status;
         $this->updateTimestamp();
         return $this;
     }
 
-    public function setDriver(User $driver): self
+    public function setRideDriver(User $driver): self
     {
         $this->driver = $driver;
         $this->updateTimestamp();
@@ -210,7 +210,7 @@ class Ride
     // ------ Validation interne de la durée -----
     private function validateDuration(): void
     {
-        $duration = $this->getDuration();
+        $duration = $this->getRideDuration();
         if ($duration <= 0) {
             throw new InvalidArgumentException("La durée du trajet doit être supérieure à 0.");
         }

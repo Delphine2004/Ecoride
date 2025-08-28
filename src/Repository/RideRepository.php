@@ -25,7 +25,7 @@ class RideRepository extends BaseRepository
 
     private UserRepository $userRepository;
 
-    private array $allowedFields = ['ride_id', 'departure_date_time', 'departure_place', 'arrival_date_time', 'arrival_place', 'price', 'available_seats', 'status', 'owner_id'];
+    private array $allowedFields = ['ride_id', 'departure_date_time', 'departure_place', 'arrival_date_time', 'arrival_place', 'price', 'available_seats', 'ride_status', 'owner_id'];
 
 
     public function __construct(PDO $db, UserRepository $userRepository)
@@ -46,19 +46,21 @@ class RideRepository extends BaseRepository
         // Rechercher le conducteur du trajet.
         $driver = $this->userRepository->findUserById($data['owner_id']);
 
+        //Vérifier que le conducteur existe.
         if (!$driver) {
             throw new InvalidArgumentException("Le conducteur du trajet {$data['ride_id']} est introuvable.");
         }
+
         return new Ride(
             rideId: (int)$data['ride_id'],
-            driver: $this->userRepository->findUserById($data['owner_id']),
+            driver: $driver,
             departureDateTime: new \DateTimeImmutable($data['departure_date_time']),
             departurePlace: $data['departure_place'],
             arrivalDateTime: new \DateTimeImmutable($data['arrival_date_time']),
             arrivalPlace: $data['arrival_place'],
             price: (float)$data['price'],
             availableSeats: (int)$data['available_seats'],
-            status: RideStatus::from($data['status']),
+            status: RideStatus::from($data['ride_status']),
             createdAt: !empty($data['created_at']) ? new \DateTimeImmutable($data['created_at']) : null,
             updatedAt: !empty($data['updated_at']) ? new \DateTimeImmutable($data['updated_at']) : null
 
@@ -74,13 +76,13 @@ class RideRepository extends BaseRepository
     private function mapRideToArray(Ride $ride): array
     {
         return [
-            'departure_date_time' => $ride->getDepartureDateTime()->format('Y-m-d H:i:s'),
-            'departure_place' => $ride->getDeparturePlace(),
-            'arrival_date_time' => $ride->getArrivalDateTime()->format('Y-m-d H:i:s'),
-            'arrival_place' => $ride->getArrivalPlace(),
-            'price' => $ride->getPrice(),
-            'available_seats' => $ride->getAvailableSeats(),
-            'status' => $ride->getStatus()->value
+            'departure_date_time' => $ride->getRideDepartureDateTime()->format('Y-m-d H:i:s'),
+            'departure_place' => $ride->getRideDeparturePlace(),
+            'arrival_date_time' => $ride->getRideArrivalDateTime()->format('Y-m-d H:i:s'),
+            'arrival_place' => $ride->getRideArrivalPlace(),
+            'price' => $ride->getRidePrice(),
+            'available_seats' => $ride->getRideAvailableSeats(),
+            'status' => $ride->getRideStatus()->value
 
         ];
     }
@@ -94,9 +96,9 @@ class RideRepository extends BaseRepository
      * @param integer $id
      * @return Ride|null
      */
-    public function findRideById(int $id): ?Ride
+    public function findRideById(int $rideId): ?Ride
     {
-        $row = parent::findById($id);
+        $row = parent::findById($rideId);
         return $row ? $this->hydrateRide((array) $row) : null;
     }
 
@@ -244,13 +246,13 @@ class RideRepository extends BaseRepository
      * @param string|null $status
      * @return array
      */
-    public function findRidesByPassenger(int $userId, ?string $status = null): array
+    public function findRidesByPassenger(int $passengerId, ?string $status = null): array
     {
         $sql = "SELECT r.*
                 FROM {$this->table} r
                 INNER JOIN ride_passengers rp ON r.ride_id = rp.ride_id
                 WHERE rp.user_id = :id";
-        $params = ['id' => $userId];
+        $params = ['id' => $passengerId];
 
         if ($status !== null) {
             $sql .= " AND r.status = :status";
@@ -272,9 +274,9 @@ class RideRepository extends BaseRepository
      * @param integer $userId
      * @return array
      */
-    public function findUpcomingRidesByPassenger(int $userId): array
+    public function findUpcomingRidesByPassenger(int $passengerId): array
     {
-        return $this->findRidesByPassenger($userId, RideStatus::DISPONIBLE->value);
+        return $this->findRidesByPassenger($passengerId, RideStatus::DISPONIBLE->value);
     }
 
     /**
@@ -283,9 +285,9 @@ class RideRepository extends BaseRepository
      * @param integer $userId
      * @return array
      */
-    public function findPastRidesByPassenger(int $userId): array
+    public function findPastRidesByPassenger(int $passengerId): array
     {
-        return $this->findRidesByPassenger($userId, RideStatus::PASSE->value);
+        return $this->findRidesByPassenger($passengerId, RideStatus::PASSE->value);
     }
 
 
@@ -320,8 +322,8 @@ class RideRepository extends BaseRepository
      * @param integer $id
      * @return boolean
      */
-    public function deleteRide(int $id): bool
+    public function deleteRide(int $rideId): bool
     {
-        return $this->deleteById($id);
+        return $this->deleteById($rideId);
     }
 }
