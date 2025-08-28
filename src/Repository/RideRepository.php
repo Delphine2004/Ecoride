@@ -2,7 +2,7 @@
 
 namespace App\Repositories;
 
-use App\Repository\BaseModel;
+use App\Repository\BaseRepository;
 use App\Models\Ride;
 use App\Enum\RideStatus;
 use PDO;
@@ -12,7 +12,7 @@ use InvalidArgumentException;
  * Cette classe gére la correspondance entre un trajet et la BDD.
  */
 
-class RideRepository extends BaseModel
+class RideRepository extends BaseRepository
 {
 
     /**

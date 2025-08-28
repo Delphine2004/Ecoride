@@ -7,7 +7,7 @@ use InvalidArgumentException;
 use PDO;
 
 
-abstract class BaseModel
+abstract class BaseRepository
 {
 
     /**

@@ -2,13 +2,13 @@
 
 namespace App\Repositories;
 
-use App\Repository\BaseModel;
+use App\Repository\BaseRepository;
 use App\Models\User; // Utile si le repository hydrate les objets au lieu de tableaux
 use App\Enum\UserRoles;
 use PDO;
 use InvalidArgumentException;
 
-// pas besoin de database car instancié par BaseModel
+// pas besoin de database car instancié par BaseRepository
 // PDOExeption Utilise si try et catch mais pas necessaire car utilisé dans DataBase
 
 
@@ -16,14 +16,14 @@ use InvalidArgumentException;
  * Cette classe gére la correspondance entre un utilisateur et la BDD.
  */
 
-class UserRepository extends BaseModel
+class UserRepository extends BaseRepository
 {
     /**
      * @var string Le nom de la table en BDD
      */
     protected string $table = 'users';
 
-    protected string $primaryKey = 'user_id'; // Utile car utiliser dans BaseModel
+    protected string $primaryKey = 'user_id'; // Utile car utiliser dans BaseRepository
 
     private array $allowedFields = ['user_id', 'last_name', 'first_name', 'email', 'user_name', 'phone', 'address', 'city', 'zip_code', 'picture', 'licence_no', 'credit', 'api_token'];
 

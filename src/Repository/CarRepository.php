@@ -2,7 +2,7 @@
 
 namespace App\Repositories;
 
-use App\Repository\BaseModel;
+use App\Repository\BaseRepository;
 use App\Models\Car;
 use App\Enum\CarPower;
 use PDO;
@@ -12,7 +12,7 @@ use InvalidArgumentException;
  * Cette classe gére la correspondance entre une voiture et la BDD.
  */
 
-class CarRepository extends BaseModel
+class CarRepository extends BaseRepository
 {
 
     /**
@@ -20,7 +20,7 @@ class CarRepository extends BaseModel
      */
     protected string $table = 'cars';
 
-    protected string $primaryKey = 'car_id'; // Utile car utiliser dans BaseModel
+    protected string $primaryKey = 'car_id'; // Utile car utiliser dans BaseRepository
 
     private UserRepository $userRepository;
 
