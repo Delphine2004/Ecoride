@@ -17,7 +17,7 @@ class Booking
         private Ride $ride,
         private User $passenger,
         private User $driver,
-        private BookingStatus $status,
+        private BookingStatus $bookingStatus,
 
         private ?\DateTimeImmutable $createdAt = null, // n'a pas de valeur au moment de l'instanciation
         private ?\DateTimeImmutable $updatedAt = null // n'a pas de valeur au moment de l'instanciation
@@ -28,44 +28,44 @@ class Booking
             throw new InvalidArgumentException("Le chauffeur ne peut pas être passager de son propre trajet.");
         }
 
-        if ($ride->getDriver()->getUserId() === $passenger->getUserId()) {
+        if ($ride->getRideDriver()->getUserId() === $passenger->getUserId()) {
             throw new InvalidArgumentException("Un passager ne peut pas réserver son propre trajet.");
         }
 
         // Affectation avec validation
-        $this->setRide($ride)
-            ->setPassenger($passenger)
-            ->setDriver($driver)
-            ->setStatus($status);
+        $this->setBookingRide($ride)
+            ->setBookingPassenger($passenger)
+            ->setBookingDriver($driver)
+            ->setBookingStatus($bookingStatus);
 
         $this->createdAt = $createdAt ?? new DateTimeImmutable();
         $this->updatedAt = $updatedAt ?? new DateTimeImmutable();
     }
 
     // ---------Les Getters ---------
-    public function getId(): ?int
+    public function getBookingId(): ?int
     {
         return $this->bookingId;
     }
 
-    public function getRide(): Ride
+    public function getBookingRide(): Ride
     {
         return $this->ride;
     }
 
-    public function getPassenger(): User
+    public function getBookingPassenger(): User
     {
         return $this->passenger;
     }
 
-    public function getDriver(): User
+    public function getBookingDriver(): User
     {
         return $this->driver;
     }
 
-    public function getStatus(): BookingStatus
+    public function getBookingStatus(): BookingStatus
     {
-        return $this->status;
+        return $this->bookingStatus;
     }
 
     public function getCreatedAt(): DateTimeImmutable
@@ -83,9 +83,9 @@ class Booking
 
     // Pas de setId, de setCreatedAtcar et de setUpadetedAt car définis automatiquement par la BD
 
-    public function setRide(Ride $ride): self
+    public function setBookingRide(Ride $ride): self
     {
-        if ($this->passenger->getUserId() === $ride->getDriver()->getUserId()) {
+        if ($this->passenger->getUserId() === $ride->getRideDriver()->getUserId()) {
             throw new InvalidArgumentException("Un passager ne peut pas réserver son propre trajet.");
         }
         $this->ride = $ride;
@@ -93,13 +93,13 @@ class Booking
         return $this;
     }
 
-    public function setPassenger(User $passenger): self
+    public function setBookingPassenger(User $passenger): self
     {
         if ($this->driver !== null && $passenger->getUserId() === $this->driver->getUserId()) {
             throw new InvalidArgumentException("Le chauffeur ne peut pas être passager de son propre trajet.");
         }
 
-        if ($this->ride !== null && $this->ride->getDriver()->getUserId() === $passenger->getUserId()) {
+        if ($this->ride !== null && $this->ride->getRideDriver()->getUserId() === $passenger->getUserId()) {
             throw new InvalidArgumentException("Un passager ne peut pas réserver son propre trajet.");
         }
         $this->passenger = $passenger;
@@ -107,7 +107,7 @@ class Booking
         return $this;
     }
 
-    public function setDriver(User $driver): self
+    public function setBookingDriver(User $driver): self
     {
         if ($this->passenger !== null && $driver->getUserId() === $this->passenger->getUserId()) {
             throw new InvalidArgumentException("Le chauffeur ne peut pas être passager de son propre trajet.");
@@ -118,9 +118,9 @@ class Booking
         return $this;
     }
 
-    public function setStatus(BookingStatus $status): self
+    public function setBookingStatus(BookingStatus $bookingStatus): self
     {
-        $this->status = $status;
+        $this->bookingStatus = $bookingStatus;
         $this->updateTimestamp();
         return $this;
     }
