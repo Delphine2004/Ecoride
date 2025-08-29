@@ -17,7 +17,7 @@ class Booking
         private Ride $ride,
         private User $passenger,
         private User $driver,
-        private BookingStatus $bookingStatus,
+        private BookingStatus $bookingStatus = BookingStatus::CONFIRMEE, // Statut par défaut
 
         private ?\DateTimeImmutable $createdAt = null, // n'a pas de valeur au moment de l'instanciation
         private ?\DateTimeImmutable $updatedAt = null // n'a pas de valeur au moment de l'instanciation
