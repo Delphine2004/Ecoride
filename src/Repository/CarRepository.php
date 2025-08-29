@@ -154,10 +154,10 @@ class CarRepository extends BaseRepository
     }
 
 
-    //  ------ Récupérations scpécifiques ---------
+    //  ------ Récupérations spécifiques ---------
 
     /**
-     * Fonction qui permet de retourner toutes les voitures d'un propriétaire.
+     * Récupére toutes les voitures d'un propriétaire.
      *
      * @param integer $ownerId
      * @return array
@@ -168,7 +168,7 @@ class CarRepository extends BaseRepository
     }
 
     /**
-     * Fonction qui recherche toutes les voitures selon l'energie utilisée.
+     * Récupére toutes les voitures selon l'energie utilisée.
      *
      * @param string $power
      * @return array
@@ -177,6 +177,8 @@ class CarRepository extends BaseRepository
     {
         return $this->findAllCarsByField('car_power', $power);
     }
+
+
 
 
     // ------ Mise à jour ------ 
