@@ -35,7 +35,7 @@ class UserRepository extends BaseRepository
 
 
     /**
-     * Hydrate un tableau BDD en objet User
+     * Remplit un objet User avec les données de la table users.
      *
      * @param array $data
      * @return User
@@ -58,7 +58,7 @@ class UserRepository extends BaseRepository
             licenceNo: $data['licence_no'] ?? null,
             credit: (int)$data['credit'] ?? null,
             apiToken: $data['api_token'] ?? null,
-            roles: $this->getUserRoles((int)$data['user_id']), // Récupération du rôle via la table pivot 
+            roles: $this->getUserRoles((int)$data['user_id']),
             createdAt: !empty($data['created_at']) ? new \DateTimeImmutable($data['created_at']) : null,
             updatedAt: !empty($data['updated_at']) ? new \DateTimeImmutable($data['updated_at']) : null
         );
@@ -67,6 +67,12 @@ class UserRepository extends BaseRepository
         return $user;
     }
 
+    /**
+     * Transforme User en tableau pour insert et update.
+     *
+     * @param User $user
+     * @return array
+     */
     private function mapUserToArray(User $user): array
     {
         return [
@@ -87,6 +93,12 @@ class UserRepository extends BaseRepository
     }
 
     // ------- Gestion des rôles ---------- 
+    /**
+     * Obtenir le rôle d'un utilisateur via la table pivot.
+     *
+     * @param integer $userId
+     * @return array
+     */
     private function getUserRoles(int $userId): array
     {
         $sql = "SELECT r.role_name
@@ -115,18 +127,39 @@ class UserRepository extends BaseRepository
 
     // ------ Récupérations ------ 
 
-    public function findUserById(int $id): ?User
+    /**
+     * Récupére un utilisateur par son id.
+     *
+     * @param integer $userId
+     * @return User|null
+     */
+    public function findUserById(int $userId): ?User
     {
-        $row = parent::findById($id);
+        $row = parent::findById($userId);
         return $row ? $this->hydrateUser((array) $row) : null;
     }
 
-    public function findAllUsers(): array
+    /**
+     * Récupére tous les utilisateurs avec pagination et tri.
+     *
+     * @param integer $limit
+     * @param string|null $orderBy
+     * @param string $orderDirection
+     * @return array
+     */
+    public function findAllUsers(?string $orderBy = null, string $orderDirection = 'DESC', int $limit = 50, int $offset = 0): array
     {
-        $rows = parent::findAll();
+        $rows = parent::findAll($orderBy, $orderDirection, $limit, $offset);
         return array_map(fn($row) => $this->hydrateUser((array) $row), $rows);
     }
 
+    /**
+     * Récupére un utilisateur selon un champs spécifique.
+     *
+     * @param string $field
+     * @param mixed $value
+     * @return User|null
+     */
     public function findUserByField(string $field, mixed $value): ?User
     {
         if (!in_array($field, $this->allowedFields)) {
@@ -137,47 +170,108 @@ class UserRepository extends BaseRepository
         return $row ? $this->hydrateUser((array) $row) : null;
     }
 
-    public function findAllUsersByField(string $field, mixed $value): array
+    /**
+     * Récupére tous les utilisateurs selon un champ spécifique avec pagination et tri.
+     *
+     * @param string $field
+     * @param mixed $value
+     * @param integer $limit
+     * @param string|null $orderBy
+     * @param string $orderDirection
+     * @return array
+     */
+    public function findAllUsersByField(string $field, mixed $value, ?string $orderBy = null, string $orderDirection = 'DESC', int $limit = 50, int $offset = 0): array
     {
         if (!in_array($field, $this->allowedFields)) {
             throw new InvalidArgumentException("Champ non autorisé ; $field");
         }
 
-        $rows = parent::findAllByField($field, $value);
+        $rows = parent::findAllByField($field, $value, $orderBy, $orderDirection, $limit, $offset);
         return array_map(fn($row) => $this->hydrateUser((array) $row), $rows);
     }
 
-    //  ------ Récupérations scpécifiques ---------
 
+    //  ------ Récupérations spécifiques ---------
+
+    /**
+     * Récupére un utilisateur par son email.
+     *
+     * @param string $email
+     * @return User|null
+     */
     public function findUserByEmail(string $email): ?User
     {
         return $this->findUserByField('email', $email);
     }
 
-    public function findUserByRole(UserRoles $role): array
+    /**
+     * Récupére tous les utilisateurs par leur rôle.
+     *
+     * @param UserRoles $role
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @return array
+     */
+    public function findUsersByRole(UserRoles $role, string $orderBy = 'role_id', string $orderDirection, int $limit = 20): array
     {
+        // Sécurisation du champ ORDER BY
+        if (!in_array($orderBy, $this->allowedFields, true)) {
+            $orderBy = 'role_id';
+        }
+
+        // Sécurisation du champ direction
+        $orderDirection = strtoupper($orderDirection);
+        if (!in_array($orderDirection, ['ASC', 'DESC'], true)) {
+            $orderDirection = 'DESC';
+        }
+
+        // Construction du SQL
         $sql = "SELECT u.* FROM users u 
             INNER JOIN user_roles ur ON u.user_id = ur.user_id 
             INNER JOIN roles r ON ur.role_id = r.role_id 
             WHERE r.role_name =:role";
 
+        $params = ['role' => $role];
+
+        // Tri et limite
+        $sql .= " ORDER BY r.$orderBy $orderDirection LIMIT :limit";
+
+        // Préparation de la requête
         $stmt = $this->db->prepare($sql);
-        $stmt->execute(['role' => $role->value]);
+
+
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+
+        $stmt->execute();
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         return array_map(fn($row) => $this->hydrateUser((array) $row), $rows);
     }
 
 
-    // ------ Mise à jour ------ 
+    //------------------------------------------
 
+
+    // ------ Mise à jour ------ 
+    /**
+     * Met à jour les données concernant un utilisateur.
+     *
+     * @param User $user
+     * @return boolean
+     */
     public function updateUser(User $user): bool
     {
         return $this->updateById($user->getUserId(), $this->mapUserToArray($user));
     }
 
     // ------ Insertion ------ 
-
+    /**
+     * Insert un utilisateur dans la BD.
+     *
+     * @param User $user
+     * @return integer
+     */
     public function insertUser(User $user): int
     {
         return $this->insert($this->mapUserToArray($user));
@@ -185,9 +279,14 @@ class UserRepository extends BaseRepository
 
 
     // ------ Suppression ------ 
-
-    public function deleteUser(int $id): bool
+    /**
+     * Supprime un utilisateur de la BD.
+     *
+     * @param integer $userId
+     * @return boolean
+     */
+    public function deleteUser(int $userId): bool
     {
-        return $this->deleteById($id);
+        return $this->deleteById($userId);
     }
 }

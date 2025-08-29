@@ -60,7 +60,7 @@ abstract class BaseRepository
      * @param string $orderDirection
      * @return array
      */
-    public function findAll(int $limit = 50, int $offset = 0, ?string $orderBy = null, string $orderDirection = 'DESC'): array
+    public function findAll(?string $orderBy = null, string $orderDirection = 'DESC', int $limit = 50, int $offset = 0): array
     {
         $sql = "SELECT * FROM `{$this->table}`";
 
@@ -102,7 +102,7 @@ abstract class BaseRepository
      * @param string $orderDirection
      * @return array
      */
-    public function findAllByField(string $field, mixed $value, int $limit = 50, int $offset = 0, ?string $orderBy = null, string $orderDirection = 'DESC'): array
+    public function findAllByField(string $field, mixed $value, ?string $orderBy = null, string $orderDirection = 'DESC', int $limit = 50, int $offset = 0): array
     {
 
         if (!$this->isAllowedField($field)) {

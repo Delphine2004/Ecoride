@@ -35,7 +35,7 @@ class CarRepository extends BaseRepository
 
 
     /**
-     * Fonction qui remplit un objet Car avec les données de la table Car lors de l'instanciation.
+     * Remplit un objet Car avec les données de la table cars.
      *
      * @param array $data
      * @return Car
@@ -91,12 +91,12 @@ class CarRepository extends BaseRepository
     /**
      * Récupére une voiture par son id.
      *
-     * @param integer $id
+     * @param integer $carId
      * @return Car|null
      */
-    public function findCarById(int $id): ?Car
+    public function findCarById(int $carId): ?Car
     {
-        $row = parent::findById($id);
+        $row = parent::findById($carId);
         return $row ? $this->hydrateCar((array) $row) : null;
     }
 
@@ -109,9 +109,9 @@ class CarRepository extends BaseRepository
      * @param string $orderDirection
      * @return array
      */
-    public function findAllCars(int $limit = 50, int $offset = 0, ?string $orderBy = null, string $orderDirection = 'DESC'): array
+    public function findAllCars(?string $orderBy = null, string $orderDirection = 'DESC', int $limit = 50, int $offset = 0): array
     {
-        $rows = parent::findAll($limit, $offset, $orderBy, $orderDirection);
+        $rows = parent::findAll($orderBy, $orderDirection, $limit, $offset);
         return array_map(fn($row) => $this->hydrateCar((array) $row), $rows);
     }
 
@@ -143,29 +143,18 @@ class CarRepository extends BaseRepository
      * @param string $orderDirection
      * @return array
      */
-    public function findAllCarsByField(string $field, mixed $value, int $limit = 50, int $offset = 0, ?string $orderBy = null, string $orderDirection = 'DESC'): array
+    public function findAllCarsByField(string $field, mixed $value, ?string $orderBy = null, string $orderDirection = 'DESC', int $limit = 50, int $offset = 0): array
     {
         if (!in_array($field, $this->allowedFields)) {
             throw new InvalidArgumentException("Champ non autorisé ; $field");
         }
 
-        $rows = parent::findAllByField($field, $value, $limit, $offset, $orderBy, $orderDirection);
+        $rows = parent::findAllByField($field, $value, $orderBy, $orderDirection, $limit, $offset);
         return array_map(fn($row) => $this->hydrateCar((array) $row), $rows);
     }
 
 
     //  ------ Récupérations spécifiques ---------
-
-    /**
-     * Récupére toutes les voitures d'un propriétaire.
-     *
-     * @param integer $ownerId
-     * @return array
-     */
-    public function findCarsByOwner(int $ownerId): array
-    {
-        return $this->findAllCarsByField('user_id', $ownerId);
-    }
 
     /**
      * Récupére toutes les voitures selon l'energie utilisée.
@@ -179,6 +168,47 @@ class CarRepository extends BaseRepository
     }
 
 
+    /**
+     * Récupére toutes les voitures d'un utilisateur conducteur avec tri et pagination.
+     *
+     * @param integer $ownerId
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @return array
+     */
+    public function findCarsByOwner(int $ownerId, string $orderBy = 'car_id', string $orderDirection = 'DESC', int $limit = 20): array
+    {
+        // Sécurisation des champs d'ORDER BY et direction
+        if (!in_array($orderBy, $this->allowedFields, true)) {
+            $orderBy = 'car_id';
+        }
+
+        $orderDirection = strtoupper($orderDirection);
+        if (!in_array($orderDirection, ['ASC', 'DESC'], true)) {
+            $orderDirection = 'DESC';
+        }
+
+        // Construction du SQL
+        $sql = "SELECT c.*
+        FROM {$this->table} c
+        INNER JOIN users u ON c.user_id = u.user_id
+        WHERE u.user_id = :ownerId 
+        ORDER BY c.$orderBy $orderDirection LIMIT :limit";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':ownerId', $ownerId, PDO::PARAM_INT);
+
+        $stmt->execute();
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return array_map(fn($row) => $this->hydrateCar((array) $row), $rows);
+    }
+
+
+    //------------------------------------------
 
 
     // ------ Mise à jour ------ 
