@@ -32,7 +32,7 @@ class Ride
         private string $arrivalPlace,
         private int $price,
         private int $availableSeats,
-        private RideStatus $status,
+        private RideStatus $rideStatus = RideStatus::DISPONIBLE, // Statut par défaut
 
 
         private ?\DateTimeImmutable $createdAt = null, // n'a pas de valeur au moment de l'instanciation
@@ -46,7 +46,7 @@ class Ride
             ->setRideArrivalPlace($arrivalPlace)
             ->setRidePrice($price)
             ->setRideAvailableSeats($availableSeats)
-            ->setRideStatus($status)
+            ->setRideStatus($rideStatus)
             ->setRideDriver($driver);
 
         $this->createdAt = $createdAt ?? new DateTimeImmutable();
@@ -99,7 +99,7 @@ class Ride
 
     public function getRideStatus(): RideStatus
     {
-        return $this->status;
+        return $this->rideStatus;
     }
 
     public function getRideDriver(): User
@@ -193,9 +193,9 @@ class Ride
         return $this;
     }
 
-    public function setRideStatus(RideStatus $status): self
+    public function setRideStatus(RideStatus $rideStatus): self
     {
-        $this->status = $status;
+        $this->rideStatus = $rideStatus;
         $this->updateTimestamp();
         return $this;
     }

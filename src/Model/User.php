@@ -40,7 +40,7 @@ class User
 
         private ?string $apiToken = null, // n'a pas de valeur au moment de l'instanciation
         /**@var UserRoles[] */
-        private array $roles = [UserRoles::PASSAGER], // Pour pouvoir stoker plusieurs rôles pour un utilisateur
+        private array $roles = [UserRoles::PASSAGER], // Statut par défaut / en tableau pour pouvoir stoker plusieurs rôles pour un utilisateur
 
         private ?DateTimeImmutable $createdAt = null, // n'a pas de valeur au moment de l'instanciation
         private ?DateTimeImmutable $updatedAt = null // n'a pas de valeur au moment de l'instanciation
