@@ -21,7 +21,6 @@ class RideRepository extends BaseRepository
      */
 
     protected string $table = 'rides';
-
     protected string $primaryKey = 'ride_id';
 
     private UserRepository $userRepository;
@@ -77,13 +76,14 @@ class RideRepository extends BaseRepository
     private function mapRideToArray(Ride $ride): array
     {
         return [
+            'owner_id' => $ride->getRideDriver()->getUserId(),
             'departure_date_time' => $ride->getRideDepartureDateTime()->format('Y-m-d H:i:s'),
             'departure_place' => $ride->getRideDeparturePlace(),
             'arrival_date_time' => $ride->getRideArrivalDateTime()->format('Y-m-d H:i:s'),
             'arrival_place' => $ride->getRideArrivalPlace(),
             'price' => $ride->getRidePrice(),
             'available_seats' => $ride->getRideAvailableSeats(),
-            'status' => $ride->getRideStatus()->value
+            'ride_status' => $ride->getRideStatus()->value
 
         ];
     }
@@ -106,9 +106,10 @@ class RideRepository extends BaseRepository
     /**
      * Récupére tous les trajets avec pagination et tri.
      *
-     * @param integer $limit
      * @param string|null $orderBy
      * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
      * @return array
      */
     public function findAllRides(?string $orderBy = null, string $orderDirection = 'DESC', int $limit = 50, int $offset = 0): array
@@ -139,9 +140,10 @@ class RideRepository extends BaseRepository
      *
      * @param string $field
      * @param mixed $value
-     * @param integer $limit
      * @param string|null $orderBy
      * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
      * @return array
      */
     public function findAllRidesByField(string $field, mixed $value, ?string $orderBy = null, string $orderDirection = 'DESC', int $limit = 50, int $offset = 0): array
@@ -163,10 +165,13 @@ class RideRepository extends BaseRepository
      * @param \DateTimeInterface $date
      * @param string $departurePlace
      * @param string|null $arrivalPlace
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
      * @return array
      */
-
-    public function findRideByDateAndPlace(\DateTimeInterface $date, string $departurePlace, ?string $arrivalPlace = null, string $orderBy = 'departure_date_time', string $orderDirection, int $limit = 20): array
+    public function findRideByDateAndPlace(\DateTimeInterface $date, string $departurePlace, ?string $arrivalPlace = null, string $orderBy = 'departure_date_time', string $orderDirection = 'DESC', int $limit = 20, int $offset = 0): array
     {
         // Sécurisation du champ ORDER BY
         if (!in_array($orderBy, $this->allowedFields, true)) {
@@ -195,7 +200,7 @@ class RideRepository extends BaseRepository
             $params['arrivalPlace'] = $arrivalPlace;
         }
 
-        $sql .= " ORDER BY r.$orderBy $orderDirection LIMIT :limit";
+        $sql .= " ORDER BY r.$orderBy $orderDirection LIMIT :limit OFFSET :offset";
 
         $stmt = $this->db->prepare($sql);
 
@@ -203,6 +208,7 @@ class RideRepository extends BaseRepository
             $stmt->bindValue(":$key", $value);
         }
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 
         $stmt->execute();
 
@@ -221,9 +227,10 @@ class RideRepository extends BaseRepository
      * @param string $orderBy
      * @param string $orderDirection
      * @param integer $limit
+     * @param integer $offset
      * @return array
      */
-    public function findRideByUser(int $userId, UserRoles $role, ?string $status = null, string $orderBy = 'departure_date_time', string $orderDirection = 'DESC', int $limit = 20): array
+    public function findRideByUser(int $userId, UserRoles $role, ?string $status = null, string $orderBy = 'departure_date_time', string $orderDirection = 'DESC', int $limit = 20, int $offset = 0): array
     {
         // Sécurisation du champ ORDER BY
         if (!in_array($orderBy, $this->allowedFields, true)) {
@@ -248,6 +255,7 @@ class RideRepository extends BaseRepository
                 $sql = "SELECT r.*
                 FROM {$this->table} r
                 INNER JOIN ride_passengers rp ON r.ride_id = rp.ride_id
+                JOIN users u ON r.owner_id = u.user_id
                 WHERE rp.user_id = :userId";
                 break;
             default:
@@ -255,29 +263,24 @@ class RideRepository extends BaseRepository
         }
 
 
-        $params = ['userId' => $userId];
-
-        // Ajout du status du trajet
+        // Ajout du statut du trajet
         if ($status !== null) {
             $sql .= " AND r.ride_status = :status";
-            $params['status'] = $status;
         }
 
         // Tri et limite
-        $sql .= " ORDER BY r.$orderBy $orderDirection LIMIT :limit";
+        $sql .= " ORDER BY r.$orderBy $orderDirection LIMIT :limit OFFSET :offset";
 
 
         // Préparation de la requête
         $stmt = $this->db->prepare($sql);
 
-
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-
-        foreach ($params as $key => $value) {
-            if ($key !== ':limit') {
-                $stmt->bindValue($key, $value);
-            }
+        $stmt->bindValue(':userId', $userId, PDO::PARAM_INT);
+        if ($status !== null) {
+            $stmt->bindValue(':status', $status, PDO::PARAM_STR);
         }
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 
         $stmt->execute();
 
@@ -290,11 +293,16 @@ class RideRepository extends BaseRepository
      * Trouver tous les trajets d'un conducteur
      *
      * @param integer $driverId
+     * @param string|null $status
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
      * @return array
      */
-    public function findRidesByDriver(int $driverId): array
+    public function findRidesByDriver(int $driverId, ?string $status = null, string $orderBy = 'departure_date_time', string $orderDirection = 'DESC', int $limit = 20, int $offset = 0): array
     {
-        return $this->findRideByUser($driverId, UserRoles::CONDUCTEUR);
+        return $this->findRideByUser($driverId, UserRoles::CONDUCTEUR, $status, $orderBy, $orderDirection, $limit, $offset);
     }
 
     /**
@@ -324,11 +332,16 @@ class RideRepository extends BaseRepository
      * Trouver tous les trajets d'un passager
      *
      * @param integer $passengerId
+     * @param string|null $status
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
      * @return array
      */
-    public function findRidesByPassenger(int $passengerId): array
+    public function findRidesByPassenger(int $passengerId, ?string $status = null, string $orderBy = 'departure_date_time', string $orderDirection = 'DESC', int $limit = 20, int $offset = 0): array
     {
-        return $this->findRideByUser($passengerId, UserRoles::PASSAGER);
+        return $this->findRideByUser($passengerId, UserRoles::PASSAGER, $status, $orderBy, $orderDirection, $limit, $offset);
     }
 
     /**

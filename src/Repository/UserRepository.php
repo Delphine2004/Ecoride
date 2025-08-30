@@ -107,7 +107,8 @@ class UserRepository extends BaseRepository
         WHERE ur.user_id = :id";
 
         $stmt = $this->db->prepare($sql);
-        $stmt->execute(['id' => $userId]);
+        $stmt->bindValue(':id', $userId, PDO::PARAM_INT);
+        $stmt->execute();
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $roles = [];
@@ -213,7 +214,7 @@ class UserRepository extends BaseRepository
      * @param integer $limit
      * @return array
      */
-    public function findUsersByRole(UserRoles $role, string $orderBy = 'role_id', string $orderDirection, int $limit = 20): array
+    public function findUsersByRole(UserRoles $role, string $orderBy = 'role_id', string $orderDirection = 'DESC', int $limit = 20, $offset = 0): array
     {
         // Sécurisation du champ ORDER BY
         if (!in_array($orderBy, $this->allowedFields, true)) {
@@ -232,16 +233,16 @@ class UserRepository extends BaseRepository
             INNER JOIN roles r ON ur.role_id = r.role_id 
             WHERE r.role_name =:role";
 
-        $params = ['role' => $role];
 
         // Tri et limite
-        $sql .= " ORDER BY r.$orderBy $orderDirection LIMIT :limit";
+        $sql .= " ORDER BY r.$orderBy $orderDirection LIMIT :limit OFFSET :offset";
 
         // Préparation de la requête
         $stmt = $this->db->prepare($sql);
 
-
+        $stmt->bindValue(':role', $role->value, PDO::PARAM_STR);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 
         $stmt->execute();
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
