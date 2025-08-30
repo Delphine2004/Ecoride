@@ -74,6 +74,7 @@ class CarRepository extends BaseRepository
     private function mapCarToArray(Car $car): array
     {
         return [
+            'user_id' => $car->getCarOwner()->getUserId(),
             'car_brand' => $car->getBrand(),
             'car_model' => $car->getModel(),
             'car_color' => $car->getColor(),
@@ -103,10 +104,10 @@ class CarRepository extends BaseRepository
     /**
      * Récupére toutes les voitures avec pagination et tri.
      *
-     * @param integer $limit
-     * @param integer $offset
      * @param string|null $orderBy
      * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
      * @return array
      */
     public function findAllCars(?string $orderBy = null, string $orderDirection = 'DESC', int $limit = 50, int $offset = 0): array
@@ -137,10 +138,10 @@ class CarRepository extends BaseRepository
      *
      * @param string $field
      * @param mixed $value
-     * @param integer $limit
-     * @param integer $offset
      * @param string|null $orderBy
      * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
      * @return array
      */
     public function findAllCarsByField(string $field, mixed $value, ?string $orderBy = null, string $orderDirection = 'DESC', int $limit = 50, int $offset = 0): array
@@ -167,7 +168,6 @@ class CarRepository extends BaseRepository
         return $this->findAllCarsByField('car_power', $power);
     }
 
-
     /**
      * Récupére toutes les voitures d'un utilisateur conducteur avec tri et pagination.
      *
@@ -175,9 +175,10 @@ class CarRepository extends BaseRepository
      * @param string $orderBy
      * @param string $orderDirection
      * @param integer $limit
+     * @param integer $offset
      * @return array
      */
-    public function findCarsByOwner(int $ownerId, string $orderBy = 'car_id', string $orderDirection = 'DESC', int $limit = 20): array
+    public function findCarsByOwner(int $ownerId, string $orderBy = 'car_id', string $orderDirection = 'DESC', int $limit = 20, int $offset = 0): array
     {
         // Sécurisation des champs d'ORDER BY et direction
         if (!in_array($orderBy, $this->allowedFields, true)) {
@@ -192,12 +193,16 @@ class CarRepository extends BaseRepository
         // Construction du SQL
         $sql = "SELECT c.*
         FROM {$this->table} c
-        INNER JOIN users u ON c.user_id = u.user_id
-        WHERE u.user_id = :ownerId 
-        ORDER BY c.$orderBy $orderDirection LIMIT :limit";
+        
+        WHERE u.user_id = :ownerId";
+
+        //INNER JOIN users u ON c.user_id = u.user_id
+
+        $sql .= " ORDER BY c.$orderBy $orderDirection LIMIT :limit OFFSET :offset";
 
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->bindValue(':ownerId', $ownerId, PDO::PARAM_INT);
 
         $stmt->execute();
