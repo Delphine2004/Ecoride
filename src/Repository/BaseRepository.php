@@ -192,8 +192,25 @@ abstract class BaseRepository
     protected function isAllowedField(string $field): bool
     {
         return true;
-        // Par défaut, autorise tous les champs
-        // Dans les repositories spécifiques, tu peux faire :
-        // return in_array($field, ['nom_colonne1','nom_colonne2']);
+    }
+
+
+    protected function sanitizeOrder(
+        ?string $orderBy,
+        string $orderDirection,
+        string $defaultField
+    ): array {
+
+        // Validation du champ
+        if (!$this->isAllowedField($orderBy ?? '')) {
+            $orderBy = $defaultField;
+        }
+
+        //Validation de la direction
+        $orderDirection = strtoupper($orderDirection);
+        if (!in_array($orderDirection, ['ASC', 'DESC'], true)) {
+            $orderDirection = 'DESC';
+        }
+        return [$orderBy, $orderDirection];
     }
 }
