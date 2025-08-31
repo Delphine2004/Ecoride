@@ -45,10 +45,6 @@ class CarRepository extends BaseRepository
         // Rechercher le propriétaire de la voiture.
         $owner = $this->userRepository->findUserById($data['user_id']);
 
-        if (!$owner) {
-            throw new InvalidArgumentException("Le propriétaire de la voiture {$data['car_id']} est introuvable.");
-        }
-
         return new Car(
             carId: (int)$data['car_id'],
             owner: $owner,
@@ -61,7 +57,6 @@ class CarRepository extends BaseRepository
             registrationNumber: $data['registration_number'],
             registrationDate: new \DateTimeImmutable($data['registration_date']),
             createdAt: !empty($data['created_at']) ? new \DateTimeImmutable($data['created_at']) : null,
-
         );
     }
 
@@ -154,7 +149,6 @@ class CarRepository extends BaseRepository
         return $row ? $this->hydrateCar((array) $row) : null;
     }
 
-
     /**
      * Récupére toutes les voitures selon un champ spécifique avec pagination et tri.
      *
@@ -209,46 +203,10 @@ class CarRepository extends BaseRepository
      * @param integer $offset
      * @return array
      */
-    public function findCarsByOwner(int $ownerId, string $orderBy = 'car_id', string $orderDirection = 'DESC', int $limit = 20, int $offset = 0): array
+    public function findCarsByOwner(int $ownerId, ?string $orderBy = null, string $orderDirection = 'DESC', int $limit = 20, int $offset = 0): array
     {
-        // Vérifier si l'ordre et la direction sont définis et valides.
-        [$orderBy, $orderDirection] = $this->sanitizeOrder(
-            $orderBy,
-            $orderDirection,
-            'car_id'
-        );
-
-        // Construction du SQL
-        $sql = "SELECT c.*
-        FROM {$this->table} c
-        
-        WHERE c.user_id = :ownerId";
-
-        //INNER JOIN users u ON c.user_id = u.user_id
-
-        $sql .= " ORDER BY c.$orderBy $orderDirection 
-                LIMIT :limit OFFSET :offset";
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-        $stmt->bindValue(':ownerId', $ownerId, PDO::PARAM_INT);
-
-        $stmt->execute();
-
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        return array_map(fn($row) => $this->hydrateCar((array) $row), $rows);
+        return $this->findAllCarsByField('user_id', $ownerId, $orderBy, $orderDirection, $limit, $offset);
     }
-
-    // Afficher toutes les voitures avec leur propriétaire
-    /* public function findAllCarsWithOwners(){
-$sql = "SELECT c.*, u.user_id, u.name
-FROM cars c
-JOIN users u ON c.owner_id = u.user_id;
-";
-}
- */
 
 
     //------------------------------------------
