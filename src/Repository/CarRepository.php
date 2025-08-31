@@ -86,6 +86,16 @@ class CarRepository extends BaseRepository
         ];
     }
 
+    /**
+     * Surcharge la fonction isAllowedField de BaseRepository
+     *
+     * @param string $field
+     * @return boolean
+     */
+    protected function isAllowedField(string $field): bool
+    {
+        return in_array($field, $this->allowedFields, true);
+    }
 
     // ------ Récupération ------ 
 
@@ -97,6 +107,7 @@ class CarRepository extends BaseRepository
      */
     public function findCarById(int $carId): ?Car
     {
+        // Chercher l'élément
         $row = parent::findById($carId);
         return $row ? $this->hydrateCar((array) $row) : null;
     }
@@ -112,6 +123,14 @@ class CarRepository extends BaseRepository
      */
     public function findAllCars(?string $orderBy = null, string $orderDirection = 'DESC', int $limit = 50, int $offset = 0): array
     {
+        // Vérifier si l'ordre et la direction sont définis et valides.
+        [$orderBy, $orderDirection] = $this->sanitizeOrder(
+            $orderBy,
+            $orderDirection,
+            'car_id'
+        );
+
+        // Chercher les éléments.
         $rows = parent::findAll($orderBy, $orderDirection, $limit, $offset);
         return array_map(fn($row) => $this->hydrateCar((array) $row), $rows);
     }
@@ -125,13 +144,16 @@ class CarRepository extends BaseRepository
      */
     public function findCarByField(string $field, mixed $value): ?Car
     {
-        if (!in_array($field, $this->allowedFields)) {
-            throw new InvalidArgumentException("Champ non autorisé ; $field");
+        // Vérifie si le champ est autorisé.
+        if (!$this->isAllowedField($field)) {
+            return null;
         }
 
+        // Chercher l'élément
         $row = parent::findOneByField($field, $value);
         return $row ? $this->hydrateCar((array) $row) : null;
     }
+
 
     /**
      * Récupére toutes les voitures selon un champ spécifique avec pagination et tri.
@@ -146,10 +168,19 @@ class CarRepository extends BaseRepository
      */
     public function findAllCarsByField(string $field, mixed $value, ?string $orderBy = null, string $orderDirection = 'DESC', int $limit = 50, int $offset = 0): array
     {
-        if (!in_array($field, $this->allowedFields)) {
-            throw new InvalidArgumentException("Champ non autorisé ; $field");
+        // Vérifie si le champ est autorisé.
+        if (!$this->isAllowedField($field)) {
+            return [];
         }
 
+        // Vérifier si l'ordre et la direction sont définis et valides.
+        [$orderBy, $orderDirection] = $this->sanitizeOrder(
+            $orderBy,
+            $orderDirection,
+            'car_id'
+        );
+
+        // Chercher les éléments.
         $rows = parent::findAllByField($field, $value, $orderBy, $orderDirection, $limit, $offset);
         return array_map(fn($row) => $this->hydrateCar((array) $row), $rows);
     }
@@ -163,9 +194,9 @@ class CarRepository extends BaseRepository
      * @param string $power
      * @return array
      */
-    public function findCarsByPower(string $power): array
+    public function findCarsByPower(string $power, ?string $orderBy = null, string $orderDirection = 'DESC', int $limit = 50, int $offset = 0): array
     {
-        return $this->findAllCarsByField('car_power', $power);
+        return $this->findAllCarsByField('car_power', $power, $orderBy, $orderDirection, $limit, $offset);
     }
 
     /**
@@ -180,25 +211,23 @@ class CarRepository extends BaseRepository
      */
     public function findCarsByOwner(int $ownerId, string $orderBy = 'car_id', string $orderDirection = 'DESC', int $limit = 20, int $offset = 0): array
     {
-        // Sécurisation des champs d'ORDER BY et direction
-        if (!in_array($orderBy, $this->allowedFields, true)) {
-            $orderBy = 'car_id';
-        }
-
-        $orderDirection = strtoupper($orderDirection);
-        if (!in_array($orderDirection, ['ASC', 'DESC'], true)) {
-            $orderDirection = 'DESC';
-        }
+        // Vérifier si l'ordre et la direction sont définis et valides.
+        [$orderBy, $orderDirection] = $this->sanitizeOrder(
+            $orderBy,
+            $orderDirection,
+            'car_id'
+        );
 
         // Construction du SQL
         $sql = "SELECT c.*
         FROM {$this->table} c
         
-        WHERE u.user_id = :ownerId";
+        WHERE c.user_id = :ownerId";
 
         //INNER JOIN users u ON c.user_id = u.user_id
 
-        $sql .= " ORDER BY c.$orderBy $orderDirection LIMIT :limit OFFSET :offset";
+        $sql .= " ORDER BY c.$orderBy $orderDirection 
+                LIMIT :limit OFFSET :offset";
 
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
@@ -211,6 +240,15 @@ class CarRepository extends BaseRepository
 
         return array_map(fn($row) => $this->hydrateCar((array) $row), $rows);
     }
+
+    // Afficher toutes les voitures avec leur propriétaire
+    /* public function findAllCarsWithOwners(){
+$sql = "SELECT c.*, u.user_id, u.name
+FROM cars c
+JOIN users u ON c.owner_id = u.user_id;
+";
+}
+ */
 
 
     //------------------------------------------
