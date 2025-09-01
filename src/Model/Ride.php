@@ -4,7 +4,6 @@
 
 namespace App\Models;
 
-
 use App\Models\User;
 use App\Enum\RideStatus;
 use InvalidArgumentException;
@@ -25,7 +24,7 @@ class Ride
     // Promotion des propriétés (depuis PHP 8)
     public function __construct(
         private ?int $rideId = null, // n'a pas de valeur au moment de l'instanciation
-        private User $driver,
+        private ?User $driver,
         private \DateTimeImmutable $departureDateTime,
         private string $departurePlace,
         private \DateTimeImmutable $arrivalDateTime,
@@ -200,7 +199,7 @@ class Ride
         return $this;
     }
 
-    public function setRideDriver(User $driver): self
+    public function setRideDriver(?User $driver): self
     {
         $this->driver = $driver;
         $this->updateTimestamp();

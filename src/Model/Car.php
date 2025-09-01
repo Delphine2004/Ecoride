@@ -4,13 +4,11 @@
 
 namespace App\Models;
 
-
 use App\Models\User;
 use App\Enum\CarPower;
 use InvalidArgumentException;
 use DateTimeImmutable;
 
-//Pas besoin de base model dans une entité
 
 /** 
  * Cette classe représente une voiture dans la BDD.
@@ -23,7 +21,7 @@ class Car
     // Promotion des propriétés (depuis PHP 8)
     function __construct(
         private ?int $carId = null, // n'a pas de valeur au moment de l'instanciation
-        private User $owner,
+        private ?User $owner,
         private string $brand,
         private string $model,
         private string $color,
@@ -113,7 +111,7 @@ class Car
 
     // Pas de setId et de setCreatedAt car définis automatiquement par la BD
 
-    public function setCarOwner(User $owner): self
+    public function setCarOwner(?User $owner): self
     {
         $this->owner = $owner;
         return $this;
