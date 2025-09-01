@@ -4,7 +4,7 @@ namespace App\Repositories;
 
 use App\Enum\BookingStatus;
 use App\Models\Booking;
-use App\Repository\BaseRepository;
+use App\Repositories\BaseRepository;
 use PDO;
 use InvalidArgumentException;
 
@@ -82,11 +82,34 @@ class BookingRepository extends BaseRepository
         return $row ? $this->hydrateBooking((array) $row) : null;
     }
 
-    public function findAllBookings(int $limit = 50, int $offset = 0, ?string $orderBy = null, string $orderDirection = 'DESC'): array
+    public function findAllBookings(?string $orderBy = null, string $orderDirection = 'DESC', int $limit = 50, int $offset = 0): array
     {
-        $rows = parent::findAll($limit, $offset, $orderBy, $orderDirection);
+        $rows = parent::findAll($orderBy, $orderDirection, $limit, $offset);
         return array_map(fn($row) => $this->hydrateBooking((array) $row), $rows);
     }
+
+    public function findBookingByField(string $field, mixed $value): ?Booking
+    {
+        $row = parent::findOneByField($field, $value);
+        return $row ? $this->hydrateBooking((array) $row) : null;
+    }
+
+    public function findAllBookingsByField(string $field, mixed $value, ?string $orderBy = null, string $orderDirection = 'DESC', int $limit = 50, int $offset = 0): array
+    {
+        $rows = parent::findAllByField($field, $value, $orderBy, $orderDirection, $limit, $offset);
+        return array_map(fn($row) => $this->hydrateBooking((array) $row), $rows);
+    }
+
+    //------ Récupération spécifique-----
+
+    public function findBookingsByRideId(int $rideId): array
+    {
+        return $this->findAllBookingsByField('ride_id', $rideId);
+    }
+
+
+
+
 
 
 
