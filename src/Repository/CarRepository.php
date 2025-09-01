@@ -16,7 +16,17 @@ class CarRepository extends BaseRepository
 
     protected string $table = 'cars';
     protected string $primaryKey = 'car_id'; // Utile car utiliser dans BaseRepository
-    private array $allowedFields = ['car_id', 'user_id', 'car_brand', 'car_model', 'car_color', 'car_year', 'car_power', 'seats_number', 'registration_number'];
+    private array $allowedFields = [
+        'car_id',
+        'user_id',
+        'car_brand',
+        'car_model',
+        'car_color',
+        'car_year',
+        'car_power',
+        'seats_number',
+        'registration_number'
+    ];
 
 
     public function __construct(PDO $db)
@@ -129,8 +139,10 @@ class CarRepository extends BaseRepository
      * @param mixed $value
      * @return Car|null
      */
-    public function findCarByField(string $field, mixed $value): ?Car
-    {
+    public function findCarByField(
+        string $field,
+        mixed $value
+    ): ?Car {
         // Vérifie si le champ est autorisé.
         if (!$this->isAllowedField($field)) {
             return null;
@@ -152,8 +164,14 @@ class CarRepository extends BaseRepository
      * @param integer $offset
      * @return array
      */
-    public function findAllCarsByField(string $field, mixed $value, ?string $orderBy = null, string $orderDirection = 'DESC', int $limit = 50, int $offset = 0): array
-    {
+    public function findAllCarsByField(
+        string $field,
+        mixed $value,
+        ?string $orderBy = null,
+        string $orderDirection = 'DESC',
+        int $limit = 50,
+        int $offset = 0
+    ): array {
         // Vérifie si le champ est autorisé.
         if (!$this->isAllowedField($field)) {
             return [];
@@ -180,8 +198,13 @@ class CarRepository extends BaseRepository
      * @param string $power
      * @return array
      */
-    public function findCarsByPower(string $power, ?string $orderBy = null, string $orderDirection = 'DESC', int $limit = 50, int $offset = 0): array
-    {
+    public function findCarsByPower(
+        string $power,
+        ?string $orderBy = null,
+        string $orderDirection = 'DESC',
+        int $limit = 50,
+        int $offset = 0
+    ): array {
         return $this->findAllCarsByField('car_power', $power, $orderBy, $orderDirection, $limit, $offset);
     }
 
@@ -195,8 +218,13 @@ class CarRepository extends BaseRepository
      * @param integer $offset
      * @return array
      */
-    public function findCarsByOwner(int $ownerId, ?string $orderBy = null, string $orderDirection = 'DESC', int $limit = 20, int $offset = 0): array
-    {
+    public function findCarsByOwner(
+        int $ownerId,
+        ?string $orderBy = null,
+        string $orderDirection = 'DESC',
+        int $limit = 20,
+        int $offset = 0
+    ): array {
         return $this->findAllCarsByField('user_id', $ownerId, $orderBy, $orderDirection, $limit, $offset);
     }
 
