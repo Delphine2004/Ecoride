@@ -186,7 +186,7 @@ class CarRepository extends BaseRepository
     }
 
     /**
-     * Récupére toutes les voitures d'un utilisateur conducteur avec tri et pagination.
+     * Récupére toutes les voitures d'un conducteur par son id avec tri et pagination.
      *
      * @param integer $ownerId
      * @param string $orderBy
