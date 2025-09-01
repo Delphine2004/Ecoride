@@ -197,7 +197,7 @@ class RideRepository extends BaseRepository
      * @param integer $offset
      * @return array
      */
-    public function findRideByDateAndPlace(
+    public function findRidesByDateAndPlace(
         \DateTimeInterface $date,
         string $departurePlace,
         ?string $arrivalPlace = null,
@@ -248,7 +248,7 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupérer les trajets selon un utilisateur.
+     * Récupére tous les trajets selon un utilisateur.
      *
      * @param integer $userId
      * @param UserRoles $role
@@ -259,7 +259,7 @@ class RideRepository extends BaseRepository
      * @param integer $offset
      * @return array
      */
-    public function findRideByUser(
+    public function findRidesByUser(
         int $userId,
         UserRoles $role,
         ?RideStatus $rideStatus = null,
@@ -320,7 +320,7 @@ class RideRepository extends BaseRepository
 
     // Pour les conducteurs
     /**
-     * Trouver tous les trajets d'un conducteur
+     * Récupére tous les trajets d'un conducteur
      *
      * @param integer $driverId
      * @param RideStatus|null $rideStatus
@@ -338,11 +338,11 @@ class RideRepository extends BaseRepository
         int $limit = 20,
         int $offset = 0
     ): array {
-        return $this->findRideByUser($driverId, UserRoles::CONDUCTEUR, $rideStatus, $orderBy, $orderDirection, $limit, $offset);
+        return $this->findRidesByUser($driverId, UserRoles::CONDUCTEUR, $rideStatus, $orderBy, $orderDirection, $limit, $offset);
     }
 
     /**
-     * Trouver tous les trajets à venir d'un conducteur
+     * Récupére tous les trajets à venir d'un conducteur
      *
      * @param integer $driverId
      * @return array
@@ -353,7 +353,7 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Trouver tous les trajets passés d'un conducteur
+     * Récupére tous les trajets passés d'un conducteur
      *
      * @param integer $driverId
      * @return array
@@ -366,7 +366,7 @@ class RideRepository extends BaseRepository
 
     //Pour les passagers
     /**
-     * Trouver tous les trajets d'un passager
+     * Récupére tous les trajets d'un passager
      *
      * @param integer $passengerId
      * @param string|null $rideStatus
@@ -384,11 +384,11 @@ class RideRepository extends BaseRepository
         int $limit = 20,
         int $offset = 0
     ): array {
-        return $this->findRideByUser($passengerId, UserRoles::PASSAGER, $rideStatus, $orderBy, $orderDirection, $limit, $offset);
+        return $this->findRidesByUser($passengerId, UserRoles::PASSAGER, $rideStatus, $orderBy, $orderDirection, $limit, $offset);
     }
 
     /**
-     * Trouver tous les trajets à venir d'un passager
+     * Récupére tous les trajets à venir d'un passager
      *
      * @param integer $passengerId
      * @return array
@@ -399,7 +399,7 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Trouver tous les trajets passés d'un passager
+     * Récupére tous les trajets passés d'un passager
      *
      * @param integer $passengerId
      * @return array
