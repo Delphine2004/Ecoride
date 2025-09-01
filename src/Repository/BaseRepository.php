@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repositories;
 
 use App\Config\Database;
 use InvalidArgumentException;
@@ -68,11 +68,9 @@ abstract class BaseRepository
             $orderDirection = strtoupper($orderDirection) === 'ASC' ? 'ASC' : 'DESC';
             $sql .= " ORDER BY $orderBy $orderDirection";
         }
-        $sql .= " LIMIT :limit OFFSET :offset";
+        $sql .= " LIMIT " . (int)$limit . " OFFSET " . (int)$offset;
 
         $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_CLASS, $this->entityClass);
@@ -115,12 +113,10 @@ abstract class BaseRepository
             $orderDirection = strtoupper($orderDirection) === 'ASC' ? 'ASC' : 'DESC';
             $sql .= " ORDER BY $orderBy $orderDirection";
         }
-        $sql .= " LIMIT :limit OFFSET :offset";
+        $sql .= " LIMIT " . (int)$limit . " OFFSET " . (int)$offset;
 
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':value', $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_CLASS, $this->entityClass);
