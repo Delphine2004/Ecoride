@@ -2,7 +2,7 @@
 
 namespace App\Repositories;
 
-use App\Repository\BaseRepository;
+use App\Repositories\BaseRepository;
 use App\Models\Car;
 use App\Enum\CarPower;
 use PDO;
@@ -31,7 +31,7 @@ class CarRepository extends BaseRepository
      * @param array $data
      * @return Car
      */
-    private function hydrateCar(array $data): Car
+    public function hydrateCar(array $data): Car
     {
         return new Car(
             carId: (int)$data['car_id'],

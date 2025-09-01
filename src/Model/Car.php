@@ -21,7 +21,7 @@ class Car
     // Promotion des propriétés (depuis PHP 8)
     function __construct(
         private ?int $carId = null, // n'a pas de valeur au moment de l'instanciation
-        private ?User $owner,
+        private ?User $owner, // car pas chargé dans hydrateCar de CarRepository
         private string $brand,
         private string $model,
         private string $color,
@@ -55,7 +55,7 @@ class Car
         return $this->carId;
     }
 
-    public function getCarOwner(): User
+    public function getCarOwner(): ?User
     {
         return $this->owner;
     }

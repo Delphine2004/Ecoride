@@ -24,7 +24,7 @@ class Ride
     // Promotion des propriétés (depuis PHP 8)
     public function __construct(
         private ?int $rideId = null, // n'a pas de valeur au moment de l'instanciation
-        private ?User $driver,
+        private ?User $driver, // car pas chargé dans hydrateRide de RideRepository
         private \DateTimeImmutable $departureDateTime,
         private string $departurePlace,
         private \DateTimeImmutable $arrivalDateTime,
@@ -32,22 +32,24 @@ class Ride
         private int $price,
         private int $availableSeats,
         private RideStatus $rideStatus = RideStatus::DISPONIBLE, // Statut par défaut
-
+        private ?array $passengers, // car pas chargé dans hydrateRide de RideRepository
 
         private ?\DateTimeImmutable $createdAt = null, // n'a pas de valeur au moment de l'instanciation
         private ?\DateTimeImmutable $updatedAt = null // n'a pas de valeur au moment de l'instanciation
 
     ) {
         // Affectation avec validation
-        $this->setRideDepartureDateTime($departureDateTime)
+        $this
+            ->setRideDriver($driver)
+            ->setRideDepartureDateTime($departureDateTime)
             ->setRideDeparturePlace($departurePlace)
             ->setRideArrivalDateTime($arrivalDateTime)
             ->setRideArrivalPlace($arrivalPlace)
             ->setRidePrice($price)
             ->setRideAvailableSeats($availableSeats)
-            ->setRideStatus($rideStatus)
-            ->setRideDriver($driver);
+            ->setRideStatus($rideStatus);
 
+        $this->passengers = $passengers ?? [];
         $this->createdAt = $createdAt ?? new DateTimeImmutable();
         $this->updatedAt = $updatedAt ?? new DateTimeImmutable();
     }
@@ -56,6 +58,11 @@ class Ride
     public function getRideId(): ?int
     {
         return $this->rideId;
+    }
+
+    public function getRideDriver(): ?User
+    {
+        return $this->driver;
     }
 
     public function getRideDepartureDateTime(): \DateTimeImmutable
@@ -101,9 +108,9 @@ class Ride
         return $this->rideStatus;
     }
 
-    public function getRideDriver(): User
+    public function getPassengers(): ?array
     {
-        return $this->driver;
+        return $this->passengers;
     }
 
     public function getRideCreatedAt(): DateTimeImmutable
@@ -121,6 +128,13 @@ class Ride
     // ---------Les Setters ---------
 
     // Pas de setId, de setCreatedAtcar et de setUpadetedAt car définis automatiquement par la BD
+    public function setRideDriver(?User $driver): self
+    {
+        $this->driver = $driver;
+        $this->updateTimestamp();
+        return $this;
+    }
+
     public function setRideDepartureDateTime(\DateTimeImmutable $departureDateTime): self
     {
         $today = new \DateTimeImmutable();
@@ -199,9 +213,15 @@ class Ride
         return $this;
     }
 
-    public function setRideDriver(?User $driver): self
+    public function setPassengers(array $passengers): self
     {
-        $this->driver = $driver;
+        $this->passengers = $passengers;
+        return $this;
+    }
+
+    public function addPassenger(User $passenger): self
+    {
+        $this->passengers[] = $passenger;
         $this->updateTimestamp();
         return $this;
     }

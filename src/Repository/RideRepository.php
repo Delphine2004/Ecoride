@@ -2,7 +2,7 @@
 
 namespace App\Repositories;
 
-use App\Repository\BaseRepository;
+use App\Repositories\BaseRepository;
 use App\Models\Ride;
 use App\Enum\RideStatus;
 use App\Enum\UserRoles;
@@ -33,11 +33,11 @@ class RideRepository extends BaseRepository
      * @param array $data
      * @return Ride
      */
-    private function hydrateRide(array $data): Ride
+    public function hydrateRide(array $data): Ride
     {
         return new Ride(
             rideId: (int)$data['ride_id'],
-            driver: null,
+            driver: null, // car pas encore chargé
             departureDateTime: new \DateTimeImmutable($data['departure_date_time']),
             departurePlace: $data['departure_place'],
             arrivalDateTime: new \DateTimeImmutable($data['arrival_date_time']),
@@ -45,6 +45,7 @@ class RideRepository extends BaseRepository
             price: (float)$data['price'],
             availableSeats: (int)$data['available_seats'],
             rideStatus: RideStatus::from($data['ride_status']),
+            passengers: null, // car pas encore chargé
             createdAt: !empty($data['created_at']) ? new \DateTimeImmutable($data['created_at']) : null,
             updatedAt: !empty($data['updated_at']) ? new \DateTimeImmutable($data['updated_at']) : null
         );
