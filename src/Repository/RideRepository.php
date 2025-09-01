@@ -16,22 +16,14 @@ use InvalidArgumentException;
 class RideRepository extends BaseRepository
 {
 
-    /**
-     * @var string Le nom de la table en BDD
-     */
-
     protected string $table = 'rides';
     protected string $primaryKey = 'ride_id';
-
-    private UserRepository $userRepository;
-
-    private array $allowedFields = ['ride_id', 'departure_date_time', 'departure_place', 'arrival_date_time', 'arrival_place', 'price', 'available_seats', 'ride_status', 'owner_id'];
+    private array $allowedFields = ['ride_id', 'owner_id', 'departure_date_time', 'departure_place', 'arrival_date_time', 'arrival_place', 'price', 'available_seats', 'ride_status'];
 
 
-    public function __construct(PDO $db, UserRepository $userRepository)
+    public function __construct(PDO $db)
     {
         parent::__construct($db);
-        $this->userRepository = $userRepository;
     }
 
 
@@ -43,17 +35,9 @@ class RideRepository extends BaseRepository
      */
     private function hydrateRide(array $data): Ride
     {
-        // Rechercher le conducteur du trajet.
-        $driver = $this->userRepository->findUserById($data['owner_id']);
-
-        //Vérifier que le conducteur existe.
-        if (!$driver) {
-            throw new InvalidArgumentException("Le conducteur du trajet {$data['ride_id']} est introuvable.");
-        }
-
         return new Ride(
             rideId: (int)$data['ride_id'],
-            driver: $driver,
+            driver: null,
             departureDateTime: new \DateTimeImmutable($data['departure_date_time']),
             departurePlace: $data['departure_place'],
             arrivalDateTime: new \DateTimeImmutable($data['arrival_date_time']),
@@ -63,7 +47,6 @@ class RideRepository extends BaseRepository
             rideStatus: RideStatus::from($data['ride_status']),
             createdAt: !empty($data['created_at']) ? new \DateTimeImmutable($data['created_at']) : null,
             updatedAt: !empty($data['updated_at']) ? new \DateTimeImmutable($data['updated_at']) : null
-
         );
     }
 
@@ -84,8 +67,18 @@ class RideRepository extends BaseRepository
             'price' => $ride->getRidePrice(),
             'available_seats' => $ride->getRideAvailableSeats(),
             'ride_status' => $ride->getRideStatus()->value
-
         ];
+    }
+
+    /**
+     * Surcharge la fonction isAllowedField de BaseRepository
+     *
+     * @param string $field
+     * @return boolean
+     */
+    protected function isAllowedField(string $field): bool
+    {
+        return in_array($field, $this->allowedFields, true);
     }
 
 
@@ -99,6 +92,7 @@ class RideRepository extends BaseRepository
      */
     public function findRideById(int $rideId): ?Ride
     {
+        // Chercher l'élément
         $row = parent::findById($rideId);
         return $row ? $this->hydrateRide((array) $row) : null;
     }
@@ -112,8 +106,20 @@ class RideRepository extends BaseRepository
      * @param integer $offset
      * @return array
      */
-    public function findAllRides(?string $orderBy = null, string $orderDirection = 'DESC', int $limit = 50, int $offset = 0): array
-    {
+    public function findAllRides(
+        ?string $orderBy = null,
+        string $orderDirection = 'DESC',
+        int $limit = 50,
+        int $offset = 0
+    ): array {
+        // Vérifier si l'ordre et la direction sont définis et valides.
+        [$orderBy, $orderDirection] = $this->sanitizeOrder(
+            $orderBy,
+            $orderDirection,
+            'ride_id'
+        );
+
+        // Chercher les éléments.
         $rows = parent::findAll($orderBy, $orderDirection, $limit, $offset);
         return array_map(fn($row) => $this->hydrateRide((array) $row), $rows);
     }
@@ -125,12 +131,16 @@ class RideRepository extends BaseRepository
      * @param mixed $value
      * @return Ride|null
      */
-    public function findRideByField(string $field, mixed $value): ?Ride
-    {
-        if (!in_array($field, $this->allowedFields)) {
-            throw new InvalidArgumentException("Champ non autorisé ; $field");
+    public function findRideByField(
+        string $field,
+        mixed $value
+    ): ?Ride {
+        // Vérifie si le champ est autorisé.
+        if (!$this->isAllowedField($field)) {
+            return null;
         }
 
+        // Chercher l'élément
         $row = parent::findOneByField($field, $value);
         return $row ? $this->hydrateRide((array) $row) : null;
     }
@@ -146,12 +156,27 @@ class RideRepository extends BaseRepository
      * @param integer $offset
      * @return array
      */
-    public function findAllRidesByField(string $field, mixed $value, ?string $orderBy = null, string $orderDirection = 'DESC', int $limit = 50, int $offset = 0): array
-    {
-        if (!in_array($field, $this->allowedFields)) {
-            throw new InvalidArgumentException("Champ non autorisé ; $field");
+    public function findAllRidesByField(
+        string $field,
+        mixed $value,
+        ?string $orderBy = null,
+        string $orderDirection = 'DESC',
+        int $limit = 50,
+        int $offset = 0
+    ): array {
+        // Vérifie si le champ est autorisé.
+        if (!$this->isAllowedField($field)) {
+            return [];
         }
 
+        // Vérifier si l'ordre et la direction sont définis et valides.
+        [$orderBy, $orderDirection] = $this->sanitizeOrder(
+            $orderBy,
+            $orderDirection,
+            'ride_id'
+        );
+
+        // Chercher les éléments.
         $rows = parent::findAllByField($field, $value, $orderBy, $orderDirection, $limit, $offset);
         return array_map(fn($row) => $this->hydrateRide((array) $row), $rows);
     }
@@ -171,18 +196,21 @@ class RideRepository extends BaseRepository
      * @param integer $offset
      * @return array
      */
-    public function findRideByDateAndPlace(\DateTimeInterface $date, string $departurePlace, ?string $arrivalPlace = null, string $orderBy = 'departure_date_time', string $orderDirection = 'DESC', int $limit = 20, int $offset = 0): array
-    {
-        // Sécurisation du champ ORDER BY
-        if (!in_array($orderBy, $this->allowedFields, true)) {
-            $orderBy = 'departure_date_time';
-        }
-
-        // Sécurisation du champ direction
-        $orderDirection = strtoupper($orderDirection);
-        if (!in_array($orderDirection, ['ASC', 'DESC'], true)) {
-            $orderDirection = 'DESC';
-        }
+    public function findRideByDateAndPlace(
+        \DateTimeInterface $date,
+        string $departurePlace,
+        ?string $arrivalPlace = null,
+        string $orderBy = 'departure_date_time',
+        string $orderDirection = 'DESC',
+        int $limit = 20,
+        int $offset = 0
+    ): array {
+        // Vérifier si l'ordre et la direction sont définis et valides.
+        [$orderBy, $orderDirection] = $this->sanitizeOrder(
+            $orderBy,
+            $orderDirection,
+            'departure_date_time'
+        );
 
         // Construction du SQL
         $sql = "SELECT * 
@@ -190,32 +218,32 @@ class RideRepository extends BaseRepository
                 WHERE DATE(r.departure_date_time) = :date
                 AND r.departure_place = :departurePlace";
 
-        $params = [
-            'date' => $date->format('Y-m-d'),
-            'departurePlace' => $departurePlace
-        ];
-
+        // Vérification de l'existance de la ville d'arrivée et ajout si existant.
         if ($arrivalPlace !== null) {
             $sql .= " AND r.arrival_place = :arrivalPlace";
-            $params['arrivalPlace'] = $arrivalPlace;
         }
 
-        $sql .= " ORDER BY r.$orderBy $orderDirection LIMIT :limit OFFSET :offset";
+        // Tri et limite
+        $sql .= " ORDER BY r.$orderBy $orderDirection 
+                LIMIT " . (int)$limit . " OFFSET " . (int)$offset;
 
+
+        // Préparation de la requête
         $stmt = $this->db->prepare($sql);
 
-        foreach ($params as $key => $value) {
-            $stmt->bindValue(":$key", $value);
+        if ($arrivalPlace !== null) {
+            $stmt->bindValue(':arrivalPlace', $arrivalPlace, PDO::PARAM_STR);
         }
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-
+        $stmt->bindValue(':date', $date->format('Y-m-d'), PDO::PARAM_STR);
+        $stmt->bindValue(':departurePlace', $departurePlace, PDO::PARAM_STR);
+        if ($arrivalPlace !== null) {
+            $stmt->bindValue(':arrivalPlace', $arrivalPlace, PDO::PARAM_STR);
+        }
         $stmt->execute();
 
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         return array_map(fn($row) => $this->hydrateRide((array) $row), $rows);
-        // utilisation de la fonction : $this->findRideByDateAndPlace($date, 'Paris', 'Lyon', 'arrival_place', 'ASC', 50);
     }
 
     /**
@@ -223,25 +251,28 @@ class RideRepository extends BaseRepository
      *
      * @param integer $userId
      * @param UserRoles $role
-     * @param string|null $status
+     * @param string|null $rideStatus
      * @param string $orderBy
      * @param string $orderDirection
      * @param integer $limit
      * @param integer $offset
      * @return array
      */
-    public function findRideByUser(int $userId, UserRoles $role, ?string $status = null, string $orderBy = 'departure_date_time', string $orderDirection = 'DESC', int $limit = 20, int $offset = 0): array
-    {
-        // Sécurisation du champ ORDER BY
-        if (!in_array($orderBy, $this->allowedFields, true)) {
-            $orderBy = 'departure_date_time';
-        }
-
-        // Sécurisation du champ direction
-        $orderDirection = strtoupper($orderDirection);
-        if (!in_array($orderDirection, ['ASC', 'DESC'], true)) {
-            $orderDirection = 'DESC';
-        }
+    public function findRideByUser(
+        int $userId,
+        UserRoles $role,
+        ?string $rideStatus = null,
+        string $orderBy = 'departure_date_time',
+        string $orderDirection = 'DESC',
+        int $limit = 20,
+        int $offset = 0
+    ): array {
+        // Vérifier si l'ordre et la direction sont définis et valides.
+        [$orderBy, $orderDirection] = $this->sanitizeOrder(
+            $orderBy,
+            $orderDirection,
+            'departure_date_time'
+        );
 
         // Construction du SQL selon le rôle
         switch ($role) {
@@ -263,107 +294,27 @@ class RideRepository extends BaseRepository
         }
 
 
-        // Ajout du statut du trajet
-        if ($status !== null) {
-            $sql .= " AND r.ride_status = :status";
+        // Vérification de l'existance du status du trajet et ajout si existant.
+        if ($rideStatus !== null) {
+            $sql .= " AND r.ride_status = :rideStatus";
         }
 
         // Tri et limite
-        $sql .= " ORDER BY r.$orderBy $orderDirection LIMIT :limit OFFSET :offset";
+        $sql .= " ORDER BY r.$orderBy $orderDirection 
+                LIMIT " . (int)$limit . " OFFSET " . (int)$offset;
 
 
         // Préparation de la requête
         $stmt = $this->db->prepare($sql);
 
         $stmt->bindValue(':userId', $userId, PDO::PARAM_INT);
-        if ($status !== null) {
-            $stmt->bindValue(':status', $status, PDO::PARAM_STR);
+        if ($rideStatus !== null) {
+            $stmt->bindValue(':rideStatus', $rideStatus, PDO::PARAM_STR);
         }
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-
         $stmt->execute();
 
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return array_map(fn($row) => $this->hydrateRide((array) $row), $rows);
-    }
-
-    // Pour les conducteurs
-    /**
-     * Trouver tous les trajets d'un conducteur
-     *
-     * @param integer $driverId
-     * @param string|null $status
-     * @param string $orderBy
-     * @param string $orderDirection
-     * @param integer $limit
-     * @param integer $offset
-     * @return array
-     */
-    public function findRidesByDriver(int $driverId, ?string $status = null, string $orderBy = 'departure_date_time', string $orderDirection = 'DESC', int $limit = 20, int $offset = 0): array
-    {
-        return $this->findRideByUser($driverId, UserRoles::CONDUCTEUR, $status, $orderBy, $orderDirection, $limit, $offset);
-    }
-
-    /**
-     * Trouver tous les trajets à venir d'un conducteur
-     *
-     * @param integer $driverId
-     * @return array
-     */
-    public function findUpcomingRidesByDriver(int $driverId): array
-    {
-        return $this->findRidesByDriver($driverId, RideStatus::DISPONIBLE->value);
-    }
-
-    /**
-     * Trouver tous les trajets passés d'un conducteur
-     *
-     * @param integer $driverId
-     * @return array
-     */
-    public function findPastRidesByDriver(int $driverId): array
-    {
-        return $this->findRidesByDriver($driverId, RideStatus::PASSE->value);
-    }
-
-    //Pour les passagers
-    /**
-     * Trouver tous les trajets d'un passager
-     *
-     * @param integer $passengerId
-     * @param string|null $status
-     * @param string $orderBy
-     * @param string $orderDirection
-     * @param integer $limit
-     * @param integer $offset
-     * @return array
-     */
-    public function findRidesByPassenger(int $passengerId, ?string $status = null, string $orderBy = 'departure_date_time', string $orderDirection = 'DESC', int $limit = 20, int $offset = 0): array
-    {
-        return $this->findRideByUser($passengerId, UserRoles::PASSAGER, $status, $orderBy, $orderDirection, $limit, $offset);
-    }
-
-    /**
-     * Trouver tous les trajets à venir d'un passager
-     *
-     * @param integer $passengerId
-     * @return array
-     */
-    public function findUpcomingRidesByPassenger(int $passengerId): array
-    {
-        return $this->findRidesByPassenger($passengerId, RideStatus::DISPONIBLE->value);
-    }
-
-    /**
-     * Trouver tous les trajets passés d'un passager
-     *
-     * @param integer $passengerId
-     * @return array
-     */
-    public function findPastRidesByPassenger(int $passengerId): array
-    {
-        return $this->findRidesByPassenger($passengerId, RideStatus::PASSE->value);
     }
 
 

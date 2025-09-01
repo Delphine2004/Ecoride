@@ -6,7 +6,6 @@ use App\Repository\BaseRepository;
 use App\Models\Car;
 use App\Enum\CarPower;
 use PDO;
-use InvalidArgumentException;
 
 /**
  * Cette classe gére la correspondance entre une voiture et la BDD.
@@ -15,22 +14,14 @@ use InvalidArgumentException;
 class CarRepository extends BaseRepository
 {
 
-    /**
-     * @var string Le nom de la table en BDD.
-     */
     protected string $table = 'cars';
-
     protected string $primaryKey = 'car_id'; // Utile car utiliser dans BaseRepository
-
-    private UserRepository $userRepository;
-
-    private array $allowedFields = ['car_id', 'car_brand', 'car_model', 'car_color', 'car_year', 'car_power', 'seats_number', 'registration_number', 'user_id'];
+    private array $allowedFields = ['car_id', 'user_id', 'car_brand', 'car_model', 'car_color', 'car_year', 'car_power', 'seats_number', 'registration_number'];
 
 
-    public function __construct(PDO $db, UserRepository $userRepository)
+    public function __construct(PDO $db)
     {
         parent::__construct($db);
-        $this->userRepository = $userRepository;
     }
 
 
@@ -42,12 +33,9 @@ class CarRepository extends BaseRepository
      */
     private function hydrateCar(array $data): Car
     {
-        // Rechercher le propriétaire de la voiture.
-        $owner = $this->userRepository->findUserById($data['user_id']);
-
         return new Car(
             carId: (int)$data['car_id'],
-            owner: $owner,
+            owner: null, // car pas encore chargé
             brand: $data['car_brand'],
             model: $data['car_model'],
             color: $data['car_color'],
@@ -116,8 +104,12 @@ class CarRepository extends BaseRepository
      * @param integer $offset
      * @return array
      */
-    public function findAllCars(?string $orderBy = null, string $orderDirection = 'DESC', int $limit = 50, int $offset = 0): array
-    {
+    public function findAllCars(
+        ?string $orderBy = null,
+        string $orderDirection = 'DESC',
+        int $limit = 50,
+        int $offset = 0
+    ): array {
         // Vérifier si l'ordre et la direction sont définis et valides.
         [$orderBy, $orderDirection] = $this->sanitizeOrder(
             $orderBy,
