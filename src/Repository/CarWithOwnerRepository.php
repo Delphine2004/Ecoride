@@ -27,6 +27,12 @@ class CarWithOwnerRepository extends CarRepository
         $this->userRepository = $userRepository;
     }
 
+    /**
+     * Mutualisation du mapping de User.
+     *
+     * @param array $row
+     * @return User
+     */
     private function mapOwner(array $row): User
     {
         return $this->userRepository->hydrateUser([
@@ -76,9 +82,29 @@ class CarWithOwnerRepository extends CarRepository
         return $car;
     }
 
-    // Touver toutes les voitures avec leur propriétaire.
-    public function findAllCarsWithOwner(): array
-    {
+
+    /**
+     * Touver toutes les voitures avec leur propriétaire.
+     *
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
+    public function findAllCarsWithOwner(
+        string $orderBy = 'departure_date_time',
+        string $orderDirection = 'DESC',
+        int $limit = 20,
+        int $offset = 0
+    ): array {
+        // Vérifier si l'ordre et la direction sont définis et valides.
+        [$orderBy, $orderDirection] = $this->sanitizeOrder(
+            $orderBy,
+            $orderDirection,
+            'departure_date_time'
+        );
+
         //Construction du sql
         $sql = "SELECT c.*,
                u.user_id AS owner_id,
@@ -87,6 +113,10 @@ class CarWithOwnerRepository extends CarRepository
                u.user_name AS owner_user_name 
                FROM {$this->table} c
                INNER JOIN users u ON c.user_id = u.user_id";
+
+        // Tri et limite
+        $sql .= " ORDER BY r.$orderBy $orderDirection 
+                LIMIT " . (int)$limit . " OFFSET " . (int)$offset;
 
         //Preparation de la requête
         $stmt = $this->db->prepare($sql);
