@@ -60,7 +60,8 @@ class CarWithOwnerRepository extends CarRepository
                u.user_name AS owner_user_name 
                FROM {$this->table} c
                INNER JOIN users u ON c.user_id = u.user_id
-               WHERE c.car_id = :car_id";
+               WHERE c.car_id = :car_id
+        ";
 
         // Préparation de la requête
         $stmt = $this->db->prepare($sql);
@@ -93,7 +94,7 @@ class CarWithOwnerRepository extends CarRepository
      * @return array
      */
     public function findAllCarsWithOwner(
-        string $orderBy = 'departure_date_time',
+        string $orderBy = 'user_id',
         string $orderDirection = 'DESC',
         int $limit = 20,
         int $offset = 0
@@ -102,7 +103,7 @@ class CarWithOwnerRepository extends CarRepository
         [$orderBy, $orderDirection] = $this->sanitizeOrder(
             $orderBy,
             $orderDirection,
-            'departure_date_time'
+            'user_id'
         );
 
         //Construction du sql
@@ -112,7 +113,8 @@ class CarWithOwnerRepository extends CarRepository
                u.last_name AS owner_last_name,
                u.user_name AS owner_user_name 
                FROM {$this->table} c
-               INNER JOIN users u ON c.user_id = u.user_id";
+               INNER JOIN users u ON c.user_id = u.user_id
+        ";
 
         // Tri et limite
         $sql .= " ORDER BY r.$orderBy $orderDirection 
