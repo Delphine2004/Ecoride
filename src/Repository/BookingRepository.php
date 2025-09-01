@@ -1,12 +1,14 @@
 <?php
 
+//------A VERIFIER ET A DOCUMENTER
+
+
 namespace App\Repositories;
 
-use App\Enum\BookingStatus;
-use App\Models\Booking;
 use App\Repositories\BaseRepository;
+use App\Models\Booking;
+use App\Enum\BookingStatus;
 use PDO;
-use InvalidArgumentException;
 
 /**
  * Cette classe gére la correspondance entre un trajet et des utilisateurs et la BDD.
@@ -19,7 +21,6 @@ class BookingRepository extends BaseRepository
      * @var string Le nom de la table en BDD
      */
     protected string $table = 'bookings';
-
     protected string $primaryKey = 'booking_id';
 
     private UserRepository $userRepository;
@@ -32,29 +33,14 @@ class BookingRepository extends BaseRepository
         $this->rideRepository = $rideRepository;
     }
 
+    /** */
     public function hydrateBooking(array $data): Booking
     {
-        $ride = $this->rideRepository->findRideById($data['ride_id']);
-        $passenger = $this->userRepository->findUserById($data['passenger_id']);
-        $driver = $this->userRepository->findUserById($data['driver_id']);
-
-        if (!$ride) {
-            throw new InvalidArgumentException("Le trajet pour la réservation {$data['booking_id']} est introuvable.");
-        }
-
-        if (!$passenger) {
-            throw new InvalidArgumentException("Aucun passager pour la réservation {$data['booking_id']} n'est introuvable.");
-        }
-
-        if (!$driver) {
-            throw new InvalidArgumentException("Le conducteur pour la réservation {$data['booking_id']} est introuvable.");
-        }
-
         return new Booking(
             bookingId: (int)$data['booking_id'],
-            ride: $ride,
-            passenger: $passenger,
-            driver: $driver,
+            ride: null, // car pas encore chargé
+            passenger: null, // car pas encore chargé
+            driver: null, // car pas encore chargé
             bookingStatus: BookingStatus::from($data['booking_status']),
             createdAt: !empty($data['created_at']) ? new \DateTimeImmutable($data['created_at']) : null,
             updatedAt: !empty($data['updated_at']) ? new \DateTimeImmutable($data['updated_at']) : null
@@ -65,10 +51,10 @@ class BookingRepository extends BaseRepository
     private function mapBookingToArray(Booking $booking): array
     {
         return [
-            'ride' => $booking->getBookingRide()->getRideId(),
-            'passenger' => $booking->getBookingPassenger()->getUserId(),
-            'driver' => $booking->getBookingDriver()->getUserId(),
-            'status' => $booking->getBookingStatus()->value,
+            'ride_id' => $booking->getBookingRide()?->getRideId(),
+            'passenger_id' => $booking->getBookingPassenger()?->getUserId(),
+            'driver_id' => $booking->getBookingDriver()?->getUserId(),
+            'booking_status' => $booking->getBookingStatus()->value,
 
         ];
     }
@@ -82,30 +68,145 @@ class BookingRepository extends BaseRepository
         return $row ? $this->hydrateBooking((array) $row) : null;
     }
 
-    public function findAllBookings(?string $orderBy = null, string $orderDirection = 'DESC', int $limit = 50, int $offset = 0): array
-    {
+    public function findAllBookings(
+        ?string $orderBy = null,
+        string $orderDirection = 'DESC',
+        int $limit = 50,
+        int $offset = 0
+    ): array {
         $rows = parent::findAll($orderBy, $orderDirection, $limit, $offset);
         return array_map(fn($row) => $this->hydrateBooking((array) $row), $rows);
     }
 
-    public function findBookingByField(string $field, mixed $value): ?Booking
-    {
+    public function findBookingByField(
+        string $field,
+        mixed $value
+    ): ?Booking {
         $row = parent::findOneByField($field, $value);
         return $row ? $this->hydrateBooking((array) $row) : null;
     }
 
-    public function findAllBookingsByField(string $field, mixed $value, ?string $orderBy = null, string $orderDirection = 'DESC', int $limit = 50, int $offset = 0): array
-    {
-        $rows = parent::findAllByField($field, $value, $orderBy, $orderDirection, $limit, $offset);
+    public function findAllBookingsByField(
+        string $field,
+        mixed $value,
+        ?string $orderBy = null,
+        string $orderDirection = 'DESC',
+        int $limit = 50,
+        int $offset = 0,
+        $extraValue = null
+    ): array {
+        $rows = parent::findAllByField($field, $value, $orderBy, $orderDirection, $limit, $offset, $extraValue);
         return array_map(fn($row) => $this->hydrateBooking((array) $row), $rows);
     }
 
     //------ Récupération spécifique-----
 
-    public function findBookingsByRideId(int $rideId): array
-    {
-        return $this->findAllBookingsByField('ride_id', $rideId);
+    // Récupérer toutes les réservations d'un trajet
+    public function findAllBookingsByRideId(
+        int $rideId,
+        ?string $orderBy = null,
+        string $orderDirection = 'DESC',
+        int $limit = 50,
+        int $offset = 0
+    ): array {
+        return $this->findAllBookingsByField('ride_id', $rideId, $orderBy, $orderDirection, $limit, $offset);
     }
+
+    // Récupérer toutes les réservations par le statut
+    public function findAllBookingsByStatus(
+        BookingStatus $bookingStatus,
+        ?string $orderBy = null,
+        string $orderDirection = 'DESC',
+        int $limit = 50,
+        int $offset = 0
+    ): array {
+        return $this->findAllBookingsByField('booking_status', $bookingStatus->value, $orderBy, $orderDirection, $limit, $offset);
+    }
+
+
+    // ----------- Pour les conducteurs --------------------
+    // Récupérer la réservation d'un conducteur
+    public function findBookingByDriver(int $driverId): ?Booking
+    {
+        return $this->findBookingByField('driver_id', $driverId);
+    }
+
+    // Récupérer toutes les réservations d'un conducteur
+    public function findAllBookingsByDriver(
+        int $driverId,
+        ?BookingStatus $bookingStatus = null,
+        ?string $orderBy = null,
+        string $orderDirection = 'DESC',
+        int $limit = 50,
+        int $offset = 0
+    ): array {
+        return $this->findAllBookingsByField('driver_id', $driverId, $orderBy, $orderDirection, $limit, $offset, $bookingStatus?->value);
+    }
+
+    // Récupérer toutes les réservations à venir pour un conducteur
+    public function findUpcomingBookingsByDriver(
+        int $driverId,
+        ?string $orderBy = null,
+        string $orderDirection = 'DESC',
+        int $limit = 50,
+        int $offset = 0
+    ): array {
+        return $this->findAllBookingsByDriver($driverId, BookingStatus::CONFIRMEE, $orderBy, $orderDirection, $limit, $offset);
+    }
+
+    // Récupérer toutes les réservations à venir pour un chauffeur
+    public function findPastBookingsByDriver(
+        int $driverId,
+        ?string $orderBy = null,
+        string $orderDirection = 'DESC',
+        int $limit = 50,
+        int $offset = 0
+    ): array {
+        return $this->findAllBookingsByDriver($driverId, BookingStatus::PASSEE, $orderBy, $orderDirection, $limit, $offset);
+    }
+
+
+    // ----------- Pour les passagers --------------------
+    // Récupérer la réservation d'un passager
+    public function findBookingByUser(int $passengerId): ?Booking
+    {
+        return $this->findBookingByField('passenger_id', $passengerId);
+    }
+
+    // Récupérer toutes les réservations d'un passager
+    public function findAllBookingsByPassenger(
+        int $passengerId,
+        ?BookingStatus $bookingStatus = null,
+        ?string $orderBy = null,
+        string $orderDirection = 'DESC',
+        int $limit = 50,
+        int $offset = 0
+    ): array {
+        return $this->findAllBookingsByField('passenger_id', $passengerId, $orderBy, $orderDirection, $limit, $offset, $bookingStatus?->value);
+    }
+
+    // Récupérer toutes les réservations à venir pour un passager
+    public function findUpcomingBookingsByPassenger(
+        int $passengerId,
+        ?string $orderBy = null,
+        string $orderDirection = 'DESC',
+        int $limit = 50,
+        int $offset = 0
+    ): array {
+        return $this->findAllBookingsByPassenger($passengerId, BookingStatus::CONFIRMEE, $orderBy, $orderDirection, $limit, $offset);
+    }
+
+    // Récupérer toutes les réservations à venir pour un passager
+    public function findPastBookingsByPassenger(
+        int $passengerId,
+        ?string $orderBy = null,
+        string $orderDirection = 'DESC',
+        int $limit = 50,
+        int $offset = 0
+    ): array {
+        return $this->findAllBookingsByPassenger($passengerId, BookingStatus::PASSEE, $orderBy, $orderDirection, $limit, $offset);
+    }
+
 
 
 
