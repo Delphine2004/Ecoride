@@ -318,6 +318,96 @@ class RideRepository extends BaseRepository
         return array_map(fn($row) => $this->hydrateRide((array) $row), $rows);
     }
 
+    // Pour les conducteurs
+    /**
+     * Trouver tous les trajets d'un conducteur
+     *
+     * @param integer $driverId
+     * @param string|null $rideStatus
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
+    public function findRidesByDriver(
+        int $driverId,
+        ?string $rideStatus = null,
+        string $orderBy = 'departure_date_time',
+        string $orderDirection = 'DESC',
+        int $limit = 20,
+        int $offset = 0
+    ): array {
+        return $this->findRideByUser($driverId, UserRoles::CONDUCTEUR, $rideStatus, $orderBy, $orderDirection, $limit, $offset);
+    }
+
+    /**
+     * Trouver tous les trajets à venir d'un conducteur
+     *
+     * @param integer $driverId
+     * @return array
+     */
+    public function findUpcomingRidesByDriver(int $driverId): array
+    {
+        return $this->findRidesByDriver($driverId, RideStatus::DISPONIBLE->value);
+    }
+
+    /**
+     * Trouver tous les trajets passés d'un conducteur
+     *
+     * @param integer $driverId
+     * @return array
+     */
+    public function findPastRidesByDriver(int $driverId): array
+    {
+        return $this->findRidesByDriver($driverId, RideStatus::PASSE->value);
+    }
+
+
+    //Pour les passagers
+    /**
+     * Trouver tous les trajets d'un passager
+     *
+     * @param integer $passengerId
+     * @param string|null $rideStatus
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
+    public function findRidesByPassenger(
+        int $passengerId,
+        ?string $rideStatus = null,
+        string $orderBy = 'departure_date_time',
+        string $orderDirection = 'DESC',
+        int $limit = 20,
+        int $offset = 0
+    ): array {
+        return $this->findRideByUser($passengerId, UserRoles::PASSAGER, $rideStatus, $orderBy, $orderDirection, $limit, $offset);
+    }
+
+    /**
+     * Trouver tous les trajets à venir d'un passager
+     *
+     * @param integer $passengerId
+     * @return array
+     */
+    public function findUpcomingRidesByPassenger(int $passengerId): array
+    {
+        return $this->findRidesByPassenger($passengerId, RideStatus::DISPONIBLE->value);
+    }
+
+    /**
+     * Trouver tous les trajets passés d'un passager
+     *
+     * @param integer $passengerId
+     * @return array
+     */
+    public function findPastRidesByPassenger(int $passengerId): array
+    {
+        return $this->findRidesByPassenger($passengerId, RideStatus::PASSE->value);
+    }
 
     //------------------------------------------
 
