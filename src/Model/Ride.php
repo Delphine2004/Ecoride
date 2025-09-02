@@ -24,7 +24,7 @@ class Ride
     // Promotion des propriétés (depuis PHP 8)
     public function __construct(
         private ?int $rideId = null, // n'a pas de valeur au moment de l'instanciation
-        private ?User $driver, // car pas chargé dans hydrateRide de RideRepository
+        private ?User $driver = null, // car pas chargé dans hydrateRide de RideRepository
         private \DateTimeImmutable $departureDateTime,
         private string $departurePlace,
         private \DateTimeImmutable $arrivalDateTime,
@@ -32,7 +32,7 @@ class Ride
         private int $price,
         private int $availableSeats,
         private RideStatus $rideStatus = RideStatus::DISPONIBLE, // Statut par défaut
-        private ?array $passengers, // car pas chargé dans hydrateRide de RideRepository
+        private ?array $passengers = null, // Pour charger plusieurs passagers
 
         private ?\DateTimeImmutable $createdAt = null, // n'a pas de valeur au moment de l'instanciation
         private ?\DateTimeImmutable $updatedAt = null // n'a pas de valeur au moment de l'instanciation
@@ -108,7 +108,7 @@ class Ride
         return $this->rideStatus;
     }
 
-    public function getPassengers(): ?array
+    public function getRidePassengers(): ?array
     {
         return $this->passengers;
     }
@@ -213,13 +213,13 @@ class Ride
         return $this;
     }
 
-    public function setPassengers(array $passengers): self
+    public function setRidePassengers(array $passengers): self
     {
         $this->passengers = $passengers;
         return $this;
     }
 
-    public function addPassenger(User $passenger): self
+    public function addRidePassenger(User $passenger): self
     {
         $this->passengers[] = $passenger;
         $this->updateTimestamp();
