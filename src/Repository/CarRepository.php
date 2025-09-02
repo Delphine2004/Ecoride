@@ -198,7 +198,7 @@ class CarRepository extends BaseRepository
      * @param string $power
      * @return array
      */
-    public function findCarsByPower(
+    public function findAllCarsByPower(
         string $power,
         ?string $orderBy = null,
         string $orderDirection = 'DESC',
@@ -218,7 +218,7 @@ class CarRepository extends BaseRepository
      * @param integer $offset
      * @return array
      */
-    public function findCarsByOwner(
+    public function findAllCarsByOwner(
         int $ownerId,
         ?string $orderBy = null,
         string $orderDirection = 'DESC',

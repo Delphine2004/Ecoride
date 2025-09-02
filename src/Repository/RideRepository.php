@@ -197,7 +197,7 @@ class RideRepository extends BaseRepository
      * @param integer $offset
      * @return array
      */
-    public function findRidesByDateAndPlace(
+    public function findAllRidesByDateAndPlace(
         \DateTimeInterface $date,
         string $departurePlace,
         ?string $arrivalPlace = null,
@@ -259,7 +259,7 @@ class RideRepository extends BaseRepository
      * @param integer $offset
      * @return array
      */
-    public function findRidesByUser(
+    public function findAllRidesByUser(
         int $userId,
         UserRoles $role,
         ?RideStatus $rideStatus = null,
@@ -330,7 +330,7 @@ class RideRepository extends BaseRepository
      * @param integer $offset
      * @return array
      */
-    public function findRidesByDriver(
+    public function findAllRidesByDriver(
         int $driverId,
         ?RideStatus $rideStatus = null,
         string $orderBy = 'departure_date_time',
@@ -338,7 +338,7 @@ class RideRepository extends BaseRepository
         int $limit = 20,
         int $offset = 0
     ): array {
-        return $this->findRidesByUser($driverId, UserRoles::CONDUCTEUR, $rideStatus, $orderBy, $orderDirection, $limit, $offset);
+        return $this->findAllRidesByUser($driverId, UserRoles::CONDUCTEUR, $rideStatus, $orderBy, $orderDirection, $limit, $offset);
     }
 
     /**
@@ -349,7 +349,7 @@ class RideRepository extends BaseRepository
      */
     public function findUpcomingRidesByDriver(int $driverId): array
     {
-        return $this->findRidesByDriver($driverId, RideStatus::DISPONIBLE);
+        return $this->findAllRidesByDriver($driverId, RideStatus::DISPONIBLE);
     }
 
     /**
@@ -360,7 +360,7 @@ class RideRepository extends BaseRepository
      */
     public function findPastRidesByDriver(int $driverId): array
     {
-        return $this->findRidesByDriver($driverId, RideStatus::PASSE);
+        return $this->findAllRidesByDriver($driverId, RideStatus::PASSE);
     }
 
 
@@ -376,7 +376,7 @@ class RideRepository extends BaseRepository
      * @param integer $offset
      * @return array
      */
-    public function findRidesByPassenger(
+    public function findAllRidesByPassenger(
         int $passengerId,
         ?RideStatus $rideStatus = null,
         string $orderBy = 'departure_date_time',
@@ -384,7 +384,7 @@ class RideRepository extends BaseRepository
         int $limit = 20,
         int $offset = 0
     ): array {
-        return $this->findRidesByUser($passengerId, UserRoles::PASSAGER, $rideStatus, $orderBy, $orderDirection, $limit, $offset);
+        return $this->findAllRidesByUser($passengerId, UserRoles::PASSAGER, $rideStatus, $orderBy, $orderDirection, $limit, $offset);
     }
 
     /**
@@ -395,7 +395,7 @@ class RideRepository extends BaseRepository
      */
     public function findUpcomingRidesByPassenger(int $passengerId): array
     {
-        return $this->findRidesByPassenger($passengerId, RideStatus::DISPONIBLE);
+        return $this->findAllRidesByPassenger($passengerId, RideStatus::DISPONIBLE);
     }
 
     /**
@@ -406,7 +406,7 @@ class RideRepository extends BaseRepository
      */
     public function findPastRidesByPassenger(int $passengerId): array
     {
-        return $this->findRidesByPassenger($passengerId, RideStatus::PASSE);
+        return $this->findAllRidesByPassenger($passengerId, RideStatus::PASSE);
     }
 
     //------------------------------------------
