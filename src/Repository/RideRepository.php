@@ -299,7 +299,7 @@ class RideRepository extends BaseRepository
                 $sql = "SELECT r.*
                         FROM {$this->table} r
                         INNER JOIN ride_passengers rp ON r.ride_id = rp.ride_id
-                        JOIN users u ON r.owner_id = u.user_id
+                        INNER JOIN users u ON r.owner_id = u.user_id
                         WHERE rp.user_id = :userId
                     ";
                 break;

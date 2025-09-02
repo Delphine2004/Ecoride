@@ -48,6 +48,18 @@ class UserRepository extends BaseRepository
      */
     public function hydrateUser(array $data): User
     {
+
+        $roles = [];
+        if (!empty($data['roles'])) {
+            // si le rôle ou les rôles sont presents
+            $rolesNames = explode(',', $data['roles']);
+            foreach ($rolesNames as $roleName) {
+                $roles[] = UserRoles::from($roleName);
+            }
+        } else {
+            // sinon recherche du rôle via SQL
+            $roles = $this->getUserRoles((int)$data['user_id']);
+        }
         return new User(
             userId: (int)$data['user_id'],
             lastName: $data['last_name'],
@@ -64,7 +76,7 @@ class UserRepository extends BaseRepository
             licenceNo: $data['licence_no'] ?? null,
             credit: isset($data['credit']) ? (int)$data['credit'] : null,
             apiToken: $data['api_token'] ?? null,
-            roles: $this->getUserRoles((int)$data['user_id']),
+            roles: $roles,
             createdAt: !empty($data['created_at']) ? new \DateTimeImmutable($data['created_at']) : null,
             updatedAt: !empty($data['updated_at']) ? new \DateTimeImmutable($data['updated_at']) : null
         );
@@ -108,7 +120,6 @@ class UserRepository extends BaseRepository
 
     // ------- Gestion des rôles ---------- 
 
-    // A UTILISER DANS BOOKING
     /**
      * Obtenir le rôle d'un utilisateur via la table pivot.
      *
@@ -171,12 +182,20 @@ class UserRepository extends BaseRepository
         int $limit = 50,
         int $offset = 0
     ): array {
+        // Vérifier si l'ordre et la direction sont définis et valides.
+        [$orderBy, $orderDirection] = $this->sanitizeOrder(
+            $orderBy,
+            $orderDirection,
+            'user_id'
+        );
+
+        // Chercher les éléments.
         $rows = parent::findAll($orderBy, $orderDirection, $limit, $offset);
         return array_map(fn($row) => $this->hydrateUser((array) $row), $rows);
     }
 
     /**
-     * Récupére un utilisateur selon un champs spécifique.
+     * Récupére un utilisateur selon un champ spécifique.
      *
      * @param string $field
      * @param mixed $value
@@ -186,40 +205,69 @@ class UserRepository extends BaseRepository
         string $field,
         mixed $value
     ): ?User {
-        // Vérifie si le champ est autorisé.
-        if (!$this->isAllowedField($field)) {
-            return null;
-        }
-
-        $row = parent::findOneByField($field, $value);
-        return $row ? $this->hydrateUser((array) $row) : null;
+        $row = $this->findAllUsersByField($field, $value, limit: 1);
+        return $row[0] ?? null;
     }
 
     /**
      * Récupére tous les utilisateurs selon un champ spécifique avec pagination et tri.
      *
-     * @param string $field
+     * @param string|null $field
      * @param mixed $value
-     * @param string|null $orderBy
+     * @param string $orderBy
      * @param string $orderDirection
      * @param integer $limit
      * @param integer $offset
      * @return array
      */
     public function findAllUsersByField(
-        string $field,
-        mixed $value,
-        ?string $orderBy = null,
+        ?string $field = null,
+        mixed $value = null,
+        string $orderBy = 'user_id',
         string $orderDirection = 'DESC',
-        int $limit = 50,
+        int $limit = 20,
         int $offset = 0
     ): array {
-        // Vérifie si le champ est autorisé.
-        if (!$this->isAllowedField($field)) {
-            return [];
+        // Vérifier si l'ordre et la direction sont définis et valides.
+        [$orderBy, $orderDirection] = $this->sanitizeOrder(
+            $orderBy,
+            $orderDirection,
+            'user_id'
+        );
+
+        // Construction du SQL
+        // Group_concat pour éviter le n+1
+        $sql = "SELECT u.*, GROUP_CONCAT(r.role_name) AS roles 
+                FROM {$this->table} u
+                INNER JOIN user_roles ur ON u.user_id = ur.user_id
+                INNER JOIN roles r ON ur.role_id = r.role_id
+                ";
+
+        if ($field && $value !== null) {
+            if ($field === 'role_name') {
+                $sql .= " WHERE r.role_name = :value";
+            } else {
+                $sql .= " WHERE u.$field = :value";
+            }
         }
 
-        $rows = parent::findAllByField($field, $value, $orderBy, $orderDirection, $limit, $offset);
+
+        // Groupement, tri et limite
+        $sql .= "GROUP BY u.user_id 
+                ORDER BY u.$orderBy $orderDirection 
+                LIMIT " . (int)$limit . " OFFSET " . (int)$offset;
+
+
+        // Préparation de la requête
+        $stmt = $this->db->prepare($sql);
+
+        if ($field && $value !== null) {
+            $stmt->bindValue(':value', $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+        }
+        $stmt->execute();
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
         return array_map(fn($row) => $this->hydrateUser((array) $row), $rows);
     }
 
@@ -237,120 +285,17 @@ class UserRepository extends BaseRepository
         return $this->findUserByField('email', $email);
     }
 
-
-    // Récupére tous les utilisateurs en fonction d'un rôle précis. - A VERIFIER
-    public function findAllUsersByRole(
-        UserRoles $role,
-        string $orderBy = 'user_id',
-        string $orderDirection = 'DESC',
-        int $limit = 20,
-        int $offset = 0
-    ): array {
-
-        // Vérifier si l'ordre et la direction sont définis et valides.
-        [$orderBy, $orderDirection] = $this->sanitizeOrder(
-            $orderBy,
-            $orderDirection,
-            'user_id'
-        );
-
-        // Construction du SQL
-        $sql = "SELECT u.* 
-                FROM {$this->table} u 
-                INNER JOIN user_roles ur ON u.user_id = ur.user_id 
-                INNER JOIN roles r ON ur.role_id = r.role_id 
-                WHERE r.role_name =:role
-            ";
-
-        // Tri et limite
-        $sql .= " ORDER BY u.$orderBy $orderDirection 
-                LIMIT " . (int)$limit . " OFFSET " . (int)$offset;
-
-
-        // Préparation de la requête
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':role', $role->value, PDO::PARAM_STR);
-        $stmt->execute();
-
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        return array_map(fn($row) => $this->hydrateUser((array) $row), $rows);
+    /**
+     * Récupére un utilisateur par son token.
+     *
+     * @param string $token
+     * @return User|null
+     */
+    public function findUserByApiToken(string $token): ?User
+    {
+        return $this->findUserByField('api_token', $token);
     }
 
-    // Récupére tous les utilisateurs avec leurs rôles - A VERIFIER
-    public function findAllUsersWithRoles(
-        string $orderBy = 'role_id',
-        string $orderDirection = 'DESC',
-        int $limit = 20,
-        int $offset = 0
-    ): array {
-        // Vérifier si l'ordre et la direction sont définis et valides.
-        [$orderBy, $orderDirection] = $this->sanitizeOrder(
-            $orderBy,
-            $orderDirection,
-            'user_id'
-        );
-
-        // Construction du SQL
-        $sql = "SELECT 
-                    u.user_id, u.last_name, u.first_name, 
-                    GROUP_CONCAT(r.role_name)
-                FROM {$this->table} u
-                JOIN user_roles ur ON u.user_id = ur.user_id
-                JOIN roles r ON ur.role_id = r.role_id
-                GROUP BY u.user_id";
-
-        // Tri et limite
-        $sql .= " ORDER BY u.$orderBy $orderDirection 
-                LIMIT " . (int)$limit . " OFFSET " . (int)$offset;
-
-
-        // Préparation de la requête
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute();
-
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        return array_map(fn($row) => $this->hydrateUser((array) $row), $rows);
-    }
-
-    // Récupére tous les utilisateurs avec leurs voitures  - A VERIFIER
-    public function findAllUsersWithCars(
-        int $ownerId,
-        string $orderBy = 'user_id',
-        string $orderDirection = 'DESC',
-        int $limit = 20,
-        int $offset = 0
-    ): array {
-
-        // Vérifier si l'ordre et la direction sont définis et valides.
-        [$orderBy, $orderDirection] = $this->sanitizeOrder(
-            $orderBy,
-            $orderDirection,
-            'car_id'
-        );
-
-        // Construction du SQL
-        $sql = "SELECT 
-                    u.user_id, u.last_name, u.first_name,
-                    c.car_id, c.car_brand, c.car_model, c.car_power
-                FROM {$this->table} u
-                LEFT JOIN cars c ON u.user_id = c.user_id
-                WHERE user_id = :userId";
-
-        $sql .= " ORDER BY c.$orderBy $orderDirection 
-                LIMIT " . (int)$limit . " OFFSET " . (int)$offset;
-
-
-        // Préparation de la requête
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':userId', $ownerId, PDO::PARAM_INT);
-        $stmt->execute();
-
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        return array_map(fn($row) => $this->hydrateUser((array) $row), $rows);
-    }
 
 
     //------------------------------------------
