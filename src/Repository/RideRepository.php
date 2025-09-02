@@ -18,7 +18,17 @@ class RideRepository extends BaseRepository
 
     protected string $table = 'rides';
     protected string $primaryKey = 'ride_id';
-    private array $allowedFields = ['ride_id', 'owner_id', 'departure_date_time', 'departure_place', 'arrival_date_time', 'arrival_place', 'price', 'available_seats', 'ride_status'];
+    private array $allowedFields = [
+        'ride_id',
+        'owner_id',
+        'departure_date_time',
+        'departure_place',
+        'arrival_date_time',
+        'arrival_place',
+        'price',
+        'available_seats',
+        'ride_status'
+    ];
 
 
     public function __construct(PDO $db)
@@ -280,16 +290,18 @@ class RideRepository extends BaseRepository
         switch ($role) {
             case UserRoles::CONDUCTEUR:
                 $sql = "SELECT r.*
-                FROM {$this->table} r
-                INNER JOIN users u ON r.owner_id = u.user_id
-                WHERE u.user_id = :userId";
+                        FROM {$this->table} r
+                        INNER JOIN users u ON r.owner_id = u.user_id
+                        WHERE u.user_id = :userId
+                    ";
                 break;
             case UserRoles::PASSAGER:
                 $sql = "SELECT r.*
-                FROM {$this->table} r
-                INNER JOIN ride_passengers rp ON r.ride_id = rp.ride_id
-                JOIN users u ON r.owner_id = u.user_id
-                WHERE rp.user_id = :userId";
+                        FROM {$this->table} r
+                        INNER JOIN ride_passengers rp ON r.ride_id = rp.ride_id
+                        JOIN users u ON r.owner_id = u.user_id
+                        WHERE rp.user_id = :userId
+                    ";
                 break;
             default:
                 throw new InvalidArgumentException("Rôle invalide : {$role->value}");

@@ -122,19 +122,20 @@ class RideWithUsersRepository extends RideRepository
 
         //Construction du sql
         $sql = "SELECT r.*,
-            d.user_id AS driver_id, 
-            d.first_name AS driver_first_name,
-            d.last_name AS driver_last_name,
-            d.user_name AS driver_user_name,
+                    d.user_id AS driver_id, 
+                    d.first_name AS driver_first_name,
+                    d.last_name AS driver_last_name,
+                    d.user_name AS driver_user_name,
 
-            p.user_id AS passenger_id,
-            p.first_name AS passenger_first_name,
-            p.last_name AS passenger_last_name,
-            p.user_name AS passenger_user_name
-        FROM {$this->table} r
-        INNER JOIN users d ON r.driver_id = d.user_id
-        LEFT JOIN bookings b ON r.ride_id = b.ride_id
-        LEFT JOIN users p ON b.passenger_id = p.user_id";
+                    p.user_id AS passenger_id,
+                    p.first_name AS passenger_first_name,
+                    p.last_name AS passenger_last_name,
+                    p.user_name AS passenger_user_name
+                FROM {$this->table} r
+                INNER JOIN users d ON r.driver_id = d.user_id
+                LEFT JOIN bookings b ON r.ride_id = b.ride_id
+                LEFT JOIN users p ON b.passenger_id = p.user_id
+        ";
 
         // Tri et limite
         $sql .= " ORDER BY r.$orderBy $orderDirection 
@@ -192,9 +193,9 @@ class RideWithUsersRepository extends RideRepository
 
         //Construction du sql
         $sql = "SELECT r.*
-        FROM {$this->table} r
-        LEFT JOIN bookings b ON r.ride_id = b.ride_id
-        WHERE r.driver_id = :user_id OR b.passenger_id = :user_id
+                FROM {$this->table} r
+                LEFT JOIN bookings b ON r.ride_id = b.ride_id
+                WHERE r.driver_id = :user_id OR b.passenger_id = :user_id
         ";
 
         // Tri et limite
