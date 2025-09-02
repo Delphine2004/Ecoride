@@ -50,7 +50,7 @@ class CarWithOwnerRepository extends CarRepository
      * @param integer $carId
      * @return Car|null
      */
-    public function findOneCarWithOwner(int $carId): ?Car
+    public function findCarWithOwner(int $carId): ?Car
     {
         // Construction du sql
         $sql = "SELECT c.*,

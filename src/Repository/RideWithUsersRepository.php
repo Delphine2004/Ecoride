@@ -2,24 +2,21 @@
 
 namespace App\Repositories;
 
-use App\Models\Ride;
-use App\Models\User;
 use App\Repositories\RideRepository;
 use App\Repositories\UserRepository;
-use App\Enum\RideStatus;
-use App\Enum\UserRoles;
-use InvalidArgumentException;
+use App\Models\Ride;
+use App\Models\User;
 use PDO;
 
 /**
- * Cette classe gére la correspondance entre un trajet et les utilisateurs.
+ * Cette classe gére la correspondance entre un trajet et les utilisateurs et la BDD.
  */
 
 class RideWithUsersRepository extends RideRepository
 {
 
     protected string $table = 'rides';
-    protected string $primaryKey = 'rides_id';
+    protected string $primaryKey = 'ride_id';
 
     private UserRepository $userRepository;
 
@@ -30,7 +27,13 @@ class RideWithUsersRepository extends RideRepository
     }
 
 
-    // Fonction générique de mapping
+    /**
+     * Transforme les lignes SQL en Objet User
+     *
+     * @param array $row
+     * @param string $prefix
+     * @return User
+     */
     private function mapUser(array $row, string $prefix = ''): User
     {
         //$prefix -> permet de distinguer les alias dans les jointures sql
@@ -42,9 +45,13 @@ class RideWithUsersRepository extends RideRepository
         ]);
     }
 
-
-    // Trouver un trajet avec son conducteur et ses passagers.
-    public function findOneRideWithUsers(int $rideId): ?Ride
+    /**
+     * Récupére un trajet avec le conducteur et les passagers tous hydratés en objets.
+     *
+     * @param integer $rideId
+     * @return Ride|null
+     */
+    public function findRideWithUsersByRideId(int $rideId): ?Ride
     {
         // Construction du sql
         $sql = "SELECT r.*
@@ -61,7 +68,7 @@ class RideWithUsersRepository extends RideRepository
                 LEFT JOIN bookings b ON r.ride_id = b.ride_id
                 LEFT JOIN users p ON b.passenger_id = p.user_id
                 WHERE r.ride_id = :ride_id
-                ORDER BY passenger_user_name
+                ORDER BY p.user_name
         ";
 
         // Préparation de la requête
@@ -83,14 +90,22 @@ class RideWithUsersRepository extends RideRepository
         foreach ($rows as $row) {
             if ($row['passenger_id']) {
                 $passenger = $this->mapUser($row, 'passenger_');
-                $ride->addPassenger($passenger);
+                $ride->addRidePassenger($passenger);
             }
         }
 
         return $ride;
     }
 
-    // Afficher tous les trajets avec conducteur et passagers.
+    /**
+     * Récupérer tous les trajets avec le conducteur et les passagers tous hydratés en objets.
+     *
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
     public function findAllRidesWithUsers(
         string $orderBy = 'ride_id',
         string $orderDirection = 'DESC',
@@ -117,7 +132,7 @@ class RideWithUsersRepository extends RideRepository
             p.last_name AS passenger_last_name,
             p.user_name AS passenger_user_name
         FROM {$this->table} r
-        INNER JOIN users d ON r.owner_id = d.user_id
+        INNER JOIN users d ON r.driver_id = d.user_id
         LEFT JOIN bookings b ON r.ride_id = b.ride_id
         LEFT JOIN users p ON b.passenger_id = p.user_id";
 
@@ -143,19 +158,72 @@ class RideWithUsersRepository extends RideRepository
 
             if ($row['passenger_id']) {
                 $passenger = $this->mapUser($row, 'passenger_');
-                $rides[$rideId]->addPassenger($passenger);
+                $rides[$rideId]->addRidePassenger($passenger);
             }
         }
 
         return array_values($rides);
     }
 
-
-    // Afficher tous les trajets avec leur conducteur et leurs passagers.
-    public function findAllRidesWithUsersByUser(
+    /**
+     * Récupérer tous les trajets (objets) auxquels un utilisateur à participé (conducteur ou passager).
+     *
+     * @param integer $userId
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
+    public function findAllRidesByUser(
         int $userId,
-        UserRoles $role,
-        ?RideStatus $rideStatus = null,
+        string $orderBy = 'ride_id',
+        string $orderDirection = 'DESC',
+        int $limit = 20,
+        int $offset = 0
+    ): array {
+
+        // Vérifier si l'ordre et la direction sont définis et valides.
+        [$orderBy, $orderDirection] = $this->sanitizeOrder(
+            $orderBy,
+            $orderDirection,
+            'ride_id'
+        );
+
+        //Construction du sql
+        $sql = "SELECT r.*
+        FROM {$this->table} r
+        LEFT JOIN bookings b ON r.ride_id = b.ride_id
+        WHERE r.driver_id = :user_id OR b.passenger_id = :user_id
+        ";
+
+        // Tri et limite
+        $sql .= " ORDER BY r.$orderBy $orderDirection 
+                LIMIT " . (int)$limit . " OFFSET " . (int)$offset;
+
+        //Preparation de la requête
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue('user_id', $userId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        if (!$rows) return [];
+
+        return array_map(fn($row) => $this->hydrateRide((array) $row), $rows);
+    }
+
+    /**
+     * Récupérer tous les trajets (objets) avec le conducteur (objet) et les passagers (objets) par différents critéres.
+     *
+     * @param array $criteria
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
+    public function findAllRidesWithUsersByFields(
+        array $criteria = [],
         string $orderBy = 'ride_id',
         string $orderDirection = 'DESC',
         int $limit = 20,
@@ -168,38 +236,34 @@ class RideWithUsersRepository extends RideRepository
             'ride_id'
         );
 
-        // Construction du SQL selon le rôle
-        switch ($role) {
-            case UserRoles::CONDUCTEUR:
-                $sql = "SELECT r.*, 
-                        d.user_id AS driver_id,
-                        d.first_name AS driver_first_name,
-                        d.last_name AS driver_last_name,
-                        d.user_name AS driver_user_name
-                        FROM {$this->table} r
-                        INNER JOIN users d ON r.owner_id = d.user_id
-                        WHERE d.user_id = :userId";
-                break;
+        // Construction du SQL 
+        $sql = "SELECT r.*,
+                    d.user_id AS driver_id, 
+                    d.first_name AS driver_first_name,
+                    d.last_name AS driver_last_name,
+                    d.user_name AS driver_user_name,
 
-            case UserRoles::PASSAGER:
-                $sql = "SELECT r.*,
-                        p.user_id AS passenger_id,
-                        p.first_name AS passenger_first_name,
-                        p.last_name AS passenger_last_name,
-                        p.user_name AS passenger_user_name
-                        FROM {$this->table} r
-                        INNER JOIN bookings b ON r.ride_id = b.ride_id
-                        INNER JOIN users p ON b.passenger_id = p.user_id
-                        WHERE p.user_id = :userId";
-                break;
+                    p.user_id AS passenger_id,
+                    p.first_name AS passenger_first_name,
+                    p.last_name AS passenger_last_name,
+                    p.user_name AS passenger_user_name
+                FROM {$this->table}
+                INNER JOIN users d ON r.driver_id = d.user_id
+                LEFT JOIN bookings b ON r.ride_id = b.ride_id
+                LEFT JOIN users p ON b.passenger_id = p.user_id
+                WHERE 1=1
+        ";
 
-            default:
-                throw new \InvalidArgumentException("Rôle invalide : {$role->value}");
-        }
-
-        // Ajout du statut du trajet
-        if ($rideStatus !== null) {
-            $sql .= " AND r.ride_status = :rideStatus";
+        // Ajout des critéres
+        foreach ($criteria as $field => $value) {
+            if (!$this->isAllowedField($field)) {
+                continue;
+            }
+            if ($value === null) {
+                $sql .= " AND r.$field IS NULL";
+            } else {
+                $sql .= " AND r.$field = :$field";
+            }
         }
 
         // Tri et limite
@@ -208,30 +272,33 @@ class RideWithUsersRepository extends RideRepository
 
         // Préparation de la requête
         $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':userId', $userId, PDO::PARAM_INT);
-        if ($rideStatus !== null) {
-            $stmt->bindValue(':rideStatus', $rideStatus->value, PDO::PARAM_STR);
+
+        foreach ($criteria as $field => $value) {
+            if ($value === null || !$this->isAllowedField($field)) {
+                continue;
+            }
+
+            $type = is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR;
+            $stmt->bindValue(":$field", $value, $type);
         }
+
         $stmt->execute();
 
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         if (!$rows) return [];
 
-        // Hydratations
+        // Hydratations des trajets
         $rides = [];
         foreach ($rows as $row) {
+            // en tant que conducteur
             $rideId = $row['ride_id'];
             if (!isset($rides[$rideId])) {
                 $rides[$rideId] = $this->hydrateRide($row);
-                if ($role === UserRoles::CONDUCTEUR) {
-                    $driver = $this->mapUser($row, 'driver_');
-                    $rides[$rideId]->setRideDriver($driver);
-                }
+                $rides[$rideId]->setRideDriver($this->mapUser($row, 'driver_'));
             }
-
-            if ($role === UserRoles::PASSAGER && isset($row['passenger_id'])) {
-                $passenger = $this->mapUser($row, 'passenger_');
-                $rides[$rideId]->addPassenger($passenger);
+            // en tant que passager
+            if ($row['passenger_id']) {
+                $rides[$rideId]->addRidePassenger($this->mapUser($row, 'passenger_'));
             }
         }
 

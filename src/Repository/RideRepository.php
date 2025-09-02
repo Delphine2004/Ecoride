@@ -247,6 +247,7 @@ class RideRepository extends BaseRepository
         return array_map(fn($row) => $this->hydrateRide((array) $row), $rows);
     }
 
+
     /**
      * Récupére tous les trajets selon un utilisateur.
      *
@@ -259,7 +260,7 @@ class RideRepository extends BaseRepository
      * @param integer $offset
      * @return array
      */
-    public function findAllRidesByUser(
+    public function findAllRidesByUserRole(
         int $userId,
         UserRoles $role,
         ?RideStatus $rideStatus = null,
@@ -338,7 +339,7 @@ class RideRepository extends BaseRepository
         int $limit = 20,
         int $offset = 0
     ): array {
-        return $this->findAllRidesByUser($driverId, UserRoles::CONDUCTEUR, $rideStatus, $orderBy, $orderDirection, $limit, $offset);
+        return $this->findAllRidesByUserRole($driverId, UserRoles::CONDUCTEUR, $rideStatus, $orderBy, $orderDirection, $limit, $offset);
     }
 
     /**
@@ -384,7 +385,7 @@ class RideRepository extends BaseRepository
         int $limit = 20,
         int $offset = 0
     ): array {
-        return $this->findAllRidesByUser($passengerId, UserRoles::PASSAGER, $rideStatus, $orderBy, $orderDirection, $limit, $offset);
+        return $this->findAllRidesByUserRole($passengerId, UserRoles::PASSAGER, $rideStatus, $orderBy, $orderDirection, $limit, $offset);
     }
 
     /**
