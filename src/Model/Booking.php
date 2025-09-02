@@ -14,40 +14,83 @@ class Booking
     // Promotion des propriétés (depuis PHP 8)
     public function __construct(
         private ?int $bookingId = null, // n'a pas de valeur au moment de l'instanciation
-        private ?Ride $ride,
-        private ?User $passenger,
-        private ?User $driver,
+
+        private ?int $rideId = null, // pour l'hydratation brute dans bookingRepository
+        private ?int $passengerId = null, // pour l'hydratation brute dans bookingRepository
+        private ?int $driverId = null, // pour l'hydratation brute dans bookingRepository
+
+        private ?Ride $ride = null, // Pour le mapping dans bookingRelationsRepository
+        private ?User $passenger = null, // Pour le mapping dans bookingRelationsRepository
+        private ?User $driver = null, // Pour mapping bookingRelationsRepository
+
         private BookingStatus $bookingStatus = BookingStatus::CONFIRMEE, // Statut par défaut
+        private ?array $passengers = null, // Pour charger plusieurs passagers
 
         private ?\DateTimeImmutable $createdAt = null, // n'a pas de valeur au moment de l'instanciation
         private ?\DateTimeImmutable $updatedAt = null // n'a pas de valeur au moment de l'instanciation
 
     ) {
 
-        if ($passenger->getUserId() === $driver->getUserId()) {
-            throw new InvalidArgumentException("Le chauffeur ne peut pas être passager de son propre trajet.");
-        }
-
-        if ($ride->getRideDriver()->getUserId() === $passenger->getUserId()) {
-            throw new InvalidArgumentException("Un passager ne peut pas réserver son propre trajet.");
-        }
-
-        // Affectation avec validation
-        $this->setBookingRide($ride)
-            ->setBookingPassenger($passenger)
-            ->setBookingDriver($driver)
-            ->setBookingStatus($bookingStatus);
-
+        $this->passengers = $passengers ?? [];
         $this->createdAt = $createdAt ?? new DateTimeImmutable();
         $this->updatedAt = $updatedAt ?? new DateTimeImmutable();
+
+        if ($ride !== null) {
+            $this->setBookingRide($ride);
+        }
+        if ($passenger !== null) {
+            $this->setBookingPassenger($passenger);
+        }
+        if ($driver !== null) {
+            $this->setBookingDriver($driver);
+        }
+        $this->setBookingStatus($bookingStatus);
     }
 
     // ---------Les Getters ---------
+    // Basiques
     public function getBookingId(): ?int
     {
         return $this->bookingId;
     }
 
+    public function getRideId(): ?int
+    {
+        return $this->rideId;
+    }
+
+    public function getPassengerId(): ?int
+    {
+        return $this->passengerId;
+    }
+
+    public function getDriverId(): ?int
+    {
+        return $this->driverId;
+    }
+
+    public function getBookingStatus(): BookingStatus
+    {
+        return $this->bookingStatus;
+    }
+
+    public function getBookingPassengers(): ?array
+    {
+        return $this->passengers;
+    }
+
+    public function getCreatedAt(): DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function getUpdatedAt(): DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
+
+    // Objets liés
     public function getBookingRide(): ?Ride
     {
         return $this->ride;
@@ -63,21 +106,6 @@ class Booking
         return $this->driver;
     }
 
-    public function getBookingStatus(): BookingStatus
-    {
-        return $this->bookingStatus;
-    }
-
-    public function getCreatedAt(): DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-
-    public function getUpdatedAt(): DateTimeImmutable
-    {
-        return $this->updatedAt;
-    }
-
 
     // ---------Les Setters ---------
 
@@ -85,35 +113,45 @@ class Booking
 
     public function setBookingRide(?Ride $ride): self
     {
-        if ($this->passenger->getUserId() === $ride->getRideDriver()->getUserId()) {
-            throw new InvalidArgumentException("Un passager ne peut pas réserver son propre trajet.");
+        if ($ride !== null && $this->passenger !== null) {
+            if ($this->passenger->getUserId() === $ride->getRideDriver()->getUserId()) {
+                throw new InvalidArgumentException("Un passager ne peut pas réserver son propre trajet.");
+            }
         }
+
         $this->ride = $ride;
+        $this->rideId = $ride?->getRideId(); // pour setter les ids si l'objet est null
         $this->updateTimestamp();
         return $this;
     }
 
     public function setBookingPassenger(?User $passenger): self
     {
-        if ($this->driver !== null && $passenger->getUserId() === $this->driver->getUserId()) {
-            throw new InvalidArgumentException("Le chauffeur ne peut pas être passager de son propre trajet.");
+        if ($passenger !== null) {
+            if ($this->driver !== null && $passenger->getUserId() === $this->driver->getUserId()) {
+                throw new InvalidArgumentException("Le chauffeur ne peut pas être passager de son propre trajet.");
+            }
+            if ($this->ride !== null && $this->ride->getRideDriver()->getUserId() === $passenger->getUserId()) {
+                throw new InvalidArgumentException("Un passager ne peut pas réserver son propre trajet.");
+            }
         }
 
-        if ($this->ride !== null && $this->ride->getRideDriver()->getUserId() === $passenger->getUserId()) {
-            throw new InvalidArgumentException("Un passager ne peut pas réserver son propre trajet.");
-        }
         $this->passenger = $passenger;
+        $this->passengerId = $passenger?->getUserId(); // pour setter les ids si l'objet est null
         $this->updateTimestamp();
         return $this;
     }
 
     public function setBookingDriver(?User $driver): self
     {
-        if ($this->passenger !== null && $driver->getUserId() === $this->passenger->getUserId()) {
-            throw new InvalidArgumentException("Le chauffeur ne peut pas être passager de son propre trajet.");
+        if ($driver !== null && $this->passenger !== null) {
+            if ($driver->getUserId() === $this->passenger->getUserId()) {
+                throw new InvalidArgumentException("Le chauffeur ne peut pas être passager de son propre trajet.");
+            }
         }
 
         $this->driver = $driver;
+        $this->driverId = $driver?->getUserId(); // pour setter les ids si l'objet est null
         $this->updateTimestamp();
         return $this;
     }
@@ -125,7 +163,18 @@ class Booking
         return $this;
     }
 
+    public function setBookingPassengers(array $passengers): self
+    {
+        $this->passengers = $passengers;
+        return $this;
+    }
 
+    public function addBookingPassenger(User $passenger): self
+    {
+        $this->passengers[] = $passenger;
+        $this->updateTimestamp();
+        return $this;
+    }
 
     // ---- Mise à jour de la date de modification
     private function updateTimestamp(): void
