@@ -98,7 +98,7 @@ class RideWithUsersRepository extends RideRepository
     }
 
     /**
-     * Récupérer tous les trajets avec le conducteur et les passagers tous hydratés en objets.
+     * Récupére tous les trajets avec le conducteur et les passagers tous hydratés en objets.
      *
      * @param string $orderBy
      * @param string $orderDirection
@@ -166,7 +166,7 @@ class RideWithUsersRepository extends RideRepository
     }
 
     /**
-     * Récupérer tous les trajets (objets) auxquels un utilisateur à participé (conducteur ou passager).
+     * Récupére tous les trajets (objets) auxquels un utilisateur à participé (conducteur ou passager).
      *
      * @param integer $userId
      * @param string $orderBy
@@ -213,7 +213,7 @@ class RideWithUsersRepository extends RideRepository
     }
 
     /**
-     * Récupérer tous les trajets (objets) avec le conducteur (objet) et les passagers (objets) par différents critéres.
+     * Récupére tous les trajets (objets) avec le conducteur (objet) et les passagers (objets) par différents critéres.
      *
      * @param array $criteria
      * @param string $orderBy

@@ -28,7 +28,7 @@ class CarWithOwnerRepository extends CarRepository
     }
 
     /**
-     * Mutualisation du mapping de User.
+     * Transforme les lignes SQL en Objet User.
      *
      * @param array $row
      * @return User
@@ -45,7 +45,7 @@ class CarWithOwnerRepository extends CarRepository
 
 
     /**
-     * Trouver une voiture avec son propriétaire.
+     * Récupére une voiture avec son propriétaire.
      *
      * @param integer $carId
      * @return Car|null
@@ -85,7 +85,7 @@ class CarWithOwnerRepository extends CarRepository
 
 
     /**
-     * Touver toutes les voitures avec leur propriétaire.
+     * Récupére toutes les voitures avec leur propriétaire.
      *
      * @param string $orderBy
      * @param string $orderDirection
