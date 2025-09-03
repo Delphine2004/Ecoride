@@ -164,6 +164,7 @@ class UserRepository extends BaseRepository
      */
     public function findUserById(int $userId): ?User
     {
+        // Chercher l'élément
         $row = parent::findById($userId);
         return $row ? $this->hydrateUser((array) $row) : null;
     }
@@ -196,39 +197,51 @@ class UserRepository extends BaseRepository
     }
 
     /**
-     * Récupére un utilisateur selon un champ spécifique.
+     * Récupére un utilisateur selon un ou plusieurs champs spécifiques.
      *
      * @param string $field
      * @param mixed $value
      * @return User|null
      */
-    public function findUserByField(
-        string $field,
-        mixed $value
+    public function findUserByFields(
+        array $criteria
     ): ?User {
-        $row = $this->findAllUsersByField($field, $value, limit: 1);
+        // Vérifie si chaque champ est autorisé.
+        foreach ($criteria as $field => $value) {
+            if (!$this->isAllowedField($field)) {
+                return null;
+            }
+        }
+
+        // Chercher l'élément
+        $row = $this->findAllUsersByFields($criteria, limit: 1);
         return $row[0] ?? null;
     }
 
     /**
-     * Récupére tous les utilisateurs selon un champ spécifique avec pagination et tri.
+     * Récupére tous les utilisateurs selon un ou plusieurs champs spécifiques avec pagination et tri.
      *
-     * @param string|null $field
-     * @param mixed $value
-     * @param string $orderBy
+     * @param array $criteria
+     * @param string|null $orderBy
      * @param string $orderDirection
      * @param integer $limit
      * @param integer $offset
      * @return array
      */
-    public function findAllUsersByField(
-        ?string $field = null,
-        mixed $value = null,
-        string $orderBy = 'user_id',
+    public function findAllUsersByFields(
+        array $criteria = [],
+        ?string $orderBy = null,
         string $orderDirection = 'DESC',
         int $limit = 20,
         int $offset = 0
     ): array {
+        // Vérifie si chaque champ est autorisé.
+        foreach ($criteria as $field => $value) {
+            if (!$this->isAllowedField($field)) {
+                return [];
+            }
+        }
+
         // Vérifier si l'ordre et la direction sont définis et valides.
         [$orderBy, $orderDirection] = $this->sanitizeOrder(
             $orderBy,
@@ -236,41 +249,8 @@ class UserRepository extends BaseRepository
             'user_id'
         );
 
-        // Construction du SQL
-        // Group_concat pour éviter le n+1
-        $sql = "SELECT u.*, GROUP_CONCAT(r.role_name) AS roles 
-                FROM {$this->table} u
-                LEFT JOIN user_roles ur ON u.user_id = ur.user_id
-                LEFT JOIN roles r ON ur.role_id = r.role_id
-                ";
-
-        if ($field && $value !== null) {
-            if ($field === 'role_name') {
-                $sql .= " WHERE r.role_name = :value";
-            } elseif ($this->isAllowedField($field)) {
-                $sql .= " WHERE u.$field = :value";
-            } else {
-                throw new InvalidArgumentException("Champs non autorisé: $field");
-            }
-        }
-
-
-        // Groupement, tri et limite
-        $sql .= "GROUP BY u.user_id 
-                ORDER BY u.$orderBy $orderDirection 
-                LIMIT " . (int)$limit . " OFFSET " . (int)$offset;
-
-
-        // Préparation de la requête
-        $stmt = $this->db->prepare($sql);
-
-        if ($field && $value !== null) {
-            $stmt->bindValue(':value', $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
-        }
-        $stmt->execute();
-
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
+        // Chercher les éléments.
+        $rows = parent::findAllByFields($criteria, $orderBy, $orderDirection, $limit, $offset);
         return array_map(fn($row) => $this->hydrateUser((array) $row), $rows);
     }
 
@@ -285,7 +265,7 @@ class UserRepository extends BaseRepository
      */
     public function findUserByEmail(string $email): ?User
     {
-        return $this->findUserByField('email', $email);
+        return $this->findUserByFields(['email' => $email]);
     }
 
     /**
@@ -296,28 +276,10 @@ class UserRepository extends BaseRepository
      */
     public function findUserByApiToken(string $token): ?User
     {
-        return $this->findUserByField('api_token', $token);
+        return $this->findUserByFields(['api_token' => $token]);
     }
 
-    /**
-     * Récupére tous les utilisateurs selon un rôle.
-     *
-     * @param string $role
-     * @param string $orderBy
-     * @param string $orderDirection
-     * @param integer $limit
-     * @param integer $offset
-     * @return array
-     */
-    public function findAllUsersByRole(
-        string $role,
-        string $orderBy = 'user_id',
-        string $orderDirection = 'DESC',
-        int $limit = 20,
-        int $offset = 0
-    ): array {
-        return $this->findAllUsersByField('role_name', $role, $orderBy, $orderDirection, $limit, $offset);
-    }
+
 
     //------------------------------------------
 

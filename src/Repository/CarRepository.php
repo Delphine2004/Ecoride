@@ -133,7 +133,7 @@ class CarRepository extends BaseRepository
     }
 
     /**
-     * Récupére une voiture selon un champ spécifique.
+     * Récupére une voiture selon un ou plusieurs champs spécifiques.
      *
      * @param string $field
      * @param mixed $value
@@ -155,7 +155,7 @@ class CarRepository extends BaseRepository
     }
 
     /**
-     * Récupére toutes les voitures selon un champ spécifique avec pagination et tri.
+     * Récupére toutes les voitures selon un ou plusieurs champs spécifiques avec pagination et tri.
      *
      * @param array $criteria
      * @param string|null $orderBy

@@ -136,7 +136,7 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupére un trajet selon un champs spécifique.
+     * Récupére un trajet selon un ou plusieurs champs spécifiques.
      *
      * @param array $criteria
      * @return Ride|null
@@ -157,7 +157,7 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupére tous les trajets selon un champ spécifique avec pagination et tri.
+     * Récupére tous les trajets selon un ou plusieurs champs spécifiques avec pagination et tri.
      *
      * @param array $criteria
      * @param string|null $orderBy
