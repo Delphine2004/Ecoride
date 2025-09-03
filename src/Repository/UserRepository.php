@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Repositories\BaseRepository;
 use App\Models\User;
 use App\Enum\UserRoles;
+use InvalidArgumentException;
 use PDO;
 
 
@@ -239,15 +240,17 @@ class UserRepository extends BaseRepository
         // Group_concat pour éviter le n+1
         $sql = "SELECT u.*, GROUP_CONCAT(r.role_name) AS roles 
                 FROM {$this->table} u
-                INNER JOIN user_roles ur ON u.user_id = ur.user_id
-                INNER JOIN roles r ON ur.role_id = r.role_id
+                LEFT JOIN user_roles ur ON u.user_id = ur.user_id
+                LEFT JOIN roles r ON ur.role_id = r.role_id
                 ";
 
         if ($field && $value !== null) {
             if ($field === 'role_name') {
                 $sql .= " WHERE r.role_name = :value";
-            } else {
+            } elseif ($this->isAllowedField($field)) {
                 $sql .= " WHERE u.$field = :value";
+            } else {
+                throw new InvalidArgumentException("Champs non autorisé: $field");
             }
         }
 
@@ -296,7 +299,25 @@ class UserRepository extends BaseRepository
         return $this->findUserByField('api_token', $token);
     }
 
-
+    /**
+     * Récupére tous les utilisateurs selon un rôle.
+     *
+     * @param string $role
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
+    public function findAllUsersByRole(
+        string $role,
+        string $orderBy = 'user_id',
+        string $orderDirection = 'DESC',
+        int $limit = 20,
+        int $offset = 0
+    ): array {
+        return $this->findAllUsersByField('role_name', $role, $orderBy, $orderDirection, $limit, $offset);
+    }
 
     //------------------------------------------
 
