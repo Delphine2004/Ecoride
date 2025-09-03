@@ -15,7 +15,7 @@ class CarRepository extends BaseRepository
 {
 
     protected string $table = 'cars';
-    protected string $primaryKey = 'car_id'; // Utile car utiliser dans BaseRepository
+    protected string $primaryKey = 'car_id';
     private array $allowedFields = [
         'car_id',
         'user_id',
@@ -90,7 +90,7 @@ class CarRepository extends BaseRepository
         return in_array($field, $this->allowedFields, true);
     }
 
-    // ------ Récupération ------ 
+    // ------ Récupérations ------ 
 
     /**
      * Récupére une voiture par son id.
@@ -139,42 +139,43 @@ class CarRepository extends BaseRepository
      * @param mixed $value
      * @return Car|null
      */
-    public function findCarByField(
-        string $field,
-        mixed $value
+    public function findCarByFields(
+        array $criteria
     ): ?Car {
-        // Vérifie si le champ est autorisé.
-        if (!$this->isAllowedField($field)) {
-            return null;
+        // Vérifie si chaque champ est autorisé.
+        foreach ($criteria as $field => $value) {
+            if (!$this->isAllowedField($field)) {
+                return null;
+            }
         }
 
         // Chercher l'élément
-        $row = parent::findOneByField($field, $value);
+        $row = parent::findOneByFields($criteria);
         return $row ? $this->hydrateCar((array) $row) : null;
     }
 
     /**
      * Récupére toutes les voitures selon un champ spécifique avec pagination et tri.
      *
-     * @param string $field
-     * @param mixed $value
+     * @param array $criteria
      * @param string|null $orderBy
      * @param string $orderDirection
      * @param integer $limit
      * @param integer $offset
      * @return array
      */
-    public function findAllCarsByField(
-        string $field,
-        mixed $value,
+    public function findAllCarsByFields(
+        array $criteria = [],
         ?string $orderBy = null,
         string $orderDirection = 'DESC',
         int $limit = 50,
         int $offset = 0
     ): array {
-        // Vérifie si le champ est autorisé.
-        if (!$this->isAllowedField($field)) {
-            return [];
+        // Vérifie si chaque champ est autorisé.
+        foreach ($criteria as $field => $value) {
+            if (!$this->isAllowedField($field)) {
+                return [];
+            }
         }
 
         // Vérifier si l'ordre et la direction sont définis et valides.
@@ -185,7 +186,7 @@ class CarRepository extends BaseRepository
         );
 
         // Chercher les éléments.
-        $rows = parent::findAllByField($field, $value, $orderBy, $orderDirection, $limit, $offset);
+        $rows = parent::findAllByFields($criteria, $orderBy, $orderDirection, $limit, $offset);
         return array_map(fn($row) => $this->hydrateCar((array) $row), $rows);
     }
 
@@ -196,6 +197,10 @@ class CarRepository extends BaseRepository
      * Récupére toutes les voitures selon l'energie utilisée.
      *
      * @param string $power
+     * @param string|null $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
      * @return array
      */
     public function findAllCarsByPower(
@@ -205,7 +210,7 @@ class CarRepository extends BaseRepository
         int $limit = 50,
         int $offset = 0
     ): array {
-        return $this->findAllCarsByField('car_power', $power, $orderBy, $orderDirection, $limit, $offset);
+        return $this->findAllCarsByFields(['car_power' => $power],  $orderBy, $orderDirection, $limit, $offset);
     }
 
     /**
@@ -225,7 +230,7 @@ class CarRepository extends BaseRepository
         int $limit = 20,
         int $offset = 0
     ): array {
-        return $this->findAllCarsByField('user_id', $ownerId, $orderBy, $orderDirection, $limit, $offset);
+        return $this->findAllCarsByFields(['user_id' => $ownerId], $orderBy, $orderDirection, $limit, $offset);
     }
 
 

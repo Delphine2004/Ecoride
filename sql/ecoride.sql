@@ -83,7 +83,7 @@ CREATE TABLE cars(
 
 CREATE TABLE rides(
         ride_id INT AUTO_INCREMENT PRIMARY KEY ,
-        owner_id INT NOT NULL,
+        driver_id INT NOT NULL,
         departure_date_time DATETIME NOT NULL ,
         departure_place VARCHAR (100) NOT NULL ,
         arrival_date_time DATETIME NOT NULL ,
@@ -93,7 +93,7 @@ CREATE TABLE rides(
         ride_status VARCHAR(20) NOT NULL,
         created_at TIMESTAMP NOT NULL,
         updated_at TIMESTAMP NOT NULL,
-        FOREIGN KEY (owner_id) REFERENCES users(user_id) ON DELETE CASCADE
+        FOREIGN KEY (driver_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
 

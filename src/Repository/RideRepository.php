@@ -20,7 +20,7 @@ class RideRepository extends BaseRepository
     protected string $primaryKey = 'ride_id';
     private array $allowedFields = [
         'ride_id',
-        'owner_id',
+        'driver_id',
         'departure_date_time',
         'departure_place',
         'arrival_date_time',
@@ -70,7 +70,7 @@ class RideRepository extends BaseRepository
     private function mapRideToArray(Ride $ride): array
     {
         return [
-            'owner_id' => $ride->getRideDriver()->getUserId(),
+            'driver_id' => $ride->getRideDriver()->getUserId(),
             'departure_date_time' => $ride->getRideDepartureDateTime()->format('Y-m-d H:i:s'),
             'departure_place' => $ride->getRideDeparturePlace(),
             'arrival_date_time' => $ride->getRideArrivalDateTime()->format('Y-m-d H:i:s'),
@@ -93,7 +93,7 @@ class RideRepository extends BaseRepository
     }
 
 
-    // ------ Récupération ------ 
+    // ------ Récupérations ------ 
 
     /**
      * Récupére un trajet par son id.
@@ -138,46 +138,46 @@ class RideRepository extends BaseRepository
     /**
      * Récupére un trajet selon un champs spécifique.
      *
-     * @param string $field
-     * @param mixed $value
+     * @param array $criteria
      * @return Ride|null
      */
-    public function findRideByField(
-        string $field,
-        mixed $value
+    public function findRideByFields(
+        array $criteria
     ): ?Ride {
-        // Vérifie si le champ est autorisé.
-        if (!$this->isAllowedField($field)) {
-            return null;
+        // Vérifie si chaque champ est autorisé.
+        foreach ($criteria as $field => $value) {
+            if (!$this->isAllowedField($field)) {
+                return null;
+            }
         }
 
         // Chercher l'élément
-        $row = parent::findOneByField($field, $value);
+        $row = parent::findOneByFields($criteria);
         return $row ? $this->hydrateRide((array) $row) : null;
     }
 
     /**
      * Récupére tous les trajets selon un champ spécifique avec pagination et tri.
      *
-     * @param string $field
-     * @param mixed $value
+     * @param array $criteria
      * @param string|null $orderBy
      * @param string $orderDirection
      * @param integer $limit
      * @param integer $offset
      * @return array
      */
-    public function findAllRidesByField(
-        string $field,
-        mixed $value,
+    public function findAllRidesByFields(
+        array $criteria = [],
         ?string $orderBy = null,
         string $orderDirection = 'DESC',
         int $limit = 50,
         int $offset = 0
     ): array {
-        // Vérifie si le champ est autorisé.
-        if (!$this->isAllowedField($field)) {
-            return [];
+        // Vérifie si chaque champ est autorisé.
+        foreach ($criteria as $field => $value) {
+            if (!$this->isAllowedField($field)) {
+                return [];
+            }
         }
 
         // Vérifier si l'ordre et la direction sont définis et valides.
@@ -188,7 +188,7 @@ class RideRepository extends BaseRepository
         );
 
         // Chercher les éléments.
-        $rows = parent::findAllByField($field, $value, $orderBy, $orderDirection, $limit, $offset);
+        $rows = parent::findAllByFields($criteria, $orderBy, $orderDirection, $limit, $offset);
         return array_map(fn($row) => $this->hydrateRide((array) $row), $rows);
     }
 
@@ -216,45 +216,11 @@ class RideRepository extends BaseRepository
         int $limit = 20,
         int $offset = 0
     ): array {
-        // Vérifier si l'ordre et la direction sont définis et valides.
-        [$orderBy, $orderDirection] = $this->sanitizeOrder(
-            $orderBy,
-            $orderDirection,
-            'departure_date_time'
-        );
-
-        // Construction du SQL
-        $sql = "SELECT * 
-                FROM {$this->table} r
-                WHERE DATE(r.departure_date_time) = :date
-                AND r.departure_place = :departurePlace";
-
-        // Vérification de l'existance de la ville d'arrivée et ajout si existant.
-        if ($arrivalPlace !== null) {
-            $sql .= " AND r.arrival_place = :arrivalPlace";
-        }
-
-        // Tri et limite
-        $sql .= " ORDER BY r.$orderBy $orderDirection 
-                LIMIT " . (int)$limit . " OFFSET " . (int)$offset;
-
-
-        // Préparation de la requête
-        $stmt = $this->db->prepare($sql);
-
-        if ($arrivalPlace !== null) {
-            $stmt->bindValue(':arrivalPlace', $arrivalPlace, PDO::PARAM_STR);
-        }
-        $stmt->bindValue(':date', $date->format('Y-m-d'), PDO::PARAM_STR);
-        $stmt->bindValue(':departurePlace', $departurePlace, PDO::PARAM_STR);
-        if ($arrivalPlace !== null) {
-            $stmt->bindValue(':arrivalPlace', $arrivalPlace, PDO::PARAM_STR);
-        }
-        $stmt->execute();
-
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        return array_map(fn($row) => $this->hydrateRide((array) $row), $rows);
+        return $this->findAllRidesByFields([
+            'departure_date_time' => $date,
+            'departure_place' => $departurePlace,
+            'arrival_place' => $arrivalPlace,
+        ], $orderBy, $orderDirection, $limit, $offset);
     }
 
 
@@ -291,7 +257,7 @@ class RideRepository extends BaseRepository
             case UserRoles::CONDUCTEUR:
                 $sql = "SELECT r.*
                         FROM {$this->table} r
-                        INNER JOIN users u ON r.owner_id = u.user_id
+                        INNER JOIN users u ON r.driver_id = u.user_id
                         WHERE u.user_id = :userId
                     ";
                 break;
@@ -299,7 +265,7 @@ class RideRepository extends BaseRepository
                 $sql = "SELECT r.*
                         FROM {$this->table} r
                         INNER JOIN ride_passengers rp ON r.ride_id = rp.ride_id
-                        INNER JOIN users u ON r.owner_id = u.user_id
+                        INNER JOIN users u ON r.driver_id = u.user_id
                         WHERE rp.user_id = :userId
                     ";
                 break;
