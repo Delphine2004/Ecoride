@@ -24,7 +24,10 @@ class Ride
     // Promotion des propriétés (depuis PHP 8)
     public function __construct(
         private ?int $rideId = null, // n'a pas de valeur au moment de l'instanciation
-        private ?User $driver = null, // car pas chargé dans hydrateRide de RideRepository
+
+        private ?int $driverId = null, // pour l'hydratation brute dans RideRepository
+        private ?User $driver = null, // pour le mappingdans RideRepository
+
         private \DateTimeImmutable $departureDateTime,
         private string $departurePlace,
         private \DateTimeImmutable $arrivalDateTime,
@@ -55,14 +58,15 @@ class Ride
     }
 
     // ---------Les Getters ---------
+    //Basiques
     public function getRideId(): ?int
     {
         return $this->rideId;
     }
 
-    public function getRideDriver(): ?User
+    public function getRideDriverId(): ?int
     {
-        return $this->driver;
+        return $this->driverId;
     }
 
     public function getRideDepartureDateTime(): \DateTimeImmutable
@@ -123,7 +127,11 @@ class Ride
         return $this->updatedAt;
     }
 
-
+    // Objets liés
+    public function getRideDriver(): ?User
+    {
+        return $this->driver;
+    }
 
     // ---------Les Setters ---------
 
@@ -131,6 +139,7 @@ class Ride
     public function setRideDriver(?User $driver): self
     {
         $this->driver = $driver;
+        $this->driverId = $driver?->getUserId(); // pour setter les ids si l'objet est null
         $this->updateTimestamp();
         return $this;
     }
