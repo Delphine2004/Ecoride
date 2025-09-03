@@ -199,12 +199,11 @@ class UserRepository extends BaseRepository
     /**
      * Récupére un utilisateur selon un ou plusieurs champs spécifiques.
      *
-     * @param string $field
-     * @param mixed $value
+     * @param array $criteria
      * @return User|null
      */
     public function findUserByFields(
-        array $criteria
+        array $criteria = []
     ): ?User {
         // Vérifie si chaque champ est autorisé.
         foreach ($criteria as $field => $value) {
@@ -279,7 +278,40 @@ class UserRepository extends BaseRepository
         return $this->findUserByFields(['api_token' => $token]);
     }
 
+    // Récupére tous les utilisateurs selon un rôle.
+    public function findAllUsersByRole(
+        string $role,
+        string $orderBy = 'user_id',
+        string $orderDirection = 'DESC',
+        int $limit = 20,
+        int $offset = 0
+    ): array {
+        // Vérifier si l'ordre et la direction sont définis et valides.
+        [$orderBy, $orderDirection] = $this->sanitizeOrder(
+            $orderBy,
+            $orderDirection,
+            'user_id'
+        );
 
+        // Construction du SQL
+        $sql = "SELECT u.*
+        FROM {$this->table} u
+        INNER JOIN user_roles ur ON u.user_id = ur.user_id
+        INNER JOIN roles r ON ur.role_id = r.role_id
+        WHERE r.role_name = :role
+        ";
+
+        // Tri et limite
+        $sql .= " ORDER BY u.$orderBy $orderDirection 
+                LIMIT " . (int)$limit . " OFFSET " . (int)$offset;
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':role', $role, PDO::PARAM_STR);
+        $stmt->execute();
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return array_map(fn($row) => $this->hydrateUser((array) $row), $rows);
+    }
 
     //------------------------------------------
 
