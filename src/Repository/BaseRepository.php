@@ -10,23 +10,10 @@ use PDO;
 abstract class BaseRepository
 {
 
-    /**
-     * @var PDO l'instance de connexion à la base de données
-     */
-
     protected PDO $db;
-
-    /**
-     * 
-     * @var string le nom de la table associé au model
-     */
-
     protected string $table;
-
     protected string $primaryKey = 'id';
-
     protected string $entityClass;
-
 
 
     public function __construct(?PDO $db = null)
@@ -36,94 +23,105 @@ abstract class BaseRepository
 
 
     /**
+     * Récupére tous les enregistrements avec 1 ou plusieurs champs avec pagination et tri.
+     *
+     * @param array $criteria
+     * @param string|null $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
+    public function findAllByFields(
+        array $criteria = [],
+        ?string $orderBy = null,
+        string $orderDirection = 'DESC',
+        int $limit = 50,
+        int $offset = 0
+    ): array {
+        // Construction dy SQL
+        $sql = "SELECT * FROM {$this->table} WHERE 1=1";
+
+
+        // Construction dynamique des conditions
+        foreach ($criteria as $field => $value) {
+            if (!$this->isAllowedField($field)) {
+                throw new InvalidArgumentException("Champ non autorisé : $field");
+            }
+            if ($value === null) {
+                $sql .= " AND $field IS NULL";
+            } else {
+                $sql .= " AND $field = :$field";
+            }
+        }
+
+        // Tri
+        if ($orderBy !== null && $this->isAllowedField($orderBy)) {
+            $orderDirection = strtoupper($orderDirection) === 'ASC' ? 'ASC' : 'DESC';
+            $sql .= " ORDER BY $orderBy $orderDirection";
+        }
+        // Limite
+        $sql .= " LIMIT " . (int)$limit . " OFFSET " . (int)$offset;
+
+
+        // Préparation de la requête
+        $stmt = $this->db->prepare($sql);
+        foreach ($criteria as $field => $value) {
+            if ($value !== null) {
+                $type = is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR;
+                $stmt->bindValue(":$field", $value, $type);
+            }
+        }
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_CLASS, $this->entityClass);
+    }
+
+    /**
+     * Récupére tous les enregistrements sans champ avec pagination et tri.
+     *
+     * @param string|null $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
+    public function findAll(
+        ?string $orderBy = null,
+        string $orderDirection = 'DESC',
+        int $limit = 50,
+        int $offset = 0
+    ): array {
+        return $this->findAllByFields([], $orderBy, $orderDirection, $limit, $offset);
+    }
+
+    /**
+     * Récupére un enregistrement avec ou sans champs.
+     *
+     * @param array $criteria
+     * @return object|null
+     */
+    public function findOneByFields(
+        array $criteria = []
+    ): ?object {
+        $results = $this->findAllByFields($criteria, limit: 1);
+        return $results[0] ?? null;
+    }
+
+    /**
      * Récupére un enregistrement par son id.
      *
      * @param integer $id
      * @return object|null
      */
-    public function findById(int $id): ?object
-    {
-        $sql = "SELECT * FROM `{$this->table}` WHERE {$this->primaryKey} = :id";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute(['id' => $id]);
-        $stmt->setFetchMode(PDO::FETCH_CLASS, $this->entityClass); // confirme comment PDO va transformer les resultats
-        $result = $stmt->fetch();
-        return $result ?: null;
+    public function findById(
+        int $id
+    ): ?object {
+        $results = $this->findAllByFields([$this->primaryKey => $id], limit: 1);
+        return $results[0] ?? null;
     }
 
-    /**
-     * Récupére tous les enregistrements avec pagination et tri.
-     *
-     * @param integer $limit
-     * @param integer $offset
-     * @param string|null $orderBy
-     * @param string $orderDirection
-     * @return array
-     */
-    public function findAll(?string $orderBy = null, string $orderDirection = 'DESC', int $limit = 50, int $offset = 0): array
-    {
-        $sql = "SELECT * FROM `{$this->table}`";
-
-        if ($orderBy !== null && $this->isAllowedField($orderBy)) {
-            $orderDirection = strtoupper($orderDirection) === 'ASC' ? 'ASC' : 'DESC';
-            $sql .= " ORDER BY $orderBy $orderDirection";
-        }
-        $sql .= " LIMIT " . (int)$limit . " OFFSET " . (int)$offset;
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute();
-
-        return $stmt->fetchAll(PDO::FETCH_CLASS, $this->entityClass);
-    }
-
-    /**
-     * Récupere un seul enregistrement en fonction d'un champ
-     *
-     * @param string $field
-     * @param mixed $value
-     * @return Object|null
-     */
-    public function findOneByField(string $field, mixed $value): ?Object
-    {
-        $result = $this->findAllByField($field, $value);
-        return $result[0] ?? null;
-    }
-
-    /**
-     * Récupére tous les enregistrements en fonction d'un champ avec pagination et tri.
-     *
-     * @param string $field
-     * @param mixed $value
-     * @param integer $limit
-     * @param integer $offset
-     * @param string|null $orderBy
-     * @param string $orderDirection
-     * @return array
-     */
-    public function findAllByField(string $field, mixed $value, ?string $orderBy = null, string $orderDirection = 'DESC', int $limit = 50, int $offset = 0): array
-    {
-
-        if (!$this->isAllowedField($field)) {
-            throw new InvalidArgumentException("Champ non autorisé : $field");
-        }
-
-        $sql = "SELECT * FROM {$this->table} WHERE $field = :value";
-
-        if ($orderBy !== null && $this->isAllowedField($orderBy)) {
-            $orderDirection = strtoupper($orderDirection) === 'ASC' ? 'ASC' : 'DESC';
-            $sql .= " ORDER BY $orderBy $orderDirection";
-        }
-        $sql .= " LIMIT " . (int)$limit . " OFFSET " . (int)$offset;
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':value', $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
-        $stmt->execute();
-
-        return $stmt->fetchAll(PDO::FETCH_CLASS, $this->entityClass);
-    }
-
-
-
+    //----------------------------------------------
 
     /**
      * Modifier un enregistrement par son id
@@ -132,19 +130,49 @@ abstract class BaseRepository
      * @param array $data
      * @return boolean
      */
-    public function updateById(int $id, array $data): bool
-    {
+    public function updateById(
+        int $id,
+        array $data
+    ): bool {
         // évite l'erreur sql en cas de donnée vide
         if (empty($data)) {
-            return false;
+            throw new InvalidArgumentException("Aucune donnée fournie pour la mise à jour.");
         }
 
-        $setClause = implode(", ", array_map(fn($col) => "$col = :$col", array_keys($data)));
-        $data['id'] = $id;
+        $setClause = [];
+        foreach ($data as $field => $value) {
+            if (!$this->isAllowedField($field) || $field === $this->primaryKey) {
+                continue;
+            }
+            $setClause[] = "$field = :$field";
+        }
 
-        $sql = "UPDATE `{$this->table}` SET $setClause WHERE {$this->primaryKey} = :id";
+        if (empty($setClause)) {
+            throw new InvalidArgumentException("Aucun champs valide à mettre à jour.");
+        }
+
+        // Construction du SQL
+        $sql = "UPDATE {$this->table} SET " . implode(', ', $setClause) . " WHERE {$this->primaryKey} = :id";
+
+        // Préparation de la requête
         $stmt = $this->db->prepare($sql);
-        return $stmt->execute($data);
+        foreach ($data as $field => $value) {
+            if ($this->isAllowedField($field) && $field !== $this->primaryKey) {
+                if (is_bool($value)) {
+                    $stmt->bindValue(":$field", $value, PDO::PARAM_BOOL);
+                } elseif (is_int($value)) {
+                    $stmt->bindValue(":$field", $value, PDO::PARAM_INT);
+                } elseif ($value instanceof \DateTimeInterface) {
+                    // On convertit en format SQL avant insertion
+                    $stmt->bindValue(":$field", $value->format('Y-m-d H:i:s'), PDO::PARAM_STR);
+                } else {
+                    $stmt->bindValue(":$field", $value, PDO::PARAM_STR);
+                }
+            }
+        }
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+
+        return $stmt->execute();
     }
 
 
@@ -154,16 +182,46 @@ abstract class BaseRepository
      * @param array $data
      * @return integer
      */
-    public function insert(array $data): int
-    {
-        $columns = array_keys($data);
+    public function insert(
+        array $data
+    ): int {
+        // Vérification des champs
+        $filtered = [];
+        foreach ($data as $field => $value) {
+            if ($this->isAllowedField($field)) {
+                $filtered[$field] = $value;
+            }
+        }
+
+        if (empty($filtered)) {
+            throw new InvalidArgumentException("Aucune donnée valide pour l'insertion.");
+        }
+
+        $columns = array_keys($filtered);
         $placeHolders = array_map(fn($col) => ":$col", $columns);
 
+        // Construction du sql
         $sql = "INSERT INTO `{$this->table}` (" . implode(", ", $columns) . ") 
                 VALUES (" . implode(", ", $placeHolders) . ")";
+
+        // Préparation de la requête
         $stmt = $this->db->prepare($sql);
-        $stmt->execute($data);
-        return (int) $this->db->lastInsertId();
+
+        foreach ($filtered as $field => $value) {
+            if (is_bool($value)) {
+                $stmt->bindValue(":$field", $value, PDO::PARAM_BOOL);
+            } elseif (is_int($value)) {
+                $stmt->bindValue(":$field", $value, PDO::PARAM_INT);
+            } elseif ($value instanceof \DateTimeInterface) {
+                // On convertit en format SQL avant insertion
+                $stmt->bindValue(":$field", $value->format('Y-m-d H:i:s'), PDO::PARAM_STR);
+            } else {
+                $stmt->bindValue(":$field", $value, PDO::PARAM_STR);
+            }
+        }
+
+        $stmt->execute();
+        return (int)$this->db->lastInsertId();
     }
 
 
@@ -173,20 +231,23 @@ abstract class BaseRepository
      * @param integer $id
      * @return boolean
      */
-    public function deleteById(int $id): bool
-    {
+    public function deleteById(
+        int $id
+    ): bool {
         $sql = "DELETE FROM `{$this->table}` WHERE {$this->primaryKey} = :id";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute(['id' => $id]);
     }
 
+    //----------------------------------------------
 
     /**
      * Vérifie si le champ est autorisé pour éviter les injections SQL.
      */
 
-    protected function isAllowedField(string $field): bool
-    {
+    protected function isAllowedField(
+        string $field
+    ): bool {
         return true;
     }
 
