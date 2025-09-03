@@ -59,12 +59,12 @@ class Booking
         return $this->rideId;
     }
 
-    public function getPassengerId(): ?int
+    public function getBookingPassengerId(): ?int
     {
         return $this->passengerId;
     }
 
-    public function getDriverId(): ?int
+    public function getBookingDriverId(): ?int
     {
         return $this->driverId;
     }
