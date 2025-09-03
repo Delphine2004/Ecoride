@@ -142,7 +142,7 @@ class RideRepository extends BaseRepository
      * @return Ride|null
      */
     public function findRideByFields(
-        array $criteria
+        array $criteria = []
     ): ?Ride {
         // Vérifie si chaque champ est autorisé.
         foreach ($criteria as $field => $value) {

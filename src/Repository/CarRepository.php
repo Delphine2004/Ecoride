@@ -135,12 +135,11 @@ class CarRepository extends BaseRepository
     /**
      * Récupére une voiture selon un ou plusieurs champs spécifiques.
      *
-     * @param string $field
-     * @param mixed $value
+     * @param array $criteria
      * @return Car|null
      */
     public function findCarByFields(
-        array $criteria
+        array $criteria = []
     ): ?Car {
         // Vérifie si chaque champ est autorisé.
         foreach ($criteria as $field => $value) {
