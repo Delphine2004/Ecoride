@@ -46,7 +46,7 @@ class RideWithUsersRepository extends RideRepository
         $ride->setRideDriver($driver);
 
         // Hydrater les passagers
-        $bookings = $this->bookingRepository->findAllBookingsByRideId($ride->getRideId());
+        $bookings = $this->bookingRepository->findBookingByRideId($ride->getRideId());
         foreach ($bookings as $booking) {
             $passenger = $this->userRepository->findUserById($booking->getPassengerId());
             if ($passenger) {

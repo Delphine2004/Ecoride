@@ -93,7 +93,7 @@ class CarRepository extends BaseRepository
     // ------ Récupérations ------ 
 
     /**
-     * Récupére une voiture par son id.
+     * Récupére une objet Car par son id.
      *
      * @param integer $carId
      * @return Car|null
@@ -106,7 +106,7 @@ class CarRepository extends BaseRepository
     }
 
     /**
-     * Récupére toutes les voitures avec pagination et tri.
+     * Récupére la liste des objets Car avec pagination et tri.
      *
      * @param string|null $orderBy
      * @param string $orderDirection
@@ -133,7 +133,7 @@ class CarRepository extends BaseRepository
     }
 
     /**
-     * Récupére une voiture selon un ou plusieurs champs spécifiques.
+     * Récupére un objet Car selon un ou plusieurs champs spécifiques.
      *
      * @param array $criteria
      * @return Car|null
@@ -154,7 +154,7 @@ class CarRepository extends BaseRepository
     }
 
     /**
-     * Récupére toutes les voitures selon un ou plusieurs champs spécifiques avec pagination et tri.
+     * Récupére la liste des objets Car selon un ou plusieurs champs spécifiques avec pagination et tri.
      *
      * @param array $criteria
      * @param string|null $orderBy
@@ -193,7 +193,7 @@ class CarRepository extends BaseRepository
     //  ------ Récupérations spécifiques ---------
 
     /**
-     * Récupére toutes les voitures selon l'energie utilisée.
+     * Récupére la liste des objets Car selon l'energie utilisée.
      *
      * @param string $power
      * @param string|null $orderBy
@@ -213,7 +213,7 @@ class CarRepository extends BaseRepository
     }
 
     /**
-     * Récupére toutes les voitures d'un conducteur par son id avec tri et pagination.
+     * Récupére la liste des objets Car par l'id du conducteur avec tri et pagination.
      *
      * @param array $ownerId
      * @param string $orderBy

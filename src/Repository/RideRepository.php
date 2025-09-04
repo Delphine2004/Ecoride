@@ -96,7 +96,7 @@ class RideRepository extends BaseRepository
     // ------ Récupérations ------ 
 
     /**
-     * Récupére un trajet par son id.
+     * Récupére un objet Ride par son id.
      *
      * @param integer $rideId
      * @return Ride|null
@@ -109,7 +109,7 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupére tous les trajets avec pagination et tri.
+     * Récupére la liste des objets Ride avec pagination et tri.
      *
      * @param string|null $orderBy
      * @param string $orderDirection
@@ -136,7 +136,7 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupére un trajet selon un ou plusieurs champs spécifiques.
+     * Récupére un objet Ride selon un ou plusieurs champs spécifiques.
      *
      * @param array $criteria
      * @return Ride|null
@@ -157,7 +157,7 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupére tous les trajets selon un ou plusieurs champs spécifiques avec pagination et tri.
+     * Récupére la liste des objets Ride selon un ou plusieurs champs spécifiques avec pagination et tri.
      *
      * @param array $criteria
      * @param string|null $orderBy
@@ -196,7 +196,7 @@ class RideRepository extends BaseRepository
     //  ------ Récupérations spécifiques ---------
 
     /**
-     * Récupére tous les trajets selon la date, le lieu de depart et le lieu d'arrivée.
+     * Récupére la liste des objets Ride selon la date, le lieu de depart et le lieu d'arrivée.
      *
      * @param \DateTimeInterface $date
      * @param string $departurePlace
@@ -225,7 +225,7 @@ class RideRepository extends BaseRepository
 
 
     /**
-     * Récupére tous les trajets selon un utilisateur.
+     * Récupére la liste des objets Ride selon un utilisateur.
      *
      * @param array $userId
      * @param UserRoles $role
@@ -299,7 +299,7 @@ class RideRepository extends BaseRepository
 
     // Pour les conducteurs
     /**
-     * Récupére tous les trajets d'un conducteur
+     * Récupére la liste des objets Ride d'un conducteur
      *
      * @param array $driverId
      * @param RideStatus|null $rideStatus
@@ -321,7 +321,7 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupére tous les trajets à venir d'un conducteur
+     * Récupére la liste des objets Ride à venir d'un conducteur
      *
      * @param integer $driverId
      * @return array
@@ -332,7 +332,7 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupére tous les trajets passés d'un conducteur
+     * Récupére la liste des objets Ride passés d'un conducteur
      *
      * @param integer $driverId
      * @return array
@@ -345,7 +345,7 @@ class RideRepository extends BaseRepository
 
     //Pour les passagers
     /**
-     * Récupére tous les trajets d'un passager
+     * Récupére la liste des objets Ride d'un passager
      *
      * @param integer $passengerId
      * @param string|null $rideStatus
@@ -367,7 +367,7 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupére tous les trajets à venir d'un passager
+     * Récupére la liste des objets à venir d'un passager
      *
      * @param integer $passengerId
      * @return array
@@ -378,7 +378,7 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupére tous les trajets passés d'un passager
+     * Récupére la liste des objets passés d'un passager
      *
      * @param integer $passengerId
      * @return array

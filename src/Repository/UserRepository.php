@@ -156,7 +156,7 @@ class UserRepository extends BaseRepository
     // ------ Récupérations ------ 
 
     /**
-     * Récupére un utilisateur par son id.
+     * Récupére un objet User par son id.
      *
      * @param integer $userId
      * @return User|null
@@ -169,7 +169,7 @@ class UserRepository extends BaseRepository
     }
 
     /**
-     * Récupére tous les utilisateurs avec pagination et tri.
+     * Récupére la liste des objets User avec pagination et tri.
      *
      * @param string|null $orderBy
      * @param string $orderDirection
@@ -196,7 +196,7 @@ class UserRepository extends BaseRepository
     }
 
     /**
-     * Récupére un utilisateur selon un ou plusieurs champs spécifiques.
+     * Récupére un objet User selon un ou plusieurs champs spécifiques.
      *
      * @param array $criteria
      * @return User|null
@@ -217,7 +217,7 @@ class UserRepository extends BaseRepository
     }
 
     /**
-     * Récupére tous les utilisateurs selon un ou plusieurs champs spécifiques avec pagination et tri.
+     * Récupére la liste des objets User selon un ou plusieurs champs spécifiques avec pagination et tri.
      *
      * @param array $criteria
      * @param string|null $orderBy
@@ -256,7 +256,7 @@ class UserRepository extends BaseRepository
     //  ------ Récupérations spécifiques ---------
 
     /**
-     * Récupére un utilisateur par son email.
+     * Récupére un objet User par son email.
      *
      * @param string $email
      * @return User|null
@@ -267,7 +267,7 @@ class UserRepository extends BaseRepository
     }
 
     /**
-     * Récupére un utilisateur par son token.
+     * Récupére un objet User par son token.
      *
      * @param string $token
      * @return User|null
@@ -277,7 +277,17 @@ class UserRepository extends BaseRepository
         return $this->findUserByFields(['api_token' => $token]);
     }
 
-    // Récupére tous les utilisateurs selon un rôle.
+
+    /**
+     * Récupére la liste des objets User selon un rôle.
+     *
+     * @param string $role
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
     public function findAllUsersByRole(
         string $role,
         string $orderBy = 'user_id',

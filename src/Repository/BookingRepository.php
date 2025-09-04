@@ -71,7 +71,7 @@ class BookingRepository extends BaseRepository
     // ------ Récupérations ------ 
 
     /**
-     * Récupére une réservation par son id.
+     * Récupére un objet Booking par son id.
      *
      * @param integer $bookingId
      * @return Booking|null
@@ -84,7 +84,7 @@ class BookingRepository extends BaseRepository
     }
 
     /**
-     * Récupére toutes les réservations avec pagination et tri.
+     * Récupére la liste des objets Booking avec pagination et tri.
      *
      * @param string|null $orderBy
      * @param string $orderDirection
@@ -111,7 +111,7 @@ class BookingRepository extends BaseRepository
     }
 
     /**
-     * Récupére une réservation selon un champ spécifique.
+     * Récupére un objet Booking selon un ou plusieurs champs spécifiques.
      *
      * @param array $criteria
      * @return Booking|null
@@ -126,7 +126,7 @@ class BookingRepository extends BaseRepository
     }
 
     /**
-     * Récupére toutes les réservations selon un champ spécifique avec pagination et tri.
+     * Récupére la liste des objets Booking selon un champ spécifique avec pagination et tri.
      *
      * @param array $criteria
      * @param string|null $orderBy
@@ -162,27 +162,18 @@ class BookingRepository extends BaseRepository
     //------ Récupération spécifique-----
 
     /**
-     * Récupére toutes les réservations d'un trajet par l'id des trajets.
+     * Récupére un objet Booking par l'id du trajet.
      *
      * @param integer $rideId
-     * @param string|null $orderBy
-     * @param string $orderDirection
-     * @param integer $limit
-     * @param integer $offset
-     * @return array
+     * @return Booking|null
      */
-    public function findAllBookingsByRideId(
-        int $rideId,
-        ?string $orderBy = null,
-        string $orderDirection = 'DESC',
-        int $limit = 50,
-        int $offset = 0
-    ): array {
-        return $this->findAllBookingsByFields(['ride_id' => $rideId], $orderBy, $orderDirection, $limit, $offset);
+    public function findBookingByRideId(int $rideId): ?Booking
+    {
+        return $this->findBookingByFields(['ride_id' => $rideId]);
     }
 
     /**
-     * Récupére toutes les réservations par le statut
+     * Récupére la liste des objets Booking par le statut de réservation.
      *
      * @param BookingStatus $bookingStatus
      * @param string|null $orderBy
@@ -202,7 +193,7 @@ class BookingRepository extends BaseRepository
     }
 
     /**
-     * Récupére toutes les réservations par l'id conducteur
+     * Récupére la liste des objets Booking par l'id conducteur
      *
      * @param integer $driverId
      * @param string|null $orderBy
@@ -222,7 +213,7 @@ class BookingRepository extends BaseRepository
     }
 
     /**
-     * Récupére toutes les réservations par l'id passager
+     * Récupére la liste des objets Booking par l'id passager
      *
      * @param array $passengerId
      * @param string|null $orderBy
@@ -242,7 +233,7 @@ class BookingRepository extends BaseRepository
     }
 
     /**
-     * Récupére toutes les réservations par date de création.
+     * Récupére la liste des objets Booking par la date de création.
      *
      * @param DateTimeInterface $createdAt
      * @param string|null $orderBy
