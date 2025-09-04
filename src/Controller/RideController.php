@@ -1,24 +1,17 @@
 <?php
 
-function rechercherCovoiturage()
+namespace App\Controllers;
+
+use App\Security\Validator;
+use App\Utils\Response;
+use App\Config\Database;
+use PDO;
+
+
+/*
+function handleRequest()
 {
-    // Lire le JSON envoyé
-    $json = file_get_contents("php://input");
-    $data = json_decode($json, true);
-
-    // Sécurité : vérifier si les champs existent
-    $departurePlace = $data['departure_place'] ?? null;
-    $arrivalPlace = $data['arrival_place'] ?? null;
-    $departureDate = $data['departure_date'] ?? null;
-    $availableSeats = $data['available_seats'] ?? null;
-
-    // Connexion à la BDD
-    require_once CORE_PATH . 'Database.php';
-    $db = (new Database())->getConnection();
-
-    // Préparation de la requête SQL (exemple simple)
-    $query = "SELECT * FROM trajets WHERE 1=1";
-    $params = [];
+    $method = $_SERVER['REQUEST_METHOD'];
 
     if ($departurePlace) {
         $query .= " AND departure_place LIKE :departure_place";
@@ -41,8 +34,9 @@ function rechercherCovoiturage()
     $stmt = $db->prepare($query);
     $stmt->execute($params);
     $trajets = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // Réponse JSON
-    header('Content-Type: application/json');
-    echo json_encode($trajets);
 }
+        //header('Content-Type: application/json');
+        //echo json_encode($results);
+    } else {        http_response_code(405); // méthode non autorisée        echo json_encode(['error' => 'Méthode non autorisée']);    }
+
+*/
