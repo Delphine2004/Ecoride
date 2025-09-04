@@ -41,6 +41,11 @@ class User
         private ?string $apiToken = null, // n'a pas de valeur au moment de l'instanciation
         /**@var UserRoles[] */
         private array $roles = [UserRoles::PASSAGER], // Statut par défaut / en tableau pour pouvoir stoker plusieurs rôles pour un utilisateur
+        private array $cars = [], // pour stocker les voitures d'un conducteur
+        private array $rides = [], // pour stocker les trajets d'un conducteur
+        private array $bookings = [], // pour stocker les réservations
+
+
 
         private ?DateTimeImmutable $createdAt = null, // n'a pas de valeur au moment de l'instanciation
         private ?DateTimeImmutable $updatedAt = null // n'a pas de valeur au moment de l'instanciation
@@ -145,6 +150,21 @@ class User
         return $this->roles;
     }
 
+    public function getCars(): array
+    {
+        return $this->cars;
+    }
+
+    public function getRides(): array
+    {
+        return $this->rides;
+    }
+
+    public function getBookings(): array
+    {
+        return $this->bookings;
+    }
+
     public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
@@ -159,6 +179,11 @@ class User
 
     // ---------Les Setters ---------
 
+    public function setUserId(int $id): self
+    {
+        $this->userId = $id;
+        return $this;
+    }
 
     public function setLastName(string $lastName): self
     {
@@ -191,7 +216,7 @@ class User
     public function setPassword(string $password, bool $isHashed = false): self
     {
         if (!$isHashed) {
-            $this->validatePassword($password);
+            //$this->validatePassword($password);
             $password = password_hash($password, PASSWORD_DEFAULT);
         }
 
@@ -304,281 +329,39 @@ class User
         return $this;
     }
 
-    // ----- Méthodes de manipulation -----
-
-    public function addRole(UserRoles $role): self
+    public function setCars(array $cars): self
     {
-        if (!in_array($role, $this->roles, true)) {
-            $this->roles[] = $role;
-        }
-        $this->updateTimestamp();
+        $this->cars = $cars;
         return $this;
     }
 
-    public function removeRole(UserRoles $role): self
+    public function setRides(array $rides): self
     {
-        $this->roles = array_filter($this->roles, fn($r) => $r !== $role);
-        $this->updateTimestamp();
+        $this->rides = $rides;
+        return $this;
+    }
+
+    public function setBookings(array $bookings): self
+    {
+        $this->bookings = $bookings;
         return $this;
     }
 
 
-    // ----- Méthodes de vérification -----
-
-    public function verifyPassword(string $inputPassword): bool
+    public function addCar(Car $car): void
     {
-        return password_verify($inputPassword, $this->password);
+        $this->cars[] = $car;
     }
 
-    private function validatePassword(string $password): void
+    public function addRide(Ride $ride): void
     {
-        $password = trim($password);
-        // modifier la longueur pour 14 plus tard
-        $regexPassword = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/';
-
-        if (!preg_match($regexPassword, $password)) {
-
-            throw new InvalidArgumentException('Le mot de passe doit contenir au minimun une minuscule, une majuscule, un chiffre, un caractère spécial et contenir 8 caractéres au total.');
-        };
+        $this->rides[] = $ride;
     }
 
-    public function hasRole(UserRoles $roleToCheck): bool
+    public function addBooking(Booking $booking): void
     {
-        return in_array($roleToCheck, $this->roles, true);
+        $this->bookings[] = $booking;
     }
-
-    public function hasAnyRole(array $roleToCheck): bool
-    {
-        foreach ($roleToCheck as $role) {
-            if ($this->hasRole($role)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-
-    // ----- Fonctions selon le rôle ----- 
-
-    // Communes à tous les rôle
-    /**
-     * Fonction qui permet à chaque utilisateur de modifier son MDP.
-     *
-     * @param string $oldPassword
-     * @param string $newPassword
-     * @return void
-     */
-    public function changePassword(string $oldPassword, string $newPassword): void
-    {
-        if (!$this->verifyPassword($oldPassword)) {
-            throw new InvalidArgumentException("Le mot de passe actuel est incorrect.");
-        }
-        $this->validatePassword($newPassword);
-        $this->setPassword($newPassword);
-    }
-    /**
-     * Fonction qui permet aux utilisateurs de modifier les informations relatives à leur compte.
-     *
-     * @param array $newData
-     * @return void
-     */
-    public function updateProfile(array $newData): void
-    {
-        if (isset($newData['last_name'])) {
-            $this->setLastName($newData['last_name']);
-        }
-        if (isset($newData['first_name'])) {
-            $this->setFirstName($newData['first_name']);
-        }
-        if (isset($newData['email'])) {
-            $this->setEmail($newData['email']);
-        }
-        if (isset($newData['user_name'])) {
-            $this->setUserName($newData['user_name']);
-        }
-        if (isset($newData['phone'])) {
-            $this->setPhone($newData['phone']);
-        }
-        if (isset($newData['address'])) {
-            $this->setAddress($newData['address']);
-        }
-        if (isset($newData['city'])) {
-            $this->setCity($newData['city']);
-        }
-        if (isset($newData['zip_code'])) {
-            $this->setZipCode($newData['zip_code']);
-        }
-        if (isset($newData['picture'])) {
-            $this->setUriPicture($newData['picture']);
-        }
-        if (isset($newData['licence_no'])) {
-            $this->setLicenceNo($newData['licence_no']);
-        }
-    }
-
-    // cette fonction uniquement pour les conducteurs et les passagers
-    // à compléter
-    /**
-     * Fonction qui permet à un utilisateur conducteur ou passager de supprimer son compte.
-     *
-     * @return void
-     */
-    public function deleteAccount(): void
-    {
-        if ($this->hasRole(UserRoles::ADMIN) || $this->hasRole(UserRoles::EMPLOYE)) {
-            throw new InvalidArgumentException("Un admin ou un employé ne peut pas supprimer son compte.");
-        }
-
-        // Faire appelle à UserRepository::delete($this->id);
-    }
-
-    // Méthodes pour le rôle passager
-    /**
-     * Fonction qui permet à un passager d'ajouter le rôle conducteur.'
-     *
-     * @return void
-     */
-    public function changeToDriver(): void
-    {
-        if ($this->hasRole(UserRoles::CONDUCTEUR)) {
-            throw new InvalidArgumentException("L'utilisateur est déjà conducteur.");
-        }
-        if (!$this->hasRole(UserRoles::PASSAGER)) {
-            throw new InvalidArgumentException("Seulement les passagers peuvent devenir chaufeur.");
-        }
-        $this->addRole(UserRoles::CONDUCTEUR);
-    }
-
-    /**
-     * Fonction qui permet à un passager de participer à un trajet.
-     *
-     * @return void
-     */
-    public function joinRide(): void
-    {
-        if (!$this->hasRole(UserRoles::PASSAGER)) {
-            throw new InvalidArgumentException("Seulement les passagers peuvent participer à un trajet.");
-        }
-    }
-
-    // à revoir
-    public function leaveReview(): void
-    {
-
-
-        if (!$this->hasRole(UserRoles::PASSAGER)) {
-            throw new InvalidArgumentException("Seulement les passagers peuvent laisser un commentaire au conducteur.");
-        }
-    }
-
-
-    // Méthodes pour le rôle conducteur
-    /**
-     * Fonction qui permet à un conducteur d'ajouter une voiture.
-     *
-     * @return void
-     */
-    public function addCar(): void
-    {
-        if (!$this->hasRole(UserRoles::CONDUCTEUR)) {
-            throw new InvalidArgumentException("Seulement les conducteurs peuvent ajouter une voiture.");
-        }
-    }
-
-    /**
-     * Fonction qui permet à un conducteur de supprimer une voiture.
-     *
-     * @return void
-     */
-    public function removeCar(): void
-    {
-        if (!$this->hasRole(UserRoles::CONDUCTEUR)) {
-            throw new InvalidArgumentException("Seulement les conducteurs peuvent supprimer une voiture.");
-        }
-    }
-
-    /**
-     * Fonction qui permet à un conducteur de publier un trajet.
-     *
-     * @return void
-     */
-    public function publishRide(): void
-    {
-        if (!$this->hasRole(UserRoles::CONDUCTEUR)) {
-            throw new InvalidArgumentException("Seulement les conducteurs peuvent publier un trajet.");
-        }
-    }
-
-    /**
-     * Fonction qui permet à un conducteur d'annuler un trajet.
-     *
-     * @return void
-     */
-    public function cancelRide(): void
-    {
-        if (!$this->hasRole(UserRoles::CONDUCTEUR)) {
-            throw new InvalidArgumentException("Il faut avoir le rôle conducteur pour annuler un trajet.");
-        }
-    }
-
-    /**
-     * Fonction qui permet à un conducteur de finir un trajet.
-     *
-     * @return void
-     */
-    public function finishRide(): void
-    {
-        if (!$this->hasRole(UserRoles::CONDUCTEUR)) {
-            throw new InvalidArgumentException("Seulement les conducteurs peuvent finir un trajet.");
-        }
-    }
-
-
-    // Méthodes pour le rôle employé
-    /**
-     * Fonction qui permet à un employé d'approuver un commentaire.
-     *
-     * @return void
-     */
-    public function approveReview(): void
-    {
-        if (!$this->hasRole(UserRoles::EMPLOYE)) {
-            throw new InvalidArgumentException("Seulement les employés peuvent approuver un commentaire.");
-        }
-        // faire appel à la validation via userRepository
-    }
-
-
-    // Méthodes pour le rôle admin
-    // à compléter
-    /**
-     * Fonction qui permet à l'admin de créer un employé.
-     *
-     * @return void
-     */
-    public function createEmployee(): void
-    {
-        if (!$this->hasRole(UserRoles::ADMIN)) {
-            throw new InvalidArgumentException("Seulement les admins peuvent créer un employé.");
-        }
-        // faire appel à la création via userRepository
-    }
-
-    // à compléter
-    /**
-     * Fonction qui permet à l'admin de supprimer un employé.
-     *
-     * @return void
-     */
-    public function deleteUser(): void
-    {
-        if (!$this->hasRole(UserRoles::ADMIN)) {
-            throw new InvalidArgumentException("Seulement les admins peuvent supprimer un autre compte.");
-        }
-        // faire appel à la suppression via userRepository
-        // $userRepository->delete($this->id);
-    }
-
 
 
 

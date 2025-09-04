@@ -224,7 +224,7 @@ class BookingRepository extends BaseRepository
     /**
      * Récupére toutes les réservations par l'id passager
      *
-     * @param integer $passengerId
+     * @param array $passengerId
      * @param string|null $orderBy
      * @param string $orderDirection
      * @param integer $limit
@@ -232,7 +232,7 @@ class BookingRepository extends BaseRepository
      * @return array
      */
     public function findAllBookingsByPassengerId(
-        int $passengerId,
+        array $passengerId,
         ?string $orderBy = null,
         string $orderDirection = 'DESC',
         int $limit = 50,

@@ -161,7 +161,7 @@ class CarRepository extends BaseRepository
      * @param string $orderDirection
      * @param integer $limit
      * @param integer $offset
-     * @return array
+     * @return Car[]
      */
     public function findAllCarsByFields(
         array $criteria = [],
@@ -215,7 +215,7 @@ class CarRepository extends BaseRepository
     /**
      * Récupére toutes les voitures d'un conducteur par son id avec tri et pagination.
      *
-     * @param integer $ownerId
+     * @param array $ownerId
      * @param string $orderBy
      * @param string $orderDirection
      * @param integer $limit
@@ -223,7 +223,7 @@ class CarRepository extends BaseRepository
      * @return array
      */
     public function findAllCarsByOwner(
-        int $ownerId,
+        array $ownerId,
         ?string $orderBy = null,
         string $orderDirection = 'DESC',
         int $limit = 20,
