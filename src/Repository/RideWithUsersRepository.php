@@ -18,18 +18,18 @@ class RideWithUsersRepository extends RideRepository
     protected string $table = 'rides';
     protected string $primaryKey = 'ride_id';
 
-    private UserRepository $userRepository;
-    private BookingRepository $bookingRepository;
-
-    public function __construct(PDO $db, UserRepository $userRepository, BookingRepository $bookingRepository)
-    {
+    public function __construct(
+        PDO $db,
+        private UserRepository $userRepository,
+        private BookingRepository $bookingRepository
+    ) {
         parent::__construct($db);
         $this->userRepository = $userRepository;
         $this->bookingRepository = $bookingRepository;
     }
 
     /**
-     * Hydrate un Ride avec son conducteur et ses passagers en objet User
+     * Hydrate un objet Ride avec ses objet User (conducteur et passagers).
      *
      * @param Ride $ride
      * @return Ride
@@ -41,11 +41,11 @@ class RideWithUsersRepository extends RideRepository
             return $ride;
         }
 
-        // Hydrater le conducteur
+        // Recherche et hydrate le conducteur
         $driver = $this->userRepository->findUserById($ride->getRideDriverId());
         $ride->setRideDriver($driver);
 
-        // Hydrater les passagers
+        // Recherche et hydrate les passagers
         $bookings = $this->bookingRepository->findBookingByRideId($ride->getRideId());
         foreach ($bookings as $booking) {
             $passenger = $this->userRepository->findUserById($booking->getPassengerId());
