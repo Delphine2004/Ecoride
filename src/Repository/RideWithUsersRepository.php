@@ -102,7 +102,7 @@ class RideWithUsersRepository extends RideRepository
     //  ------ Récupérations spécifiques ---------
 
     /**
-     * Récupére tous les trajets (en objet) avec les conducteurs et les passagers en liste avec ou sans critéres.
+     * Récupére la liste des objets Ride avec les conducteurs et les passagers en liste avec ou sans critéres.
      *
      * @param array $criteria
      * @param string $orderBy
@@ -193,7 +193,7 @@ class RideWithUsersRepository extends RideRepository
     }
 
     /**
-     * Récupére un trajet(en objet) avec son conducteur(en objet) et ses passagers(en objet).
+     * Récupére un objet Ride avec le liste l'objet User conducteur et les objets User passagers.
      *
      * @param integer $rideId
      * @return Ride|null
