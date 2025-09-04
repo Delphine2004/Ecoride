@@ -136,10 +136,15 @@ class Ride
     // ---------Les Setters ---------
 
     // Pas de setId, de setCreatedAtcar et de setUpadetedAt car définis automatiquement par la BD
-    public function setRideDriver(?User $driver): self
+    public function setRideDriver(User | array $driver): self
     {
         $this->driver = $driver;
-        $this->driverId = $driver?->getUserId(); // pour setter les ids si l'objet est null
+        if ($driver instanceof User) {
+            $this->driverId = $driver->getUserId(); // pour setter les ids si l'objet est null
+        } elseif (is_array($driver) && isset($driver['user_id'])) {
+            $this->driverId = $driver['user_id'];
+        }
+
         $this->updateTimestamp();
         return $this;
     }
@@ -228,9 +233,13 @@ class Ride
         return $this;
     }
 
-    public function addRidePassenger(User $passenger): self
+    public function addRidePassenger(User | array $passenger): self
     {
-        $this->passengers[] = $passenger;
+        if ($passenger instanceof User) {
+            $this->passengers[] = $passenger;
+        } elseif (is_array($passenger)) {
+            $this->passengers[] = $passenger;
+        }
         $this->updateTimestamp();
         return $this;
     }

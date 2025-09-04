@@ -21,12 +21,19 @@ class RideWithUsersRepository extends RideRepository
     private UserRepository $userRepository;
     private BookingRepository $bookingRepository;
 
-    public function __construct(PDO $db, UserRepository $userRepository)
+    public function __construct(PDO $db, UserRepository $userRepository, BookingRepository $bookingRepository)
     {
         parent::__construct($db);
         $this->userRepository = $userRepository;
+        $this->bookingRepository = $bookingRepository;
     }
 
+    /**
+     * Hydrate un Ride avec son conducteur et ses passagers en objet User
+     *
+     * @param Ride $ride
+     * @return Ride
+     */
     public function hydrateRideRelation(Ride $ride): Ride
     {
         // Vérification si l'objet Ride est déjà hydraté
@@ -68,7 +75,7 @@ class RideWithUsersRepository extends RideRepository
     }
 
     /**
-     * Mutualisation de la requete de selection des utilisateurs d'un trajet.
+     * Base SQL pour récupérer un Ride avec ses utilisateurs.
      *
      * @return string
      */
@@ -94,74 +101,16 @@ class RideWithUsersRepository extends RideRepository
 
     //  ------ Récupérations spécifiques ---------
 
-    // Récupére un trajet avec son conducteur et ses passagers.
-    public function findRideWithUsersByRideId(int $rideId): ?Ride
-    {
-        // Construction du sql
-        $sql = $this->baseRideUserSelect();
-        $sql .= "WHERE r.ride_id = :ride_id
-                ORDER BY p.user_name";
-
-        // Préparation de la requête
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue('ride_id', $rideId, PDO::PARAM_INT);
-        $stmt->execute();
-
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC); // FetchAll car plusieurs lignes d'utilisateur (conducteur et passager)
-        if (!$rows) return null;
-
-        // Hydratation du trajet avec la premiére ligne.
-        $ride = $this->hydrateRide($rows[0]);
-
-        // Hydratation du conducteur.
-        $driver = $this->mapUser($rows[0], 'driver_');
-        $ride->setRideDriver($driver);
-
-        // Ajouter les passagers en les hydratant.
-        foreach ($rows as $row) {
-            if ($row['passenger_id']) {
-                $passenger = $this->mapUser($row, 'passenger_');
-                $ride->addRidePassenger($passenger);
-            }
-        }
-
-        return $ride;
-    }
-
-    // Récupére tous les trajets avec les conducteurs et les passagers en liste. A FAIRE -utiliser findAllRidesWithUsersByFields 
-    public function findAllRidesWithUsers(
-        string $orderBy = 'ride_id',
-        string $orderDirection = 'DESC',
-        int $limit = 20,
-        int $offset = 0
-    ): array {
-
-        // Vérifier si l'ordre et la direction sont définis et valides.
-        [$orderBy, $orderDirection] = $this->sanitizeOrder(
-            $orderBy,
-            $orderDirection,
-            'ride_id'
-        );
-
-        //Construction du sql
-        $sql = $this->baseRideUserSelect();
-
-        // Tri et limite
-        $sql .= " ORDER BY r.$orderBy $orderDirection 
-                LIMIT " . (int)$limit . " OFFSET " . (int)$offset;
-
-        //Preparation de la requête
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute();
-
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        if (!$rows) return [];
-
-        return array_map(fn($row) => $this->hydrateRide((array) $row), $rows);
-    }
-
-
-    // Récupére tous les trajets avec les conducteurs et les passagers en liste sans ou avec critéres. A MODIFIER
+    /**
+     * Récupére tous les trajets (en objet) avec les conducteurs et les passagers en liste avec ou sans critéres.
+     *
+     * @param array $criteria
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
     public function findAllRidesWithUsersByFields(
         array $criteria = [],
         string $orderBy = 'ride_id',
@@ -209,10 +158,76 @@ class RideWithUsersRepository extends RideRepository
 
         $stmt->execute();
 
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC); // FetchAll car plusieurs lignes d'utilisateur (conducteur et passager)
         if (!$rows) return [];
 
+        // Hydratation du trajet
+        $rideMap = [];
+        foreach ($rows as $row) {
+            $rideId = $row['ride_id'];
 
-        return array_map(fn($row) => $this->hydrateRide((array) $row), $rows);
+            // Création du ride seulement 1 fois car plusieurs ligne à cause des utilisateurs
+            if (!isset($rideMap[$rideId])) {
+                $rideMap[$rideId] = $this->hydrateRide($row);
+
+                // Puis ajout du conduteur en tableau
+                $rideMap[$rideId]->setRideDriver([
+                    'user_id' => $row['driver_id'],
+                    'user_name' => $row['driver_user_name'],
+                    'first_name' => $row['driver_first_name'],
+                    'last_name' => $row['driver_last_name'],
+                ]);
+            }
+
+            // Ajouter les passagers si présents
+            if (!empty($row['passenger_id'])) {
+                $rideMap[$rideId]->addRidePassenger([
+                    'user_id' => $row['passenger_id'],
+                    'user_name' => $row['passenger_user_name'],
+                    'first_name' => $row['passenger_first_name'],
+                    'last_name' => $row['passenger_last_name'],
+                ]);
+            }
+        }
+        return array_values($rideMap);
+    }
+
+    /**
+     * Récupére un trajet(en objet) avec son conducteur(en objet) et ses passagers(en objet).
+     *
+     * @param integer $rideId
+     * @return Ride|null
+     */
+    public function findRideWithUsersByRideId(int $rideId): ?Ride
+    {
+        // Construction du sql
+        $sql = $this->baseRideUserSelect();
+        $sql .= " WHERE r.ride_id = :ride_id
+                ORDER BY p.user_name";
+
+        // Préparation de la requête
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue('ride_id', $rideId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC); // FetchAll car plusieurs lignes d'utilisateur (conducteur et passager)
+        if (!$rows) return null;
+
+        // Hydratation du trajet avec la premiére ligne.
+        $ride = $this->hydrateRide($rows[0]);
+
+        // Hydratation du conducteur.
+        $driver = $this->mapUser($rows[0], 'driver_');
+        $ride->setRideDriver($driver);
+
+        // Ajouter les passagers en les hydratant.
+        foreach ($rows as $row) {
+            if (!empty($row['passenger_id'])) {
+                $passenger = $this->mapUser($row, 'passenger_');
+                $ride->addRidePassenger($passenger);
+            }
+        }
+
+        return $ride;
     }
 }
