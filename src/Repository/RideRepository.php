@@ -92,6 +92,64 @@ class RideRepository extends BaseRepository
         return in_array($field, $this->allowedFields, true);
     }
 
+    private function baseQueryRidesByUserRole(
+        array $userId,
+        UserRoles $role,
+        ?RideStatus $rideStatus,
+        string $orderBy,
+        string $orderDirection,
+        int $limit = 20,
+        int $offset = 0
+    ): array {
+        // Vérifier si l'ordre et la direction sont définis et valides.
+        [$orderBy, $orderDirection] = $this->sanitizeOrder(
+            $orderBy,
+            $orderDirection,
+            'departure_date_time'
+        );
+        // Construction du SQL selon le rôle
+        switch ($role) {
+            case UserRoles::CONDUCTEUR:
+                $sql = "SELECT r.*
+                        FROM {$this->table} r
+                        INNER JOIN users u ON r.driver_id = u.user_id
+                        WHERE u.user_id = :userId
+                    ";
+                break;
+            case UserRoles::PASSAGER:
+                $sql = "SELECT r.*
+                        FROM {$this->table} r
+                        INNER JOIN ride_passengers rp ON r.ride_id = rp.ride_id
+                        INNER JOIN users u ON r.driver_id = u.user_id
+                        WHERE rp.user_id = :userId
+                    ";
+                break;
+            default:
+                throw new InvalidArgumentException("Rôle invalide : {$role->value}");
+        }
+
+
+        // Vérification de l'existance du status du trajet et ajout si existant.
+        if ($rideStatus !== null) {
+            $sql .= " AND r.ride_status = :rideStatus";
+        }
+
+        // Tri et limite
+        $sql .= " ORDER BY r.$orderBy $orderDirection 
+                LIMIT " . (int)$limit . " OFFSET " . (int)$offset;
+
+
+        // Préparation de la requête
+        $stmt = $this->db->prepare($sql);
+
+        $stmt->bindValue(':userId', $userId, PDO::PARAM_INT);
+        if ($rideStatus !== null) {
+            $stmt->bindValue(':rideStatus', $rideStatus->value, PDO::PARAM_STR);
+        }
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
     // ------ Récupérations ------ 
 
@@ -109,7 +167,7 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste des objets Ride avec pagination et tri.
+     * Récupére la liste des objets Ride avec tri et pargination.
      *
      * @param string|null $orderBy
      * @param string $orderDirection
@@ -136,7 +194,7 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupére une liste brute de trajet avec pagination et tri.
+     * Récupére une liste brute des trajets avec tri et pargination.
      *
      * @param string|null $orderBy
      * @param string $orderDirection
@@ -183,7 +241,7 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste des objets Ride selon un ou plusieurs champs spécifiques avec pagination et tri.
+     * Récupére la liste des objets Ride selon un ou plusieurs champs spécifiques avec tri et pargination.
      *
      * @param array $criteria
      * @param string|null $orderBy
@@ -219,7 +277,7 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste brute de trajet selon un champ spécifique avec pagination et tri.
+     * Récupére la liste brute des trajet selon un champ spécifique avec tri et pargination.
      *
      * @param array $criteria
      * @param string|null $orderBy
@@ -252,7 +310,7 @@ class RideRepository extends BaseRepository
     //  ------ Récupérations spécifiques ---------
 
     /**
-     * Récupére la liste des objets Ride selon la date, le lieu de depart et le lieu d'arrivée.
+     * Récupére la liste des objets Ride selon la date, le lieu de depart et le lieu d'arrivée avec tri et pargination.
      *
      * @param \DateTimeInterface $date
      * @param string $departurePlace
@@ -279,9 +337,8 @@ class RideRepository extends BaseRepository
         ], $orderBy, $orderDirection, $limit, $offset);
     }
 
-
     /**
-     * Récupére la liste des objets Ride selon un utilisateur.
+     * Récupére la liste des objets Ride selon le statut de l'utilisateur avec tri et pargination.
      *
      * @param array $userId
      * @param UserRoles $role
@@ -301,61 +358,38 @@ class RideRepository extends BaseRepository
         int $limit = 20,
         int $offset = 0
     ): array {
-        // Vérifier si l'ordre et la direction sont définis et valides.
-        [$orderBy, $orderDirection] = $this->sanitizeOrder(
-            $orderBy,
-            $orderDirection,
-            'departure_date_time'
-        );
-
-        // Construction du SQL selon le rôle
-        switch ($role) {
-            case UserRoles::CONDUCTEUR:
-                $sql = "SELECT r.*
-                        FROM {$this->table} r
-                        INNER JOIN users u ON r.driver_id = u.user_id
-                        WHERE u.user_id = :userId
-                    ";
-                break;
-            case UserRoles::PASSAGER:
-                $sql = "SELECT r.*
-                        FROM {$this->table} r
-                        INNER JOIN ride_passengers rp ON r.ride_id = rp.ride_id
-                        INNER JOIN users u ON r.driver_id = u.user_id
-                        WHERE rp.user_id = :userId
-                    ";
-                break;
-            default:
-                throw new InvalidArgumentException("Rôle invalide : {$role->value}");
-        }
-
-
-        // Vérification de l'existance du status du trajet et ajout si existant.
-        if ($rideStatus !== null) {
-            $sql .= " AND r.ride_status = :rideStatus";
-        }
-
-        // Tri et limite
-        $sql .= " ORDER BY r.$orderBy $orderDirection 
-                LIMIT " . (int)$limit . " OFFSET " . (int)$offset;
-
-
-        // Préparation de la requête
-        $stmt = $this->db->prepare($sql);
-
-        $stmt->bindValue(':userId', $userId, PDO::PARAM_INT);
-        if ($rideStatus !== null) {
-            $stmt->bindValue(':rideStatus', $rideStatus->value, PDO::PARAM_STR);
-        }
-        $stmt->execute();
-
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $rows = $this->baseQueryRidesByUserRole($userId, $role, $rideStatus, $orderBy, $orderDirection, $limit, $offset);
         return array_map(fn($row) => $this->hydrateRide((array) $row), $rows);
     }
 
+    /**
+     * Récupére la liste brute des trajet selon le rôle de l'utilisateur avec tri et pargination.
+     *
+     * @param array $userId
+     * @param UserRoles $role
+     * @param RideStatus|null $rideStatus
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
+    public function fetchAllRidesByUserRole(
+        array $userId,
+        UserRoles $role,
+        ?RideStatus $rideStatus = null,
+        string $orderBy = 'departure_date_time',
+        string $orderDirection = 'DESC',
+        int $limit = 20,
+        int $offset = 0
+    ): array {
+        return $this->baseQueryRidesByUserRole($userId, $role, $rideStatus, $orderBy, $orderDirection, $limit, $offset);
+    }
+
+
     // Pour les conducteurs
     /**
-     * Récupére la liste des objets Ride d'un conducteur
+     * Récupére la liste des objets Ride d'un conducteur avec tri et pargination.
      *
      * @param array $driverId
      * @param RideStatus|null $rideStatus
@@ -377,7 +411,29 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste des objets Ride à venir d'un conducteur
+     * Récupére la liste brute des trajets d'un conducteur avec tri et pagination.
+     *
+     * @param array $driverId
+     * @param RideStatus|null $rideStatus
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
+    public function fetchAllRidesByDriver(
+        array $driverId,
+        ?RideStatus $rideStatus = null,
+        string $orderBy = 'departure_date_time',
+        string $orderDirection = 'DESC',
+        int $limit = 20,
+        int $offset = 0
+    ): array {
+        return $this->fetchAllRidesByUserRole(['driver_id' => $driverId], UserRoles::CONDUCTEUR, $rideStatus, $orderBy, $orderDirection, $limit, $offset);
+    }
+
+    /**
+     * Récupére la liste des objets Ride à venir d'un conducteur avec tri et pargination.
      *
      * @param integer $driverId
      * @return array
@@ -388,20 +444,20 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste des objets Ride passés d'un conducteur
+     * Récupére la liste brute des trajets passés d'un conducteur avec tri et pagination.
      *
      * @param integer $driverId
      * @return array
      */
-    public function findPastRidesByDriver(int $driverId): array
+    public function fetchPastRidesByDriver(int $driverId): array
     {
-        return $this->findAllRidesByDriver(['driver_id' => $driverId], RideStatus::PASSE);
+        return $this->fetchAllRidesByDriver(['driver_id' => $driverId], RideStatus::PASSE);
     }
 
 
     //Pour les passagers
     /**
-     * Récupére la liste des objets Ride d'un passager
+     * Récupére la liste des objets Ride d'un passager avec tri et pargination.
      *
      * @param integer $passengerId
      * @param string|null $rideStatus
@@ -423,6 +479,28 @@ class RideRepository extends BaseRepository
     }
 
     /**
+     * Récupére la liste brute des trajets d'un passager avec tri et pagination.
+     *
+     * @param array $passengerId
+     * @param RideStatus|null $rideStatus
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return void
+     */
+    public function fetchAllRidesByPassenger(
+        array $passengerId,
+        ?RideStatus $rideStatus = null,
+        string $orderBy = 'departure_date_time',
+        string $orderDirection = 'DESC',
+        int $limit = 20,
+        int $offset = 0
+    ) {
+        return $this->fetchAllRidesByUserRole(['passenger_id' => $passengerId], UserRoles::PASSAGER, $rideStatus, $orderBy, $orderDirection, $limit, $offset);
+    }
+
+    /**
      * Récupére la liste des objets à venir d'un passager
      *
      * @param integer $passengerId
@@ -434,12 +512,12 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste des objets passés d'un passager
+     * Récupére la liste brute des trajets passés d'un passager avec tri et pagination.
      *
      * @param integer $passengerId
      * @return array
      */
-    public function findPastRidesByPassenger(int $passengerId): array
+    public function fetchPastRidesByPassenger(int $passengerId): array
     {
         return $this->findAllRidesByPassenger(['passenger_id' => $passengerId], RideStatus::PASSE);
     }

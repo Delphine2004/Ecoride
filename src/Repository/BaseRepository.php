@@ -23,7 +23,7 @@ abstract class BaseRepository
 
 
     /**
-     * Récupére tous les enregistrements avec 1 ou plusieurs champs avec pagination et tri.
+     * Récupére tous les enregistrements avec 1 ou plusieurs champs avec tri et pargination.
      *
      * @param array $criteria
      * @param string|null $orderBy
@@ -78,7 +78,7 @@ abstract class BaseRepository
     }
 
     /**
-     * Récupére tous les enregistrements sans champ avec pagination et tri.
+     * Récupére tous les enregistrements sans champ avec tri et pargination.
      *
      * @param string|null $orderBy
      * @param string $orderDirection

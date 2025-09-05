@@ -106,7 +106,7 @@ class CarRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste des objets Car avec pagination et tri.
+     * Récupére la liste des objets Car avec tri et pargination.
      *
      * @param string|null $orderBy
      * @param string $orderDirection
@@ -133,7 +133,7 @@ class CarRepository extends BaseRepository
     }
 
     /**
-     * Récupére une liste brute de voiture avec pagination et tri.
+     * Récupére une liste brute des voitures avec tri et pargination.
      *
      * @param string|null $orderBy
      * @param string $orderDirection
@@ -180,7 +180,7 @@ class CarRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste brute de voiture selon un champ spécifique avec pagination et tri.
+     * Récupére une liste brute des voitures selon un champ spécifique avec tri et pargination.
      *
      * @param array $criteria
      * @param string|null $orderBy
@@ -211,7 +211,7 @@ class CarRepository extends BaseRepository
 
 
     /**
-     * Récupére la liste des objets Car selon un ou plusieurs champs spécifiques avec pagination et tri.
+     * Récupére la liste des objets Car selon un ou plusieurs champs spécifiques avec tri et pargination.
      *
      * @param array $criteria
      * @param string|null $orderBy
@@ -250,7 +250,7 @@ class CarRepository extends BaseRepository
     //  ------ Récupérations spécifiques ---------
 
     /**
-     * Récupére la liste des objets Car selon l'energie utilisée.
+     * Récupére la liste des objets Car selon l'energie utilisée avec tri et pargination.
      *
      * @param string $power
      * @param string|null $orderBy
@@ -270,7 +270,7 @@ class CarRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste des objets Car par l'id du conducteur avec tri et pagination.
+     * Récupére la liste brute des voitures par l'id du conducteur avec tri et pagination.
      *
      * @param array $ownerId
      * @param string $orderBy
@@ -279,14 +279,14 @@ class CarRepository extends BaseRepository
      * @param integer $offset
      * @return array
      */
-    public function findAllCarsByOwner(
+    public function fetchAllCarsByOwner(
         array $ownerId,
         ?string $orderBy = null,
         string $orderDirection = 'DESC',
         int $limit = 20,
         int $offset = 0
     ): array {
-        return $this->findAllCarsByFields(['user_id' => $ownerId], $orderBy, $orderDirection, $limit, $offset);
+        return $this->fetchAllCarsRowsByFields(['user_id' => $ownerId], $orderBy, $orderDirection, $limit, $offset);
     }
 
 

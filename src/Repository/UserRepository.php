@@ -169,7 +169,7 @@ class UserRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste des objets User avec pagination et tri.
+     * Récupére la liste des objets User avec tri et pargination.
      *
      * @param string|null $orderBy
      * @param string $orderDirection
@@ -196,7 +196,7 @@ class UserRepository extends BaseRepository
     }
 
     /**
-     * Récupére une liste brute d'utilisateur avec pagination et tri.
+     * Récupére une liste brute d'utilisateur avec tri et pargination.
      *
      * @param string|null $orderBy
      * @param string $orderDirection
@@ -243,7 +243,7 @@ class UserRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste des objets User selon un ou plusieurs champs spécifiques avec pagination et tri.
+     * Récupére la liste des objets User selon un ou plusieurs champs spécifiques avec tri et pargination.
      *
      * @param array $criteria
      * @param string|null $orderBy
@@ -279,7 +279,7 @@ class UserRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste brute d'utilisateur selon un champ spécifique avec pagination et tri.
+     * Récupére la liste brute d'utilisateur selon un champ spécifique avec tri et pargination.
      *
      * @param array $criteria
      * @param string|null $orderBy
@@ -335,7 +335,7 @@ class UserRepository extends BaseRepository
 
 
     /**
-     * Récupére la liste des objets User selon un rôle.
+     * Récupére la liste des objets User selon un rôle avec tri et pagination.
      *
      * @param string $role
      * @param string $orderBy
