@@ -277,7 +277,7 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste brute des trajet selon un champ spécifique avec tri et pargination.
+     * Récupére la liste brute des trajets selon un champ spécifique avec tri et pargination.
      *
      * @param array $criteria
      * @param string|null $orderBy
@@ -363,7 +363,7 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste brute des trajet selon le rôle de l'utilisateur avec tri et pargination.
+     * Récupére la liste brute des trajets selon le rôle de l'utilisateur avec tri et pargination.
      *
      * @param array $userId
      * @param UserRoles $role
@@ -501,7 +501,7 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste des objets à venir d'un passager
+     * Récupére la liste des objets Ride à venir d'un passager
      *
      * @param integer $passengerId
      * @return array

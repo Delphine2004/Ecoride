@@ -185,7 +185,7 @@ class BookingRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste brute de réservation selon un champ spécifique avec tri et pargination.
+     * Récupére la liste brute des réservations selon un champ spécifique avec tri et pargination.
      *
      * @param array $criteria
      * @param string|null $orderBy

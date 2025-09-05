@@ -19,24 +19,27 @@ class UserRelationsRepository extends UserRepository
     protected string $table = 'users';
     protected string $primaryKey = 'user_id';
 
-    private CarRepository $carRepository;
-    private RideRepository $rideRepository;
-    private BookingRepository $bookingRepository;
-
-    public function __construct(PDO $db, CarRepository $carRepository, RideRepository $rideRepository, BookingRepository $bookingRepository)
-    {
+    public function __construct(
+        PDO $db,
+        private CarRepository $carRepository,
+        private RideRepository $rideRepository,
+        private BookingRepository $bookingRepository
+    ) {
         parent::__construct($db);
-        $this->carRepository = $carRepository;
-        $this->rideRepository = $rideRepository;
-        $this->bookingRepository = $bookingRepository;
     }
+
+    //-------------------------------------------
+
+    private function hydrateUsersRelations(User $user, string $relation): void {}
 
 
     //  ------ Récupérations spécifiques ---------
 
-    // Récupére un objet User avec ses relations en liste d'objet - OK
-    public function findUserWithRelations(int $userId, array $with = []): ?User
-    {
+    // Récupére un objet User avec ses relations en liste d'objet
+    public function findUserWithRelations(
+        int $userId,
+        array $with = []
+    ): ?User {
 
         // Récuperation de l'utilisateur
         $user = $this->findUserById($userId);
@@ -44,26 +47,33 @@ class UserRelationsRepository extends UserRepository
             return null;
         }
 
-        // Relations
+        // Vérification des relations
         if (in_array('cars', $with, true)) {
+            // réinitialise la collection à un tableau vide
             $user->setCars([]);
-            $cars = $this->carRepository->findAllCarsByOwner([$userId]);
+            // récuperation de la liste des voitures
+            $cars = $this->carRepository->fetchAllCarsByOwner([$userId]);
+            // Parcourir chaque voiture pour les ajouter à l'utilisateur
             foreach ($cars as $car) {
                 $user->addCar($car);
             }
         }
 
         if (in_array('rides', $with, true)) {
+            // réinitialise la collection à un tableau vide
             $user->setRides([]);
-            $rides = $this->rideRepository->findAllRidesByDriver([$userId]);
+            // récuperation de la liste des trajets
+            $rides = $this->rideRepository->fetchAllRidesByDriver([$userId]);
             foreach ($rides as $ride) {
                 $user->addRide($ride);
             }
         }
 
         if (in_array('bookings', $with, true)) {
+            // réinitialise la collection à un tableau vide
             $user->setBookings([]);
-            $bookings = $this->bookingRepository->findAllBookingsByPassengerId([$userId]);
+            // Récupération de la liste des réservations 
+            $bookings = $this->bookingRepository->fetchAllBookingsByPassengerId([$userId]);
             foreach ($bookings as $booking) {
                 $user->addBooking($booking);
             }
@@ -71,9 +81,11 @@ class UserRelationsRepository extends UserRepository
         return $user;
     }
 
+
     // Récupére un objet User conducteur avec la liste des objets Car.
-    public function findUserWithCars(int $driverId): ?User
-    {
+    public function findUserWithCars(
+        int $driverId
+    ): ?User {
         // Récupérer l'utilisateur avec la relation 'cars'
         $driver = $this->findUserWithRelations($driverId, ['cars']);
 
@@ -90,8 +102,9 @@ class UserRelationsRepository extends UserRepository
     }
 
     // Récupére un objet User conducteur avec la liste des objets Ride.
-    public function findUserWithRides(int $driverId): ?User
-    {
+    public function findUserWithRides(
+        int $driverId
+    ): ?User {
         // Récupérer l'utilisateur avec la relation 'rides'
         $driver = $this->findUserWithRelations($driverId, ['rides']);
 
@@ -108,8 +121,9 @@ class UserRelationsRepository extends UserRepository
     }
 
     // Récupére un objet User passager avec la liste des objets Booking.
-    public function findUserWithBookings(int $userId): ?User
-    {
+    public function findUserWithBookings(
+        int $userId
+    ): ?User {
         // Récupérer l'utilisateur avec la relation 'rides'
         $user = $this->findUserWithRelations($userId, ['bookings']);
 
@@ -127,72 +141,74 @@ class UserRelationsRepository extends UserRepository
 
     //---------------------------------------------------
 
-    // Récupére un liste d'objet User avec ses relations en liste simple. Cette fonction permet d'éviter les jointures pour ne pas avoir de doublons sur les utilisateurs.
+    // Récupére la liste des objets User avec ses relations en liste brute. Cette fonction permet d'éviter les jointures pour ne pas avoir de doublons sur les utilisateurs.
     public function findAllUsersWithRelations(
         array $with = [],
         string $orderBy = 'user_id',
         string $orderDirection = 'DESC',
         int $limit = 20,
         int $offset = 0
-    ) {
-        // en cours de création - se baser sur findAllUsersWithCars et findUserWithRelations
+    ): array {
+
+        // Récupération de tous les utilisateurs
+        $users = $this->findAllUsers($orderBy, $orderDirection, $limit, $offset); // Tous les utilisateurs sans distinction de rôle
 
 
+        // Pour chaque utilisateur de la liste, vérification des relations
+        foreach ($users as $user) {
+
+            if (in_array('cars', $with, true)) {
+                // récupére la liste brute
+                $user->setCars($this->carRepository->fetchAllCarsByOwner($user->getId()));
+            }
+
+            if (in_array('rides', $with, true)) {
+                // récupére la liste brute
+                $user->setRides($this->rideRepository->fetchAllRidesByDriver($user->getId()));
+            }
+
+            if (in_array('bookings', $with, true)) {
+                // récupére la liste brute
+                $user->setBookings($this->bookingRepository->fetchAllBookingsByPassengerId($user->getId()));
+            }
+        }
+        return $users;
     }
 
-    // Récupére la liste des objets User conducteur avec leur voiture en liste simple avec tri et pagination. 
-    public function findAllUserWithCars(
+
+    // Récupére la liste des objets User conducteur avec leur voiture en liste brute avec tri et pagination. 
+    public function findAllUsersWithCars(
         string $orderBy = 'user_id',
         string $orderDirection = 'DESC',
         int $limit = 20,
         int $offset = 0
     ): array {
-
-        //Récupérer les utilisateurs qui ont le rôle conducteur.
-        $drivers = $this->findAllUsersByRole('conducteur');
-        if (!$drivers) return [];
-
-
-        // Créer un mapping des conducteurs
-        $driverMap = [];
-        foreach ($drivers as $driver) {
-            $driverMap[$driver->getUserId()] = $driver;
-            $driver->setCarOwner([]); // initialise la liste des voitures
-        }
-
-
-        // ---------Récupérer les voitures du conducteur qui est dans la liste d'objet
-        // récupérer les ids des conducteurs
-        $driverIds = array_map(fn(User $u) => $u->getUserId(), $drivers);
-        if (empty($driverIds)) {
-            return [];
-        }
-
-        // Puis utiliser carRepository et findAllCarsByOwner pour recupérer les voitures des driversIds
-        $cars = $this->carRepository->findAllCarsByOwner($driverIds);
-
-
-        // Associer les voitures aux conducteurs.
-        foreach ($cars as $car) {
-            $owner = $car->getCarOwner();
-            if ($owner === null) {
-                continue;
-            }
-            $ownerId = $owner->getUserId();
-            if ($ownerId !== null && isset($driverMap[$ownerId])) {
-                $driverMap[$ownerId]->addCar($car);
-            }
-        }
-
-        //Retour du résultat
-        return array_values($driverMap);
+        // Récupérer les utilisateurs avec la relation 'cars'
+        $users = $this->findAllUsersWithRelations(['cars'], $orderBy, $orderDirection, $limit, $offset);
+        return $users;
     }
 
+    // Récupére la liste des objets User conducteur avec leur trajet en liste brute avec tri et pagination.
+    public function findAllUsersWithRides(
+        string $orderBy = 'user_id',
+        string $orderDirection = 'DESC',
+        int $limit = 20,
+        int $offset = 0
+    ): array {
+        // Récupérer les utilisateurs avec la relation 'rides'
+        $users = $this->findAllUsersWithRelations(['rides'], $orderBy, $orderDirection, $limit, $offset);
+        return $users;
+    }
 
-    // Récupére la liste des objets User conducteur avec leur trajet en liste simple avec tri et pagination.
-    public function findAllUserWithRides() {}
-
-
-    // Récupére la liste des objets User passager avec leur réservation en liste simple avec tri et pagination.
-    public function findAllUserWithBooking() {}
+    // Récupére la liste des objets User passager avec leur réservation en liste brute avec tri et pagination.
+    public function findAllUsersWithBookings(
+        string $orderBy = 'user_id',
+        string $orderDirection = 'DESC',
+        int $limit = 20,
+        int $offset = 0
+    ): array {
+        // Récupérer les utilisateurs avec la relation 'bookings'
+        $users = $this->findAllUsersWithRelations(['bookings'], $orderBy, $orderDirection, $limit, $offset);
+        return $users;
+    }
 }

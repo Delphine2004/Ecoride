@@ -279,7 +279,7 @@ class UserRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste brute d'utilisateur selon un champ spécifique avec tri et pargination.
+     * Récupére la liste brute des utilisateurs selon un champ spécifique avec tri et pargination.
      *
      * @param array $criteria
      * @param string|null $orderBy
