@@ -136,6 +136,32 @@ class RideRepository extends BaseRepository
     }
 
     /**
+     * Récupére une liste brute de trajet avec pagination et tri.
+     *
+     * @param string|null $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
+    public function fetchAllRidesRows(
+        ?string $orderBy = null,
+        string $orderDirection = 'DESC',
+        int $limit = 50,
+        int $offset = 0
+    ): array {
+        // Vérifier si l'ordre et la direction sont définis et valides.
+        [$orderBy, $orderDirection] = $this->sanitizeOrder(
+            $orderBy,
+            $orderDirection,
+            'ride_id'
+        );
+        // Chercher les éléments.
+        $rows = parent::findAll($orderBy, $orderDirection, $limit, $offset);
+        return $rows;
+    }
+
+    /**
      * Récupére un objet Ride selon un ou plusieurs champs spécifiques.
      *
      * @param array $criteria
@@ -190,6 +216,36 @@ class RideRepository extends BaseRepository
         // Chercher les éléments.
         $rows = parent::findAllByFields($criteria, $orderBy, $orderDirection, $limit, $offset);
         return array_map(fn($row) => $this->hydrateRide((array) $row), $rows);
+    }
+
+    /**
+     * Récupére la liste brute de trajet selon un champ spécifique avec pagination et tri.
+     *
+     * @param array $criteria
+     * @param string|null $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
+    public function fetchAllRidesRowsByFields(
+        array $criteria = [],
+        ?string $orderBy = null,
+        string $orderDirection = 'DESC',
+        int $limit = 50,
+        int $offset = 0
+    ): array {
+
+        // Pas nécessaire de vérifier les champs car table pivot.
+        // Vérifier si l'ordre et la direction sont définis et valides.
+        [$orderBy, $orderDirection] = $this->sanitizeOrder(
+            $orderBy,
+            $orderDirection,
+            'ride_id'
+        );
+        // Chercher les éléments.
+        $rows = parent::findAllByFields($criteria, $orderBy, $orderDirection, $limit, $offset);
+        return $rows;
     }
 
 

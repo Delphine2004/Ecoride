@@ -196,6 +196,32 @@ class UserRepository extends BaseRepository
     }
 
     /**
+     * Récupére une liste brute d'utilisateur avec pagination et tri.
+     *
+     * @param string|null $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
+    public function fetchAllUsersRows(
+        ?string $orderBy = null,
+        string $orderDirection = 'DESC',
+        int $limit = 50,
+        int $offset = 0
+    ): array {
+        // Vérifier si l'ordre et la direction sont définis et valides.
+        [$orderBy, $orderDirection] = $this->sanitizeOrder(
+            $orderBy,
+            $orderDirection,
+            'user_id'
+        );
+        // Chercher les éléments.
+        $rows = parent::findAll($orderBy, $orderDirection, $limit, $offset);
+        return $rows;
+    }
+
+    /**
      * Récupére un objet User selon un ou plusieurs champs spécifiques.
      *
      * @param array $criteria
@@ -250,6 +276,36 @@ class UserRepository extends BaseRepository
         // Chercher les éléments.
         $rows = parent::findAllByFields($criteria, $orderBy, $orderDirection, $limit, $offset);
         return array_map(fn($row) => $this->hydrateUser((array) $row), $rows);
+    }
+
+    /**
+     * Récupére la liste brute d'utilisateur selon un champ spécifique avec pagination et tri.
+     *
+     * @param array $criteria
+     * @param string|null $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
+    public function fetchAllUsersRowsByFields(
+        array $criteria = [],
+        ?string $orderBy = null,
+        string $orderDirection = 'DESC',
+        int $limit = 50,
+        int $offset = 0
+    ): array {
+
+        // Pas nécessaire de vérifier les champs car table pivot.
+        // Vérifier si l'ordre et la direction sont définis et valides.
+        [$orderBy, $orderDirection] = $this->sanitizeOrder(
+            $orderBy,
+            $orderDirection,
+            'user_id'
+        );
+        // Chercher les éléments.
+        $rows = parent::findAllByFields($criteria, $orderBy, $orderDirection, $limit, $offset);
+        return $rows;
     }
 
 

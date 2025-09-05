@@ -111,6 +111,33 @@ class BookingRepository extends BaseRepository
     }
 
     /**
+     * Récupére une liste brute de réservation avec pagination et tri.
+     *
+     * @param string|null $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
+    public function fetchAllBookingsRows(
+        ?string $orderBy = null,
+        string $orderDirection = 'DESC',
+        int $limit = 50,
+        int $offset = 0
+    ): array {
+        // Vérifier si l'ordre et la direction sont définis et valides.
+        [$orderBy, $orderDirection] = $this->sanitizeOrder(
+            $orderBy,
+            $orderDirection,
+            'booking_id'
+        );
+        // Chercher les éléments.
+        $rows = parent::findAll($orderBy, $orderDirection, $limit, $offset);
+        return $rows;
+    }
+
+
+    /**
      * Récupére un objet Booking selon un ou plusieurs champs spécifiques.
      *
      * @param array $criteria
@@ -157,7 +184,35 @@ class BookingRepository extends BaseRepository
         return array_map(fn($row) => $this->hydrateBooking((array) $row), $rows);
     }
 
+    /**
+     * Récupére la liste brute de réservation selon un champ spécifique avec pagination et tri.
+     *
+     * @param array $criteria
+     * @param string|null $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
+    public function fetchAllBookingsRowsByFields(
+        array $criteria = [],
+        ?string $orderBy = null,
+        string $orderDirection = 'DESC',
+        int $limit = 50,
+        int $offset = 0
+    ): array {
 
+        // Pas nécessaire de vérifier les champs car table pivot.
+        // Vérifier si l'ordre et la direction sont définis et valides.
+        [$orderBy, $orderDirection] = $this->sanitizeOrder(
+            $orderBy,
+            $orderDirection,
+            'booking_id'
+        );
+        // Chercher les éléments.
+        $rows = parent::findAllByFields($criteria, $orderBy, $orderDirection, $limit, $offset);
+        return $rows;
+    }
 
     //------ Récupération spécifique-----
 
