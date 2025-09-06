@@ -145,7 +145,7 @@ class User
         return $this->apiToken;
     }
 
-    public function getRoles(): array
+    public function getUserRoles(): array
     {
         return $this->roles;
     }

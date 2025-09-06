@@ -104,7 +104,7 @@ class UserRelationsRepository extends UserRepository
         }
 
         // vérifier que l'utilisateur a le rôle conducteur
-        if (!in_array(UserRoles::CONDUCTEUR, $driver->getRoles(), true)) {
+        if (!in_array(UserRoles::CONDUCTEUR, $driver->getUserRoles(), true)) {
             return null;
         }
         return $driver;
@@ -128,7 +128,7 @@ class UserRelationsRepository extends UserRepository
         }
 
         // vérifier que l'utilisateur a le rôle conducteur
-        if (!in_array(UserRoles::CONDUCTEUR, $driver->getRoles(), true)) {
+        if (!in_array(UserRoles::CONDUCTEUR, $driver->getUserRoles(), true)) {
             return null;
         }
         return $driver;
@@ -152,7 +152,7 @@ class UserRelationsRepository extends UserRepository
         }
 
         // vérifier que l'utilisateur a le rôle conducteur
-        if (!in_array(UserRoles::PASSAGER, $user->getRoles(), true)) {
+        if (!in_array(UserRoles::PASSAGER, $user->getUserRoles(), true)) {
             return null;
         }
         return $user;
