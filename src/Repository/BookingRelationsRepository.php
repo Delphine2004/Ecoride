@@ -2,17 +2,16 @@
 
 namespace App\Repositories;
 
-use App\Models\Booking;
-use App\Models\User;
-use App\Models\Ride;
 use App\Repositories\BookingRepository;
 use App\Repositories\UserRepository;
-use App\Repositories\RideRepository;
+use App\Repositories\RidewithUsersRepository;
+use App\Models\Booking;
+use App\Models\User;
 use PDO;
 use InvalidArgumentException;
 
 /**
- * Cette classe gére la correspondance entre des utilisateurs et un trajet
+ * Cette classe gére la correspondance entre une réservation et des utilisateurs et la BDD.
  */
 
 class BookingRelationsRepository extends BookingRepository
@@ -21,47 +20,76 @@ class BookingRelationsRepository extends BookingRepository
     protected string $table = 'bookings';
     protected string $primaryKey = 'booking_id';
 
-    private UserRepository $userRepository;
-    private RideRepository $rideRepository;
-
-    public function __construct(PDO $db, UserRepository $userRepository, RideRepository $rideRepository)
-    {
+    public function __construct(
+        PDO $db,
+        private RidewithUsersRepository $rideWithUserRepository,
+        private RideRepository $rideRepository,
+        private UserRepository $userRepository
+    ) {
         parent::__construct($db);
-        $this->userRepository = $userRepository;
-        $this->rideRepository = $rideRepository;
+    }
+
+    //  ------ Récupérations spécifiques ---------
+
+    // Récupére un objet Booking avec la liste des objets Ride et User (conducteur et passagers).
+    public function findBookingWithRideAndUsersByBookingId(
+        int $bookingId,
+    ): ?Booking {
+
+        // Récuperation de la réservation
+        $booking = $this->findBookingById($bookingId);
+        if (!$booking) {
+            return null;
+        }
+
+        // Récupération du trajet et des utilisateurs
+        $ride = $this->rideWithUserRepository->findRideWithUsersByRideId($booking->getRideId());
+
+        if ($ride) {
+            $booking->setBookingRide($ride);
+        }
+
+        return $booking;
     }
 
 
-    public function hydrateBookingRelation(Booking $booking): Booking
-    {
-        $ride = $this->rideRepository->findRideById($booking['ride_id']);
-        $passenger = $this->userRepository->findUserById($booking['passenger_id']);
-        $driver = $this->userRepository->findUserById($booking['driver_id']);
 
-        if (!$ride) {
-            throw new InvalidArgumentException("Le trajet pour la réservation {$booking['booking_id']} est introuvable.");
-        }
 
-        if (!$passenger) {
-            throw new InvalidArgumentException("Aucun passager pour la réservation {$booking['booking_id']} n'est trouvable.");
-        }
+    // Récupére la liste des objets Bookings avec la liste brute du trajet et des participants.
+    public function findAllBookingsWithRideAndUsers(
+        string $orderBy = 'user_id',
+        string $orderDirection = 'DESC',
+        int $limit = 20,
+        int $offset = 0
+    ): array {
+        // Récuperation de la réservation
+        $bookings = $this->findAllBookings($orderBy, $orderDirection, $limit, $offset);
 
-        if (!$driver) {
-            throw new InvalidArgumentException("Le conducteur pour la réservation {$booking['booking_id']} est introuvable.");
+        foreach ($bookings as $booking) {
+            // Récupération du trajet
+            $ride = $this->rideWithUserRepository->findRideWithUsersByRideId($booking->getRideId());
+            if ($ride) {
+                $booking->setBookingRide($ride);
+            }
         }
-        return new Booking(
-            bookingId: $booking->getBookingId(),
-            ride: $ride,
-            passenger: $passenger,
-            driver: $driver,
-            bookingStatus: $booking->getBookingStatus(),
-        );
+        return $bookings;
     }
 
+    // Récupére la liste brute des réservations avec la liste brute du trajet et des participants.
+    public function fetchAllBookingsWithRideAndUsers(
+        string $orderBy = 'user_id',
+        string $orderDirection = 'DESC',
+        int $limit = 20,
+        int $offset = 0
+    ): array {
+        // Récuperation de la réservation
+        $bookings = $this->fetchAllBookingsRows($orderBy, $orderDirection, $limit, $offset);
 
-    // Récuperer une réservation avec le trajet et les passagers.
-    //public function findBookingByRideAndPassenger(): ?Booking {}
-
-    // Récupérer une réservation avec le trajet et les utilisateurs participants
-    //public function findBookingWithRideAndUsers():?Booking {}
+        foreach ($bookings as $i => $booking) {
+            // Récupération du trajet et des utilisateurs
+            $ride = $this->rideWithUserRepository->findRideById($booking['ride_id']);
+            $bookings[$i]['ride'] = $ride;
+        }
+        return $bookings;
+    }
 }
