@@ -1,32 +1,55 @@
 <?php
 
+namespace App\Services;
+
 use App\Repositories\CarRepository;
-use App\Repositories\UserRepository;
+use App\Services\RoleService;
+use App\Models\Car;
+use InvalidArgumentException;
 
 class CarService
 {
-    private CarRepository $carRepository;
-    private UserRepository $userRepository;
+    public function __construct(
+        private CarRepository $carRepository,
+        private RoleService $roleService
+    ) {}
 
-    public function __construct(CarRepository $carRepository, UserRepository $userRepository)
+    // Permet de vérifier si l'utilisateur a bien le rôle conducteur.
+    private function ensureDriver(int $userId): void
     {
-        $this->carRepository = $carRepository;
-        $this->userRepository = $userRepository;
-    }
-
-    // Trouver toutes les voitures avec leur propriétaire - à vérifier car existe déjà dans carWithOwner
-    public function findAllCarsWithOwner(): array
-    {
-        $cars = $this->carRepository->findAllCars();
-
-        foreach ($cars as $car) {
-            $owner = $this->userRepository->findUserById($car->getCarOwner()->getUserId());
-            $car->setOwner($owner);
+        if (!$this->roleService->isDriver($userId)) {
+            throw new InvalidArgumentException("Seulement les conducteurs peuvent effectuer cette action.");
         }
-        return $cars;
     }
 
-    // Ajouter une voiture
+    // Permet de vérifier si l'utilisateur a encore des voitures.
+    public function userHasCars(int $userId): bool
+    {
+        $this->ensureDriver($userId);
+        return count($this->carRepository->findAllCarsByOwner($userId)) > 0;
+    }
 
-    // Supprimer une voiture
+    // Permet à un utilisateur ayant le rôle conducteur d'ajouter une voiture.
+    public function addCar(int $userId, Car $car): void
+    {
+        $this->ensureDriver($userId);
+        $this->carRepository->insertCar($car);
+    }
+
+    // Permet à un utilisateur ayant le rôle conducteur de supprimer une voiture.
+    public function removeCar(int $userId, int $carId): void
+    {
+        $this->ensureDriver($userId);
+        if (!$this->carRepository->isOwner($userId, $carId)) {
+            throw new InvalidArgumentException("Vous ne pouvez pas supprimer cette voiture.");
+        }
+        $this->carRepository->deleteCar($carId);
+    }
+
+    // Récupére les voitures d'un utilisateur.
+    public function getCarsByUser(int $userId): array
+    {
+        $this->ensureDriver($userId);
+        return $this->carRepository->findAllCarsByOwner($userId);
+    }
 }

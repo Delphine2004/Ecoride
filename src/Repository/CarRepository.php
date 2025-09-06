@@ -90,6 +90,24 @@ class CarRepository extends BaseRepository
         return in_array($field, $this->allowedFields, true);
     }
 
+    // Permet de savoir si le conducteur est le propriétaire de la voiture.
+    public function isOwner(int $userId, int $carId)
+    {
+
+        // Construction du sql
+        $sql = "SELECT COUNT(*)
+        FROM {$this->table}
+        WHERE car_id = :carId AND user_id = :ownerId";
+
+        // Préparation de la requête
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue('carId', $carId, PDO::PARAM_INT);
+        $stmt->bindValue('ownerId', $userId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchColumn() > 0;
+    }
+
     // ------ Récupérations ------ 
 
     /**
@@ -268,6 +286,27 @@ class CarRepository extends BaseRepository
     ): array {
         return $this->findAllCarsByFields(['car_power' => $power],  $orderBy, $orderDirection, $limit, $offset);
     }
+
+    /**
+     * Récupére la liste des objets Car selon l'id du propriétaire avec tri et pargination.
+     *
+     * @param int $userId
+     * @param string|null $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
+    public function findAllCarsByOwner(
+        int $userId,
+        ?string $orderBy = null,
+        string $orderDirection = 'DESC',
+        int $limit = 50,
+        int $offset = 0
+    ): array {
+        return $this->findAllCarsByFields(['user_id' => $userId],  $orderBy, $orderDirection, $limit, $offset);
+    }
+
 
     /**
      * Récupére la liste brute des voitures par l'id du conducteur avec tri et pagination.
