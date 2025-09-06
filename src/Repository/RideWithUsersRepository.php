@@ -101,7 +101,9 @@ class RideWithUsersRepository extends RideRepository
 
     //  ------ Récupérations spécifiques ---------
 
-    // Récupére un objet Ride avec le liste d'objets User conducteur et User passagers.
+    /**
+     * Récupére un objet Ride avec le liste d'objets User conducteur et User passagers.
+     */
     public function findRideWithUsersByFields(
         array $criteria = []
     ): ?Ride {
@@ -155,15 +157,28 @@ class RideWithUsersRepository extends RideRepository
         return $ride;
     }
 
-    // Récupére un objet Ride avec le liste d'objets User conducteur et User passagers avec l'id du ride.
+    /**
+     * Récupére un objet Ride avec le liste d'objets User conducteur et User passagers avec l'id du ride.
+     *
+     * @param [type] $rideId
+     * @return Ride|null
+     */
     public function findRideWithUsersByRideId($rideId): ?Ride
     {
         $ride = $this->findRideWithUsersByFields(['ride_id' => $rideId]);
         return $ride;
     }
 
-    // Récupére la liste des objets Ride avec les participants en liste brute
-    // selon un ou plusieurs critéres avec tri et pargination..
+    /**
+     * Récupére la liste des objets Ride avec les participants en liste brute selon un ou plusieurs critéres avec tri et pargination.
+     *
+     * @param array $criteria
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
     public function findAllRidesWithUsersByFields(
         array $criteria = [],
         string $orderBy = 'ride_id',

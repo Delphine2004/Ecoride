@@ -31,7 +31,12 @@ class BookingRelationsRepository extends BookingRepository
 
     //  ------ Récupérations spécifiques ---------
 
-    // Récupére un objet Booking avec la liste des objets Ride et User (conducteur et passagers).
+    /**
+     * Récupére un objet Booking avec la liste des objets Ride et User (conducteur et passagers).
+     *
+     * @param integer $bookingId
+     * @return Booking|null
+     */
     public function findBookingWithRideAndUsersByBookingId(
         int $bookingId,
     ): ?Booking {
@@ -52,10 +57,15 @@ class BookingRelationsRepository extends BookingRepository
         return $booking;
     }
 
-
-
-
-    // Récupére la liste des objets Bookings avec la liste brute du trajet et des participants.
+    /**
+     * Récupére la liste des objets Bookings avec la liste brute du trajet et des participants avec tri et pagination.
+     *
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
     public function findAllBookingsWithRideAndUsers(
         string $orderBy = 'user_id',
         string $orderDirection = 'DESC',
@@ -75,7 +85,15 @@ class BookingRelationsRepository extends BookingRepository
         return $bookings;
     }
 
-    // Récupére la liste brute des réservations avec la liste brute du trajet et des participants.
+    /**
+     * Récupére la liste brute des réservations avec la liste brute du trajet et des participants avec tri et pagination.
+     *
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
     public function fetchAllBookingsWithRideAndUsers(
         string $orderBy = 'user_id',
         string $orderDirection = 'DESC',

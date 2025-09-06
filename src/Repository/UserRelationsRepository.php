@@ -30,12 +30,16 @@ class UserRelationsRepository extends UserRepository
 
     //-------------------------------------------
 
-    private function hydrateUsersRelations(User $user, string $relation): void {}
-
 
     //  ------ Récupérations spécifiques ---------
 
-    // Récupére un objet User avec ses relations en liste d'objet
+    /**
+     * Récupére un objet User avec ses relations en liste d'objet.
+     *
+     * @param integer $userId
+     * @param array $with
+     * @return User|null
+     */
     public function findUserWithRelations(
         int $userId,
         array $with = []
@@ -82,7 +86,12 @@ class UserRelationsRepository extends UserRepository
     }
 
 
-    // Récupére un objet User conducteur avec la liste des objets Car.
+    /**
+     * Récupére un objet User conducteur avec la liste des objets Car.
+     *
+     * @param integer $driverId
+     * @return User|null
+     */
     public function findUserWithCars(
         int $driverId
     ): ?User {
@@ -101,7 +110,12 @@ class UserRelationsRepository extends UserRepository
         return $driver;
     }
 
-    // Récupére un objet User conducteur avec la liste des objets Ride.
+    /**
+     * Récupére un objet User conducteur avec la liste des objets Ride.
+     *
+     * @param integer $driverId
+     * @return User|null
+     */
     public function findUserWithRides(
         int $driverId
     ): ?User {
@@ -120,7 +134,12 @@ class UserRelationsRepository extends UserRepository
         return $driver;
     }
 
-    // Récupére un objet User passager avec la liste des objets Booking.
+    /**
+     * Récupére un objet User passager avec la liste des objets Booking.
+     *
+     * @param integer $userId
+     * @return User|null
+     */
     public function findUserWithBookings(
         int $userId
     ): ?User {
@@ -141,7 +160,17 @@ class UserRelationsRepository extends UserRepository
 
     //---------------------------------------------------
 
-    // Récupére la liste des objets User avec ses relations en liste brute. Cette fonction permet d'éviter les jointures pour ne pas avoir de doublons sur les utilisateurs.
+    /**
+     * Récupére la liste des objets User avec ses relations en liste brute avec tri et pagination. 
+     * Cette fonction permet d'éviter les jointures pour ne pas avoir de doublons sur les utilisateurs.
+     *
+     * @param array $with
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
     public function findAllUsersWithRelations(
         array $with = [],
         string $orderBy = 'user_id',
@@ -176,7 +205,15 @@ class UserRelationsRepository extends UserRepository
     }
 
 
-    // Récupére la liste des objets User conducteur avec leur voiture en liste brute avec tri et pagination. 
+    /**
+     * Récupére la liste des objets User conducteur avec leur voiture en liste brute avec tri et pagination. 
+     *
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
     public function findAllUsersWithCars(
         string $orderBy = 'user_id',
         string $orderDirection = 'DESC',
@@ -188,7 +225,15 @@ class UserRelationsRepository extends UserRepository
         return $users;
     }
 
-    // Récupére la liste des objets User conducteur avec leur trajet en liste brute avec tri et pagination.
+    /**
+     * Récupére la liste des objets User conducteur avec leur trajet en liste brute avec tri et pagination.
+     *
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
     public function findAllUsersWithRides(
         string $orderBy = 'user_id',
         string $orderDirection = 'DESC',
@@ -200,7 +245,15 @@ class UserRelationsRepository extends UserRepository
         return $users;
     }
 
-    // Récupére la liste des objets User passager avec leur réservation en liste brute avec tri et pagination.
+    /**
+     * Récupére la liste des objets User passager avec leur réservation en liste brute avec tri et pagination.
+     *
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
     public function findAllUsersWithBookings(
         string $orderBy = 'user_id',
         string $orderDirection = 'DESC',
