@@ -24,8 +24,6 @@ class RideWithUsersRepository extends RideRepository
         private BookingRepository $bookingRepository
     ) {
         parent::__construct($db);
-        $this->userRepository = $userRepository;
-        $this->bookingRepository = $bookingRepository;
     }
 
     /**
@@ -53,6 +51,7 @@ class RideWithUsersRepository extends RideRepository
                 $ride->addRidePassenger($passenger);
             }
         }
+
         return $ride;
     }
 
@@ -79,7 +78,7 @@ class RideWithUsersRepository extends RideRepository
      *
      * @return string
      */
-    private function baseRideUserSelect(): string
+    private function baseQueryRideUser(): string
     {
         return "SELECT r.*,
                     d.user_id AS driver_id, 
@@ -95,22 +94,76 @@ class RideWithUsersRepository extends RideRepository
                 INNER JOIN users d ON r.driver_id = d.user_id
                 LEFT JOIN bookings b ON r.ride_id = b.ride_id
                 LEFT JOIN users p ON b.passenger_id = p.user_id
+                WHERE 1 = 1
         ";
     }
 
 
     //  ------ Récupérations spécifiques ---------
 
-    /**
-     * Récupére la liste des objets Ride avec les conducteurs et les passagers en liste avec ou sans critéres.
-     *
-     * @param array $criteria
-     * @param string $orderBy
-     * @param string $orderDirection
-     * @param integer $limit
-     * @param integer $offset
-     * @return array
-     */
+    // Récupére un objet Ride avec le liste d'objets User conducteur et User passagers.
+    public function findRideWithUsersByFields(
+        array $criteria = []
+    ): ?Ride {
+        // Construction du sql
+        $sql = $this->baseQueryRideUser();
+
+        // Ajout des critéres
+        foreach ($criteria as $field => $value) {
+            if (!$this->isAllowedField($field)) {
+                continue;
+            }
+            if ($value === null) {
+                $sql .= " AND r.$field IS NULL";
+            } else {
+                $sql .= " AND r.$field = :$field";
+            }
+        }
+
+        // Préparation de la requête
+        $stmt = $this->db->prepare($sql);
+
+        foreach ($criteria as $field => $value) {
+            if ($value === null || !$this->isAllowedField($field)) {
+                continue;
+            }
+
+            $type = is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR;
+            $stmt->bindValue(":$field", $value, $type);
+        }
+
+        $stmt->execute();
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC); // FetchAll car plusieurs lignes d'utilisateur (conducteur et passager)
+        if (!$rows) return null;
+
+        // Hydratation du trajet avec la premiére ligne.
+        $ride = $this->hydrateRide($rows[0]);
+
+        // Hydratation du conducteur.
+        $driver = $this->mapUser($rows[0], 'driver_');
+        $ride->setRideDriver($driver);
+
+        // Ajouter les passagers en les hydratant.
+        foreach ($rows as $row) {
+            if (!empty($row['passenger_id'])) {
+                $passenger = $this->mapUser($row, 'passenger_');
+                $ride->addRidePassenger($passenger);
+            }
+        }
+
+        return $ride;
+    }
+
+    // Récupére un objet Ride avec le liste d'objets User conducteur et User passagers avec l'id du ride.
+    public function findRideWithUsersByRideId($rideId): ?Ride
+    {
+        $ride = $this->findRideWithUsersByFields(['ride_id' => $rideId]);
+        return $ride;
+    }
+
+    // Récupére la liste des objets Ride avec les participants en liste brute
+    // selon un ou plusieurs critéres avec tri et pargination..
     public function findAllRidesWithUsersByFields(
         array $criteria = [],
         string $orderBy = 'ride_id',
@@ -126,7 +179,7 @@ class RideWithUsersRepository extends RideRepository
         );
 
         // Construction du SQL 
-        $sql = $this->baseRideUserSelect();
+        $sql = $this->baseQueryRideUser();
 
         // Ajout des critéres
         foreach ($criteria as $field => $value) {
@@ -190,44 +243,5 @@ class RideWithUsersRepository extends RideRepository
             }
         }
         return array_values($rideMap);
-    }
-
-    /**
-     * Récupére un objet Ride avec le liste l'objet User conducteur et les objets User passagers.
-     *
-     * @param integer $rideId
-     * @return Ride|null
-     */
-    public function findRideWithUsersByRideId(int $rideId): ?Ride
-    {
-        // Construction du sql
-        $sql = $this->baseRideUserSelect();
-        $sql .= " WHERE r.ride_id = :ride_id
-                ORDER BY p.user_name";
-
-        // Préparation de la requête
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue('ride_id', $rideId, PDO::PARAM_INT);
-        $stmt->execute();
-
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC); // FetchAll car plusieurs lignes d'utilisateur (conducteur et passager)
-        if (!$rows) return null;
-
-        // Hydratation du trajet avec la premiére ligne.
-        $ride = $this->hydrateRide($rows[0]);
-
-        // Hydratation du conducteur.
-        $driver = $this->mapUser($rows[0], 'driver_');
-        $ride->setRideDriver($driver);
-
-        // Ajouter les passagers en les hydratant.
-        foreach ($rows as $row) {
-            if (!empty($row['passenger_id'])) {
-                $passenger = $this->mapUser($row, 'passenger_');
-                $ride->addRidePassenger($passenger);
-            }
-        }
-
-        return $ride;
     }
 }
