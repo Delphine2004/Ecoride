@@ -11,7 +11,9 @@ class CarService extends BaseService
 {
     public function __construct(
         private CarRepository $carRepository,
-    ) {}
+    ) {
+        parent::__construct();
+    }
 
     // Vérifie si l'utilisateur a encore des voitures.
     public function userHasCars(int $userId): bool

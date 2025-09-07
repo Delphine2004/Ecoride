@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Repositories\RideWithUsersRepository;
 use App\Repositories\BookingRelationsRepository;
 use App\Services\BaseService;
+use App\Service\BookingService;
 use App\Models\Ride;
 use App\Models\Booking;
 use App\Enum\RideStatus;
@@ -15,8 +16,11 @@ class RideService extends BaseService
 
     public function __construct(
         private RideWithUsersRepository $rideWithUserRepository,
-        private BookingRelationsRepository $bookingRelationsRepository
-    ) {}
+        private BookingRelationsRepository $bookingRelationsRepository,
+        private BookingService $bookingService
+    ) {
+        parent::__construct();
+    }
 
     // Vérifie que le trajet a encore des places disponibles.
     public function hasAvailableSeat(int $rideId): bool
@@ -74,7 +78,7 @@ class RideService extends BaseService
             throw new InvalidArgumentException("Trajet complet.");
         }
 
-        if ($this->bookingRelationsRepository->userHasBooking($rideId, $userId)) {
+        if ($this->bookingService->userHasBooking($rideId, $userId)) {
             throw new InvalidArgumentException("Vous avez déjà réservé ce trajet.");
         }
 
