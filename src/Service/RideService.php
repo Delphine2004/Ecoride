@@ -78,7 +78,7 @@ class RideService extends BaseService
             throw new InvalidArgumentException("Trajet complet.");
         }
 
-        if ($this->bookingService->userHasBooking($rideId, $userId)) {
+        if ($this->bookingService->userHasBooking($userId, $rideId)) {
             throw new InvalidArgumentException("Vous avez déjà réservé ce trajet.");
         }
 
