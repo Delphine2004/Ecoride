@@ -400,7 +400,7 @@ class RideRepository extends BaseRepository
      * @return array
      */
     public function findAllRidesByDriver(
-        array $driverId,
+        int $driverId,
         ?RideStatus $rideStatus = null,
         string $orderBy = 'departure_date_time',
         string $orderDirection = 'DESC',
@@ -422,7 +422,7 @@ class RideRepository extends BaseRepository
      * @return array
      */
     public function fetchAllRidesByDriver(
-        array $driverId,
+        int $driverId,
         ?RideStatus $rideStatus = null,
         string $orderBy = 'departure_date_time',
         string $orderDirection = 'DESC',
@@ -440,7 +440,7 @@ class RideRepository extends BaseRepository
      */
     public function findUpcomingRidesByDriver(int $driverId): array
     {
-        return $this->findAllRidesByDriver(['driver_id' => $driverId], RideStatus::DISPONIBLE);
+        return $this->findAllRidesByDriver($driverId, RideStatus::DISPONIBLE);
     }
 
     /**
@@ -451,7 +451,7 @@ class RideRepository extends BaseRepository
      */
     public function fetchPastRidesByDriver(int $driverId): array
     {
-        return $this->fetchAllRidesByDriver(['driver_id' => $driverId], RideStatus::PASSE);
+        return $this->fetchAllRidesByDriver($driverId, RideStatus::PASSE);
     }
 
 
