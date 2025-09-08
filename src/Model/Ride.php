@@ -246,6 +246,13 @@ class Ride
 
     //-------Mise à jour du nombre de place ------
 
+    // Vérifie que le trajet a encore des places disponibles.
+    public function hasAvailableSeat(): bool
+    {
+        return $this->availableSeats > 0;
+    }
+
+
     public function decrementAvailableSeats(): void
     {
         if ($this->availableSeats <= 0) {
