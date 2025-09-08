@@ -67,7 +67,7 @@ class UserRelationsRepository extends UserRepository
             // réinitialise la collection à un tableau vide
             $user->setRides([]);
             // récuperation de la liste des trajets
-            $rides = $this->rideRepository->fetchAllRidesByDriver([$userId]);
+            $rides = $this->rideRepository->fetchAllRidesByDriver($userId);
             foreach ($rides as $ride) {
                 $user->addRide($ride);
             }
@@ -180,7 +180,7 @@ class UserRelationsRepository extends UserRepository
     ): array {
 
         // Récupération de tous les utilisateurs
-        $users = $this->findAllUsers($orderBy, $orderDirection, $limit, $offset); // Tous les utilisateurs sans distinction de rôle
+        $users = $this->findAllUsersByFields([], $orderBy, $orderDirection, $limit, $offset); // Tous les utilisateurs sans distinction de rôle
 
 
         // Pour chaque utilisateur de la liste, vérification des relations

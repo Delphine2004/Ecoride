@@ -73,7 +73,7 @@ class BookingRelationsRepository extends BookingRepository
         int $offset = 0
     ): array {
         // Récuperation de la réservation
-        $bookings = $this->findAllBookings($orderBy, $orderDirection, $limit, $offset);
+        $bookings = $this->findAllBookingsByFields([], $orderBy, $orderDirection, $limit, $offset);
 
         foreach ($bookings as $booking) {
             // Récupération du trajet
@@ -101,7 +101,7 @@ class BookingRelationsRepository extends BookingRepository
         int $offset = 0
     ): array {
         // Récuperation de la réservation
-        $bookings = $this->fetchAllBookingsRows($orderBy, $orderDirection, $limit, $offset);
+        $bookings = $this->fetchAllBookingsRowsByFields([], $orderBy, $orderDirection, $limit, $offset);
 
         foreach ($bookings as $i => $booking) {
             // Récupération du trajet et des utilisateurs
