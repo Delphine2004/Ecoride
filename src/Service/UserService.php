@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service;
+namespace App\Services;
 
 use App\Repositories\UserRelationsRepository;
 use App\Models\User;
@@ -23,7 +23,7 @@ class UserService extends BaseService
     //----------Action VISITEUR------------
 
     // Permet à un visiteur de créer un compte
-    public function createAccount(array $data)
+    public function createAccount(array $data) // :int
     {
         //createUserFromForm() -- contient le hashage du mdp
     }
