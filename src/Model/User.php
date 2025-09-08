@@ -216,7 +216,7 @@ class User
     public function setPassword(string $password, bool $isHashed = false): self
     {
         if (!$isHashed) {
-            //$this->validatePassword($password);
+            $this->validatePassword($password);
             $password = password_hash($password, PASSWORD_DEFAULT);
         }
 
@@ -362,6 +362,60 @@ class User
     {
         $this->bookings[] = $booking;
     }
+
+
+    // ------- Gestion des rôles --------
+
+    public function addRole(UserRoles $role): self
+    {
+        if (!in_array($role, $this->roles, true)) {
+            $this->roles[] = $role;
+        }
+        $this->updateTimestamp();
+        return $this;
+    }
+
+    public function removeRole(UserRoles $role): self
+    {
+        $this->roles = array_filter($this->roles, fn($r) => $r !== $role);
+        $this->updateTimestamp();
+        return $this;
+    }
+
+    //Fonction qui permet à un passager d'ajouter le rôle conducteur.
+
+    /*
+    public function changeToDriver(): void
+    {
+        if ($this->hasRole(UserRoles::CONDUCTEUR)) {
+            throw new InvalidArgumentException("L'utilisateur est déjà conducteur.");
+        }
+        if (!$this->hasRole(UserRoles::PASSAGER)) {
+            throw new InvalidArgumentException("Seulement les passagers peuvent devenir chaufeur.");
+        }
+        $this->addRole(UserRoles::CONDUCTEUR);
+    }*/
+
+
+    // ----- Méthodes de vérification -----
+
+    public function verifyPassword(string $inputPassword): bool
+    {
+        return password_verify($inputPassword, $this->password);
+    }
+
+    private function validatePassword(string $password): void
+    {
+        $password = trim($password);
+        // modifier la longueur pour 14 plus tard
+        $regexPassword = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/';
+
+        if (!preg_match($regexPassword, $password)) {
+
+            throw new InvalidArgumentException('Le mot de passe doit contenir au minimun une minuscule, une majuscule, un chiffre, un caractère spécial et contenir 8 caractéres au total.');
+        };
+    }
+
 
     //-----------Gestion des crédits----------------
     public function decrementCredits(float $amount): void
