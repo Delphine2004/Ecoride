@@ -36,7 +36,7 @@ class User
         private ?string $zipCode = null, // Champ optionnel en fonction du rôle
         private ?string $uriPicture = null, // Champ optionnel en fonction du rôle
         private ?string $licenceNo = null, // Champ optionnel en fonction du rôle
-        private ?int $credit = null, // Champ optionnel en fonction du rôle
+        private ?int $credits = null, // Champ optionnel en fonction du rôle
 
         private ?string $apiToken = null, // n'a pas de valeur au moment de l'instanciation
         /**@var UserRoles[] */
@@ -63,7 +63,7 @@ class User
             ->setZipCode($zipCode)
             ->setUriPicture($uriPicture)
             ->setLicenceNo($licenceNo)
-            ->setCredit($credit)
+            ->setCredits($credits)
             ->setApiToken($apiToken)
             ->setRoles($roles);
 
@@ -135,9 +135,9 @@ class User
         return $this->licenceNo;
     }
 
-    public function getCredit(): ?int
+    public function getCredits(): float
     {
-        return $this->credit;
+        return $this->credits;
     }
 
     public function getApiToken(): ?string
@@ -296,12 +296,12 @@ class User
         return $this;
     }
 
-    public function setCredit(?int $credit): self
+    public function setCredits(?float $credits): self
     {
-        if ($credit !== null && $credit < 0) {
+        if ($credits !== null && $credits < 0) {
             throw new InvalidArgumentException("Le crédit ne peut pas être négatif.");
         }
-        $this->credit = $credit;
+        $this->credits = $credits;
         $this->updateTimestamp();
         return $this;
     }
@@ -347,7 +347,7 @@ class User
         return $this;
     }
 
-
+    //----------------------------------------
     public function addCar(Car $car): void
     {
         $this->cars[] = $car;
@@ -363,6 +363,19 @@ class User
         $this->bookings[] = $booking;
     }
 
+    //-----------Gestion des crédits----------------
+    public function decrementCredits(float $amount): void
+    {
+        if ($amount > $this->credits) {
+            throw new InvalidArgumentException("Crédits insuffisants.");
+        }
+        $this->credits = $amount;
+    }
+
+    public function incrementCredit(float $amount): void
+    {
+        $this->credits += $amount;
+    }
 
 
     // ---- Mise à jour de la date de modification
