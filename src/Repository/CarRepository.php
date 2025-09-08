@@ -124,111 +124,6 @@ class CarRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste des objets Car avec tri et pargination.
-     *
-     * @param string|null $orderBy
-     * @param string $orderDirection
-     * @param integer $limit
-     * @param integer $offset
-     * @return array
-     */
-    public function findAllCars(
-        ?string $orderBy = null,
-        string $orderDirection = 'DESC',
-        int $limit = 50,
-        int $offset = 0
-    ): array {
-        // Vérifier si l'ordre et la direction sont définis et valides.
-        [$orderBy, $orderDirection] = $this->sanitizeOrder(
-            $orderBy,
-            $orderDirection,
-            'car_id'
-        );
-
-        // Chercher les éléments.
-        $rows = parent::findAll($orderBy, $orderDirection, $limit, $offset);
-        return array_map(fn($row) => $this->hydrateCar((array) $row), $rows);
-    }
-
-    /**
-     * Récupére une liste brute des voitures avec tri et pargination.
-     *
-     * @param string|null $orderBy
-     * @param string $orderDirection
-     * @param integer $limit
-     * @param integer $offset
-     * @return array
-     */
-    public function fetchAllCarsRows(
-        ?string $orderBy = null,
-        string $orderDirection = 'DESC',
-        int $limit = 50,
-        int $offset = 0
-    ): array {
-        // Vérifier si l'ordre et la direction sont définis et valides.
-        [$orderBy, $orderDirection] = $this->sanitizeOrder(
-            $orderBy,
-            $orderDirection,
-            'car_id'
-        );
-        // Chercher les éléments.
-        $rows = parent::findAll($orderBy, $orderDirection, $limit, $offset);
-        return $rows;
-    }
-
-    /**
-     * Récupére un objet Car selon un ou plusieurs champs spécifiques.
-     *
-     * @param array $criteria
-     * @return Car|null
-     */
-    public function findCarByFields(
-        array $criteria = []
-    ): ?Car {
-        // Vérifie si chaque champ est autorisé.
-        foreach ($criteria as $field => $value) {
-            if (!$this->isAllowedField($field)) {
-                return null;
-            }
-        }
-
-        // Chercher l'élément
-        $row = parent::findOneByFields($criteria);
-        return $row ? $this->hydrateCar((array) $row) : null;
-    }
-
-    /**
-     * Récupére une liste brute des voitures selon un champ spécifique avec tri et pargination.
-     *
-     * @param array $criteria
-     * @param string|null $orderBy
-     * @param string $orderDirection
-     * @param integer $limit
-     * @param integer $offset
-     * @return array
-     */
-    public function fetchAllCarsRowsByFields(
-        array $criteria = [],
-        ?string $orderBy = null,
-        string $orderDirection = 'DESC',
-        int $limit = 50,
-        int $offset = 0
-    ): array {
-
-        // Pas nécessaire de vérifier les champs car table pivot.
-        // Vérifier si l'ordre et la direction sont définis et valides.
-        [$orderBy, $orderDirection] = $this->sanitizeOrder(
-            $orderBy,
-            $orderDirection,
-            'car_id'
-        );
-        // Chercher les éléments.
-        $rows = parent::findAllByFields($criteria, $orderBy, $orderDirection, $limit, $offset);
-        return $rows;
-    }
-
-
-    /**
      * Récupére la liste des objets Car selon un ou plusieurs champs spécifiques avec tri et pargination.
      *
      * @param array $criteria
@@ -264,8 +159,38 @@ class CarRepository extends BaseRepository
         return array_map(fn($row) => $this->hydrateCar((array) $row), $rows);
     }
 
+    /**
+     * Récupére une liste brute des voitures selon un champ spécifique avec tri et pargination.
+     *
+     * @param array $criteria
+     * @param string|null $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
+    public function fetchAllCarsRowsByFields(
+        array $criteria = [],
+        ?string $orderBy = null,
+        string $orderDirection = 'DESC',
+        int $limit = 50,
+        int $offset = 0
+    ): array {
 
-    //  ------ Récupérations spécifiques ---------
+        // Pas nécessaire de vérifier les champs car table pivot.
+        // Vérifier si l'ordre et la direction sont définis et valides.
+        [$orderBy, $orderDirection] = $this->sanitizeOrder(
+            $orderBy,
+            $orderDirection,
+            'car_id'
+        );
+        // Chercher les éléments.
+        $rows = parent::findAllByFields($criteria, $orderBy, $orderDirection, $limit, $offset);
+        return $rows;
+    }
+
+
+    // ------ Récupérations spécifiques de liste d'objet ---------
 
     /**
      * Récupére la liste des objets Car selon l'energie utilisée avec tri et pargination.
@@ -307,7 +232,7 @@ class CarRepository extends BaseRepository
         return $this->findAllCarsByFields(['user_id' => $userId],  $orderBy, $orderDirection, $limit, $offset);
     }
 
-
+    // ------ Récupérations spécifiques de liste brute ---------
     /**
      * Récupére la liste brute des voitures par l'id du conducteur avec tri et pagination.
      *

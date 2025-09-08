@@ -167,80 +167,6 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste des objets Ride avec tri et pargination.
-     *
-     * @param string|null $orderBy
-     * @param string $orderDirection
-     * @param integer $limit
-     * @param integer $offset
-     * @return array
-     */
-    public function findAllRides(
-        ?string $orderBy = null,
-        string $orderDirection = 'DESC',
-        int $limit = 50,
-        int $offset = 0
-    ): array {
-        // Vérifier si l'ordre et la direction sont définis et valides.
-        [$orderBy, $orderDirection] = $this->sanitizeOrder(
-            $orderBy,
-            $orderDirection,
-            'ride_id'
-        );
-
-        // Chercher les éléments.
-        $rows = parent::findAll($orderBy, $orderDirection, $limit, $offset);
-        return array_map(fn($row) => $this->hydrateRide((array) $row), $rows);
-    }
-
-    /**
-     * Récupére une liste brute des trajets avec tri et pargination.
-     *
-     * @param string|null $orderBy
-     * @param string $orderDirection
-     * @param integer $limit
-     * @param integer $offset
-     * @return array
-     */
-    public function fetchAllRidesRows(
-        ?string $orderBy = null,
-        string $orderDirection = 'DESC',
-        int $limit = 50,
-        int $offset = 0
-    ): array {
-        // Vérifier si l'ordre et la direction sont définis et valides.
-        [$orderBy, $orderDirection] = $this->sanitizeOrder(
-            $orderBy,
-            $orderDirection,
-            'ride_id'
-        );
-        // Chercher les éléments.
-        $rows = parent::findAll($orderBy, $orderDirection, $limit, $offset);
-        return $rows;
-    }
-
-    /**
-     * Récupére un objet Ride selon un ou plusieurs champs spécifiques.
-     *
-     * @param array $criteria
-     * @return Ride|null
-     */
-    public function findRideByFields(
-        array $criteria = []
-    ): ?Ride {
-        // Vérifie si chaque champ est autorisé.
-        foreach ($criteria as $field => $value) {
-            if (!$this->isAllowedField($field)) {
-                return null;
-            }
-        }
-
-        // Chercher l'élément
-        $row = parent::findOneByFields($criteria);
-        return $row ? $this->hydrateRide((array) $row) : null;
-    }
-
-    /**
      * Récupére la liste des objets Ride selon un ou plusieurs champs spécifiques avec tri et pargination.
      *
      * @param array $criteria
@@ -337,6 +263,28 @@ class RideRepository extends BaseRepository
         ], $orderBy, $orderDirection, $limit, $offset);
     }
 
+    /**
+     * Récupére la liste brute des trajets selon la date de création avec tri et pargination.
+     *
+     * @param integer $creationDate
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
+    public function fetchAllRidesRowsByCreationDate(
+        int $creationDate,
+        string $orderBy = 'created_at',
+        string $orderDirection = 'DESC',
+        int $limit = 20,
+        int $offset = 0
+    ): array {
+        return $this->fetchAllRidesRowsByFields(['created_at' => $creationDate], $orderBy, $orderDirection, $limit, $offset);
+    }
+
+
+    //------ Récupérations en fonction du rôle ------
     /**
      * Récupére la liste des objets Ride selon le statut de l'utilisateur avec tri et pargination.
      *

@@ -22,6 +22,21 @@ abstract class BaseRepository
     }
 
 
+
+    /**
+     * Récupére un enregistrement par son id.
+     *
+     * @param integer $id
+     * @return object|null
+     */
+    public function findById(
+        int $id
+    ): ?object {
+        $results = $this->findAllByFields([$this->primaryKey => $id], limit: 1);
+        return $results[0] ?? null;
+    }
+
+
     /**
      * Récupére tous les enregistrements avec 1 ou plusieurs champs avec tri et pargination.
      *
@@ -77,49 +92,6 @@ abstract class BaseRepository
         return $stmt->fetchAll(PDO::FETCH_CLASS, $this->entityClass);
     }
 
-    /**
-     * Récupére tous les enregistrements sans champ avec tri et pargination.
-     *
-     * @param string|null $orderBy
-     * @param string $orderDirection
-     * @param integer $limit
-     * @param integer $offset
-     * @return array
-     */
-    public function findAll(
-        ?string $orderBy = null,
-        string $orderDirection = 'DESC',
-        int $limit = 50,
-        int $offset = 0
-    ): array {
-        return $this->findAllByFields([], $orderBy, $orderDirection, $limit, $offset);
-    }
-
-    /**
-     * Récupére un enregistrement avec ou sans champs.
-     *
-     * @param array $criteria
-     * @return object|null
-     */
-    public function findOneByFields(
-        array $criteria = []
-    ): ?object {
-        $results = $this->findAllByFields($criteria, limit: 1);
-        return $results[0] ?? null;
-    }
-
-    /**
-     * Récupére un enregistrement par son id.
-     *
-     * @param integer $id
-     * @return object|null
-     */
-    public function findById(
-        int $id
-    ): ?object {
-        $results = $this->findAllByFields([$this->primaryKey => $id], limit: 1);
-        return $results[0] ?? null;
-    }
 
     //----------------------------------------------
 

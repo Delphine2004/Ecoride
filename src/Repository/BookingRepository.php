@@ -84,60 +84,6 @@ class BookingRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste des objets Booking avec tri et pargination.
-     *
-     * @param string|null $orderBy
-     * @param string $orderDirection
-     * @param integer $limit
-     * @param integer $offset
-     * @return array
-     */
-    public function findAllBookings(
-        ?string $orderBy = null,
-        string $orderDirection = 'DESC',
-        int $limit = 50,
-        int $offset = 0
-    ): array {
-        // Vérifier si l'ordre et la direction sont définis et valides.
-        [$orderBy, $orderDirection] = $this->sanitizeOrder(
-            $orderBy,
-            $orderDirection,
-            'booking_id'
-        );
-
-        // Chercher les éléments.
-        $rows = parent::findAll($orderBy, $orderDirection, $limit, $offset);
-        return array_map(fn($row) => $this->hydrateBooking((array) $row), $rows);
-    }
-
-    /**
-     * Récupére une liste brute de réservation avec tri et pargination.
-     *
-     * @param string|null $orderBy
-     * @param string $orderDirection
-     * @param integer $limit
-     * @param integer $offset
-     * @return array
-     */
-    public function fetchAllBookingsRows(
-        ?string $orderBy = null,
-        string $orderDirection = 'DESC',
-        int $limit = 50,
-        int $offset = 0
-    ): array {
-        // Vérifier si l'ordre et la direction sont définis et valides.
-        [$orderBy, $orderDirection] = $this->sanitizeOrder(
-            $orderBy,
-            $orderDirection,
-            'booking_id'
-        );
-        // Chercher les éléments.
-        $rows = parent::findAll($orderBy, $orderDirection, $limit, $offset);
-        return $rows;
-    }
-
-
-    /**
      * Récupére un objet Booking selon un ou plusieurs champs spécifiques.
      *
      * @param array $criteria
@@ -147,9 +93,10 @@ class BookingRepository extends BaseRepository
         array $criteria = []
     ): ?Booking {
         // Pas nécessaire de vérifier les champs car table pivot.
+
         // Chercher l'élément
-        $row = parent::findOneByFields($criteria);
-        return $row ? $this->hydrateBooking((array) $row) : null;
+        $row = $this->findAllBookingsByFields($criteria, limit: 1);
+        return $row[0] ?? null;
     }
 
     /**
@@ -214,7 +161,8 @@ class BookingRepository extends BaseRepository
         return $rows;
     }
 
-    //------ Récupération spécifique-----
+
+    // ------ Récupérations spécifiques de liste d'objet ---------
 
     /**
      * Récupére un objet Booking par l'id du trajet.
