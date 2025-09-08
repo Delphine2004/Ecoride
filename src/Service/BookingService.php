@@ -10,7 +10,6 @@ use App\Models\Ride;
 use App\Models\User;
 use App\Services\BaseService;
 use App\Enum\BookingStatus;
-use DateTimeImmutable;
 use DateTimeInterface;
 use InvalidArgumentException;
 
@@ -49,7 +48,18 @@ class BookingService extends BaseService
     {
         // Vérification de la permission
         $passengerId = $passenger->getUserId();
-        $this->ensurePassenger($passengerId);
+
+
+        // Vérification des permissions.
+        if (
+            !$this->ensurePassenger($passengerId) &&
+            !$this->ensureAdmin($passengerId) &&
+            !$this->ensureEmployee($passengerId)
+        ) {
+            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à annuler cette réservation.");
+        }
+
+
 
         // Vérification de l'existance des entités
         if (!$ride  || !$driver || !$passenger) {
@@ -99,9 +109,9 @@ class BookingService extends BaseService
 
         // Vérification des permissions.
         if (
-            $userId !== $passengerId &&
-            !$this->roleService->isAdmin($userId) &&
-            !$this->roleService->isEmployee($userId)
+            !$this->ensurePassenger($passengerId) &&
+            !$this->ensureAdmin($userId) &&
+            !$this->ensureEmployee($userId)
         ) {
             throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à annuler cette réservation.");
         }
@@ -131,8 +141,11 @@ class BookingService extends BaseService
     //------------------RECUPERATIONS------------------------
 
     // Récupére la réservation avec l'objet Ride et les objets User liés à la réservation
-    public function getBookingWithRideAndUsers(int $bookingId): ?Booking
+    public function getBookingWithRideAndUsers(int $bookingId, int $employeeId): ?Booking
     {
+        // Vérification de la permission
+        $this->ensureEmployee($employeeId);
+
         // Récupération de la réservation
         $booking = $this->bookingRelationsRepository->findBookingById($bookingId);
 
@@ -147,7 +160,9 @@ class BookingService extends BaseService
     // Récupére la liste des réservations en fonction de la date de création pour les utilisateurs avec le rôle EMPLOYEE
     public function getBookingListByDate(DateTimeInterface $creationDate, int $employeeId)
     {
+        // Vérification de la permission
         $this->ensureEmployee($employeeId);
+
         return $this->bookingRelationsRepository->fetchAllBookingsByCreatedAt($creationDate);
     }
 }
