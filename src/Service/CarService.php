@@ -15,12 +15,18 @@ class CarService extends BaseService
         parent::__construct();
     }
 
+
+    //--------------VERIFICATION-----------------
+
     // Vérifie si l'utilisateur a encore des voitures.
     public function userHasCars(int $userId): bool
     {
         $this->ensureDriver($userId);
         return count($this->carRepository->findAllCarsByOwner($userId)) > 0;
     }
+
+
+    //-----------------ACTIONS------------------------------
 
     // Permet à un utilisateur CONDUCTEUR d'ajouter une voiture.
     public function addCar(int $userId, Car $car): int
@@ -38,6 +44,9 @@ class CarService extends BaseService
         }
         $this->carRepository->deleteCar($carId);
     }
+
+
+    //------------------RECUPERATIONS------------------------
 
     // Récupére les voitures d'un utilisateur CONDUCTEUR.
     public function getCarsByUser(int $userId): array

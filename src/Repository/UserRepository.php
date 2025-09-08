@@ -74,7 +74,7 @@ class UserRepository extends BaseRepository
             zipCode: $data['zip_code'] ?? null,
             uriPicture: $data['picture'] ?? null,
             licenceNo: $data['licence_no'] ?? null,
-            credit: isset($data['credit']) ? (int)$data['credit'] : null,
+            credits: isset($data['credit']) ? (int)$data['credit'] : null,
             apiToken: $data['api_token'] ?? null,
             roles: $roles,
             createdAt: !empty($data['created_at']) ? new \DateTimeImmutable($data['created_at']) : null,
@@ -102,7 +102,7 @@ class UserRepository extends BaseRepository
             'zip_code' => $user->getZipCode(),
             'picture' => $user->getUriPicture(),
             'licence_no' => $user->getLicenceNo(),
-            'credit' => $user->getCredit(),
+            'credit' => $user->getCredits(),
             'api_token' => $user->getApiToken()
         ];
     }
