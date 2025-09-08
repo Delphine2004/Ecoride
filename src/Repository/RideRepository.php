@@ -93,7 +93,7 @@ class RideRepository extends BaseRepository
     }
 
     private function baseQueryRidesByUserRole(
-        array $userId,
+        int $userId,
         UserRoles $role,
         ?RideStatus $rideStatus,
         string $orderBy,
@@ -340,7 +340,7 @@ class RideRepository extends BaseRepository
     /**
      * Récupére la liste des objets Ride selon le statut de l'utilisateur avec tri et pargination.
      *
-     * @param array $userId
+     * @param int $userId
      * @param UserRoles $role
      * @param RideStatus|null $rideStatus
      * @param string $orderBy
@@ -350,7 +350,7 @@ class RideRepository extends BaseRepository
      * @return array
      */
     public function findAllRidesByUserRole(
-        array $userId,
+        int $userId,
         UserRoles $role,
         ?RideStatus $rideStatus = null,
         string $orderBy = 'departure_date_time',
@@ -365,7 +365,7 @@ class RideRepository extends BaseRepository
     /**
      * Récupére la liste brute des trajets selon le rôle de l'utilisateur avec tri et pargination.
      *
-     * @param array $userId
+     * @param int $userId
      * @param UserRoles $role
      * @param RideStatus|null $rideStatus
      * @param string $orderBy
@@ -375,7 +375,7 @@ class RideRepository extends BaseRepository
      * @return array
      */
     public function fetchAllRidesByUserRole(
-        array $userId,
+        int $userId,
         UserRoles $role,
         ?RideStatus $rideStatus = null,
         string $orderBy = 'departure_date_time',
@@ -391,7 +391,7 @@ class RideRepository extends BaseRepository
     /**
      * Récupére la liste des objets Ride d'un conducteur avec tri et pargination.
      *
-     * @param array $driverId
+     * @param int $driverId
      * @param RideStatus|null $rideStatus
      * @param string $orderBy
      * @param string $orderDirection
@@ -407,13 +407,13 @@ class RideRepository extends BaseRepository
         int $limit = 20,
         int $offset = 0
     ): array {
-        return $this->findAllRidesByUserRole(['driver_id' => $driverId], UserRoles::CONDUCTEUR, $rideStatus, $orderBy, $orderDirection, $limit, $offset);
+        return $this->findAllRidesByUserRole($driverId, UserRoles::CONDUCTEUR, $rideStatus, $orderBy, $orderDirection, $limit, $offset);
     }
 
     /**
      * Récupére la liste brute des trajets d'un conducteur avec tri et pagination.
      *
-     * @param array $driverId
+     * @param int $driverId
      * @param RideStatus|null $rideStatus
      * @param string $orderBy
      * @param string $orderDirection
@@ -429,7 +429,7 @@ class RideRepository extends BaseRepository
         int $limit = 20,
         int $offset = 0
     ): array {
-        return $this->fetchAllRidesByUserRole(['driver_id' => $driverId], UserRoles::CONDUCTEUR, $rideStatus, $orderBy, $orderDirection, $limit, $offset);
+        return $this->fetchAllRidesByUserRole($driverId, UserRoles::CONDUCTEUR, $rideStatus, $orderBy, $orderDirection, $limit, $offset);
     }
 
     /**
@@ -468,36 +468,36 @@ class RideRepository extends BaseRepository
      * @return array
      */
     public function findAllRidesByPassenger(
-        array $passengerId,
+        int $passengerId,
         ?RideStatus $rideStatus = null,
         string $orderBy = 'departure_date_time',
         string $orderDirection = 'DESC',
         int $limit = 20,
         int $offset = 0
     ): array {
-        return $this->findAllRidesByUserRole(['passenger_id' => $passengerId], UserRoles::PASSAGER, $rideStatus, $orderBy, $orderDirection, $limit, $offset);
+        return $this->findAllRidesByUserRole($passengerId, UserRoles::PASSAGER, $rideStatus, $orderBy, $orderDirection, $limit, $offset);
     }
 
     /**
      * Récupére la liste brute des trajets d'un passager avec tri et pagination.
      *
-     * @param array $passengerId
+     * @param int $passengerId
      * @param RideStatus|null $rideStatus
      * @param string $orderBy
      * @param string $orderDirection
      * @param integer $limit
      * @param integer $offset
-     * @return void
+     * @return array
      */
     public function fetchAllRidesByPassenger(
-        array $passengerId,
+        int $passengerId,
         ?RideStatus $rideStatus = null,
         string $orderBy = 'departure_date_time',
         string $orderDirection = 'DESC',
         int $limit = 20,
         int $offset = 0
-    ) {
-        return $this->fetchAllRidesByUserRole(['passenger_id' => $passengerId], UserRoles::PASSAGER, $rideStatus, $orderBy, $orderDirection, $limit, $offset);
+    ): array {
+        return $this->fetchAllRidesByUserRole($passengerId, UserRoles::PASSAGER, $rideStatus, $orderBy, $orderDirection, $limit, $offset);
     }
 
     /**
@@ -508,7 +508,7 @@ class RideRepository extends BaseRepository
      */
     public function findUpcomingRidesByPassenger(int $passengerId): array
     {
-        return $this->findAllRidesByPassenger(['passenger_id' => $passengerId], RideStatus::DISPONIBLE);
+        return $this->findAllRidesByPassenger($passengerId, RideStatus::DISPONIBLE);
     }
 
     /**
@@ -519,7 +519,7 @@ class RideRepository extends BaseRepository
      */
     public function fetchPastRidesByPassenger(int $passengerId): array
     {
-        return $this->findAllRidesByPassenger(['passenger_id' => $passengerId], RideStatus::PASSE);
+        return $this->findAllRidesByPassenger($passengerId, RideStatus::PASSE);
     }
 
     //------------------------------------------
