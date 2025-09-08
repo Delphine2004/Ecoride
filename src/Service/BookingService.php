@@ -3,47 +3,73 @@
 namespace App\Service;
 
 use App\Models\Booking;
-use App\Repositories\BookingRepository;
-use App\Repositories\RideRepository;
+use App\Repositories\BookingRelationsRepository;
+use App\Repositories\RideWithUsersRepository;
 use App\Repositories\UserRepository;
+use App\Models\Ride;
+use App\Models\User;
+use App\Services\BaseService;
 use App\Enum\BookingStatus;
+use DateTimeImmutable;
+use DateTimeInterface;
 use InvalidArgumentException;
 
 // Pas besoin de mise à jour de la date car fait dans Booking
 
-class BookingService
+class BookingService extends BaseService
 {
     // Promotion des propriétés (depuis PHP 8)
     public function __construct(
-        private BookingRepository $bookingRepository,
-        private RideRepository $rideRepository,
+        private BookingRelationsRepository $bookingRelationsRepository,
+        private RideWithUsersRepository $rideWithUsersRepository,
         private UserRepository $userRepository,
 
     ) {
-        $this->bookingRepository = $bookingRepository;
-        $this->rideRepository = $rideRepository;
-        $this->userRepository = $userRepository;
+        parent::__construct();
     }
 
-    // Création d'une réservation
-    public function createBooking(int $rideId, int $driverId, int $passengerId): Booking
+
+    //--------------VERIFICATION-----------------
+
+    // Vérifie que le passager n'a pas déjà une réservation
+    public function userHasBooking(User $user, Ride $ride): bool
     {
-        // récupération des données
-        $ride = $this->rideRepository->findRideById($rideId);
-        $driver = $this->userRepository->findUserById($driverId);
-        $passenger = $this->userRepository->findUserById($passengerId);
+        $booking = $this->bookingRelationsRepository->findBookingByFields([
+            'user_id' => $user->getUserId(),
+            'ride_id' => $ride->getRideId()
+        ]);
+        return $booking !== null;
+    }
 
 
-        // Vérifications
+    //-----------------ACTIONS------------------------------
+
+    // Création d'une réservation - Fonction utilisé dabs bookRide
+    public function createBooking(Ride $ride, User $driver, User $passenger): Booking
+    {
+        // Vérification de la permission
+        $passengerId = $passenger->getUserId();
+        $this->ensurePassenger($passengerId);
+
+        // Vérification de l'existance des entités
         if (!$ride  || !$driver || !$passenger) {
             throw new InvalidArgumentException("Trajet, conducteur ou passager introuvable.");
         }
 
-        if ($ride->getRideAvailableSeats() <= 0) {
-            throw new InvalidArgumentException("Il n'y a plus de place disponible pour ce trajet.");
+        // Vérification de doublon de réservation
+        if ($this->userHasBooking($passenger, $ride)) {
+            throw new InvalidArgumentException("L'utilisateur a déjà une réservation.");
         }
 
-        // Création de l'entité
+        // Vérification du remplissage du trajet
+        if (!$ride->hasAvailableSeat()) {
+            throw new InvalidArgumentException("Trajet complet.");
+        }
+
+        // Décrémentation du nombre de place disponible
+        $ride->decrementAvailableSeats();
+
+        // Création de Booking
         $booking = new Booking(
             ride: $ride,
             passenger: $passenger,
@@ -51,76 +77,37 @@ class BookingService
         );
 
         //Enregistrement en BD
-        $this->bookingRepository->insertBooking($booking);
-
-        // Mise à jour du nombre de place
-        $ride->setRideAvailableSeats($ride->getRideAvailableSeats() - 1); // à modifier pour que cela prenne le nombre de place réservée
-        $this->rideRepository->updateRide($ride);
+        $this->bookingRelationsRepository->insertBooking($booking);
 
         return $booking;
     }
 
-    // Mise à jour d'une réservation
-    public function modifyBooking(int $bookingId, int $rideId, int $driverId, int $passengerId): Booking
+    // Permet à un utilisateur PASSAGER d'annuler une réservation.
+    public function cancelBooking(int $userId, int $bookingId): void
     {
-        // Récupération de la réservation
-        $booking = $this->bookingRepository->findBookingById($bookingId);
+
+        // Récupération de l'entité Booking
+        $booking = $this->bookingRelationsRepository->findBookingById($bookingId);
 
         // Vérification de l'existence de la réservation
         if (!$booking) {
             throw new InvalidArgumentException("Réservation introuvable.");
         }
 
+        // Récupération de l'utilisateur
+        $passengerId = $booking->getBookingPassenger()->getUserId();
 
-        // Récupération des entités
-        $ride = $this->rideRepository->findRideById($rideId);
-        $driver = $this->userRepository->findUserById($driverId);
-        $passenger = $this->userRepository->findUserById($passengerId);
-
-        // Vérification des entités
-        if (!$ride || !$passenger || !$driver) {
-            throw new InvalidArgumentException("Trajet, conducteur ou passager vide.");
+        // Vérification des permissions.
+        if (
+            $userId !== $passengerId &&
+            !$this->roleService->isAdmin($userId) &&
+            !$this->roleService->isEmployee($userId)
+        ) {
+            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à annuler cette réservation.");
         }
 
 
-        // Gestion du nombre de place
-        $oldRide = $booking->getbookingRide();
-        if ($oldRide->getRideId() !== $ride->getRideId()) {
-            $oldRide->setRideAvailableSeats($oldRide->getRideAvailableSeats() + 1);
-            $this->rideRepository->updateRide($oldRide);
-
-            if ($ride->getRideAvailableSeats() <= 0) {
-                throw new InvalidArgumentException("Il n'y a plus de place dipsonible sur le trajet.");
-            }
-            $ride->setRideAvailableSeats($ride->getRideAvailableSeats() - 1);
-            $this->rideRepository->updateRide($ride);
-        }
-
-
-        // Modification de l'entité
-        $booking->setBookingRide($ride);
-        $booking->setBookingDriver($driver);
-        $booking->setBookingPassenger($passenger);
-
-        // Enregistrement en BD
-        $this->bookingRepository->updateBooking($booking);
-
-        return $booking;
-    }
-
-
-    // Annulation d'une réservation
-    public function cancelBooking(int $bookingId): Booking
-    {
-        // Récupération de la réservation
-        $booking = $this->bookingRepository->findBookingById($bookingId);
-
-        // Vérification de l'existence de la réservation
-        if (!$booking) {
-            throw new InvalidArgumentException("Réservation introuvable.");
-        }
-
-        // Vérification que la réservation n'est pas déjà annulée.
+        // Vérification du status de la réservation.
         if ($booking->getBookingStatus() === BookingStatus::ANNULEE) {
             throw new InvalidArgumentException("La réservation est déjà annulée.");
         }
@@ -130,30 +117,37 @@ class BookingService
 
         // Mise à jour des places disponibles
         $ride = $booking->getBookingRide();
-        $ride->setRideAvailableSeats($ride->getRideAvailableSeats() + 1);
-        $this->rideRepository->updateRide($ride); // permet de conserver l'historique
+        $ride->incrementAvailableSeats();
+        $this->rideWithUsersRepository->updateRide($ride); // permet de conserver l'historique
 
 
         // Enregistrement en BD
-        $this->bookingRepository->updateBooking($booking);
+        $this->bookingRelationsRepository->updateBooking($booking);
 
-        return $booking;
+        // ---->> ENVOIE DE LA CONFIRMATION D'ANNULATION AU PASSAGER ET AU CONDUCTEUR
     }
 
-    // Lister les utilisateurs de la réservation
-    public function listUsersBooking(int $bookingId): array
+
+    //------------------RECUPERATIONS------------------------
+
+    // Récupére la réservation avec l'objet Ride et les objets User liés à la réservation
+    public function getBookingWithRideAndUsers(int $bookingId): ?Booking
     {
         // Récupération de la réservation
-        $booking = $this->bookingRepository->findBookingById($bookingId);
+        $booking = $this->bookingRelationsRepository->findBookingById($bookingId);
 
         // Vérification de l'existence de la réservation
         if (!$booking) {
             throw new InvalidArgumentException("Réservation introuvable.");
         }
 
-        return [
-            'driver' => $booking->getBookingDriver(),
-            'passenger' => $booking->getBookingPassenger(),
-        ];
+        return $this->bookingRelationsRepository->findBookingWithRideAndUsersByBookingId($bookingId);
+    }
+
+    // Récupére la liste des réservations en fonction de la date de création pour les utilisateurs avec le rôle EMPLOYEE
+    public function getBookingListByDate(DateTimeInterface $creationDate, int $employeeId)
+    {
+        $this->ensureEmployee($employeeId);
+        return $this->bookingRelationsRepository->fetchAllBookingsByCreatedAt($creationDate);
     }
 }
