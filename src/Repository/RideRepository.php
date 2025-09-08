@@ -399,7 +399,7 @@ class RideRepository extends BaseRepository
      */
     public function fetchPastRidesByDriver(int $driverId): array
     {
-        return $this->fetchAllRidesByDriver($driverId, RideStatus::PASSE);
+        return $this->fetchAllRidesByDriver($driverId, RideStatus::TERMINE);
     }
 
 
@@ -467,7 +467,7 @@ class RideRepository extends BaseRepository
      */
     public function fetchPastRidesByPassenger(int $passengerId): array
     {
-        return $this->findAllRidesByPassenger($passengerId, RideStatus::PASSE);
+        return $this->findAllRidesByPassenger($passengerId, RideStatus::TERMINE);
     }
 
     //------------------------------------------
