@@ -2,10 +2,10 @@
 
 namespace App\Service;
 
-use App\Models\Booking;
 use App\Repositories\BookingRelationsRepository;
 use App\Repositories\RideWithUsersRepository;
 use App\Repositories\UserRepository;
+use App\Models\Booking;
 use App\Models\Ride;
 use App\Models\User;
 use App\Services\BaseService;
@@ -51,14 +51,7 @@ class BookingService extends BaseService
 
 
         // Vérification des permissions.
-        if (
-            !$this->ensurePassenger($passengerId) &&
-            !$this->ensureAdmin($passengerId) &&
-            !$this->ensureEmployee($passengerId)
-        ) {
-            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à annuler cette réservation.");
-        }
-
+        $this->ensurePassenger($passengerId);
 
 
         // Vérification de l'existance des entités
@@ -136,6 +129,12 @@ class BookingService extends BaseService
 
         // ---->> ENVOIE DE LA CONFIRMATION D'ANNULATION AU PASSAGER ET AU CONDUCTEUR
     }
+
+    // Envoi une confirmation de réservation par email.
+    public function sendBookingConfirmation(int $bookingId, int $userId) {}
+
+    // Envoi une confirmation d'annulation de réservation par email.
+    public function sendBookingCancelation(int $bookingId, int $userId) {}
 
 
     //------------------RECUPERATIONS------------------------
