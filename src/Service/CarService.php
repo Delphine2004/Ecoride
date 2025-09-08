@@ -22,14 +22,14 @@ class CarService extends BaseService
         return count($this->carRepository->findAllCarsByOwner($userId)) > 0;
     }
 
-    // Permet à un utilisateur ayant le rôle conducteur d'ajouter une voiture.
+    // Permet à un utilisateur CONDUCTEUR d'ajouter une voiture.
     public function addCar(int $userId, Car $car): int
     {
         $this->ensureDriver($userId);
         return $this->carRepository->insertCar($car);
     }
 
-    // Permet à un utilisateur ayant le rôle conducteur de supprimer une voiture.
+    // Permet à un utilisateur CONDUCTEUR de supprimer une voiture.
     public function removeCar(int $userId, int $carId): void
     {
         $this->ensureDriver($userId);
@@ -39,7 +39,7 @@ class CarService extends BaseService
         $this->carRepository->deleteCar($carId);
     }
 
-    // Récupére les voitures d'un utilisateur.
+    // Récupére les voitures d'un utilisateur CONDUCTEUR.
     public function getCarsByUser(int $userId): array
     {
         $this->ensureDriver($userId);
