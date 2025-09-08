@@ -10,6 +10,7 @@ use App\Service\BookingService;
 use App\Models\Ride;
 use App\Models\Booking;
 use App\Enum\RideStatus;
+use App\Enum\BookingStatus;
 use InvalidArgumentException;
 
 class RideService extends BaseService
@@ -37,6 +38,7 @@ class RideService extends BaseService
     // Permet à un utilisateur PASSAGER de réserver un trajet.
     public function bookRide(int $rideId, int $passengerId): Booking
     {
+        // Vérification de la permission
         $this->ensurePassenger($passengerId);
 
         // Récupération du trajet
@@ -52,7 +54,6 @@ class RideService extends BaseService
             throw new InvalidArgumentException("Trajet complet.");
         }
 
-
         //Récupération du chauffeur aprés avoir validé Ride
         $driver = $ride->getRideDriver();
         //Vérification de l'existance du conducteur
@@ -60,20 +61,24 @@ class RideService extends BaseService
             throw new InvalidArgumentException("Conducteur introuvable.");
         }
 
+        // Vérifier que le passager a assez de crédits
         $passenger = $this->userRelationsRepository->findUserById($passengerId);
+        if ($passenger->getCredits() < $ride->getRidePrice()) {
+            throw new InvalidArgumentException("Crédits insuffisants.");
+        }
 
-        // Création de la réservation
+
+        // Décrémentation les crédits du passager
+        $passenger->setCredits($passenger->getCredits() - $ride->getRidePrice());
+        $this->userRelationsRepository->updateUser(
+            $passenger,
+            [
+                'credits' => $passenger->getCredits()
+            ]
+        );
+
+        // Création de la réservation - dédrémentation incluse
         $booking = $this->bookingService->createBooking($ride, $driver, $passenger);
-
-
-
-        // Modifier la disponibilité dans la BD.
-        $this->rideWithUserRepository->updateById($rideId, [
-            'available_seats' => $ride->getRideAvailableSeats()
-        ]);
-
-
-        // Décrémentation des crédits du passager
 
         //Envoi de confirmation à placer ici
 
@@ -107,12 +112,40 @@ class RideService extends BaseService
         // Mise à jour du status
         $ride->setRideStatus(RideStatus::ANNULE);
 
-        // Enregistrement en BD
-        $this->rideWithUserRepository->updateById($rideId, ['ride_status' => $ride->getRideStatus()]);
+        // Récupération des réservations et mise à jour des réservations
+        $bookings = $this->bookingRelationsRepository->findBookingByRideId($rideId);
+
+        foreach ($bookings as $booking) {
+            $booking->setBookingStats(BookingStatus::ANNULEE);
+            $this->bookingRelationsRepository->updateBooking($booking->getBookingId(), [
+                'booking_status' => $booking->getBookingStatus()
+            ]);
+
+            // Trouver le passager à chaque tour de boucle
+            $passenger = $this->userRelationsRepository->findUserById($booking->getPassengerId());
+
+            // Lui définir son remboursement
+            $passenger->setCredits($passenger->getCredits() + $ride->getRidePrice());
+
+            // Enregistrement de ses crédits en BD
+            $this->userRelationsRepository->updateUser($passenger, [
+                'credits' => $passenger->getCredits()
+            ]);
+        }
+
+        // Enregistrement du statut du trajet en BD
+        $this->rideWithUserRepository->updateById($rideId, [
+            'ride_status' => $ride->getRideStatus()
+        ]);
 
         // ---->> ENVOIE DE LA CONFIRMATION D'ANNULATION AU CONDUCTEUR ET AUX PASSAGERS
     }
 
+    // Permet à un utilisateur CONDUCTEUR de démarrer un trajet
+    public function startRide() {}
+
+    // Permet à un utilisateur CONDUCTEUR de finaliser un trajet
+    public function finalizeRide(int $rideId) {}
 
     //------------------RECUPERATIONS------------------------
 
