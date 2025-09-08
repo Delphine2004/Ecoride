@@ -142,10 +142,19 @@ class RideService extends BaseService
     }
 
     // Permet à un utilisateur CONDUCTEUR de démarrer un trajet
-    public function startRide() {}
+    public function startRide(int $rideId) {}
 
     // Permet à un utilisateur CONDUCTEUR de finaliser un trajet
     public function finalizeRide(int $rideId) {}
+
+
+    // Envoi une confirmation de création de trajet par email.
+    public function sendRideConfirmation(int $rideId, int $userId) {}
+
+    // Envoi une confirmation d'annulation de trajet par email.
+    public function sendRideCancelation(int $rideId, int $userId) {}
+
+
 
     //------------------RECUPERATIONS------------------------
 
