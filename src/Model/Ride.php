@@ -220,14 +220,6 @@ class Ride
         return $this;
     }
 
-    public function decrementAvailableSeats(): void
-    {
-        if ($this->availableSeats <= 0) {
-            throw new InvalidArgumentException("Il n'y a plus de place disponible.");
-        }
-        $this->availableSeats--;
-    }
-
     public function setRideStatus(RideStatus $rideStatus): self
     {
         $this->rideStatus = $rideStatus;
@@ -251,6 +243,22 @@ class Ride
         $this->updateTimestamp();
         return $this;
     }
+
+    //-------Mise à jour du nombre de place ------
+
+    public function decrementAvailableSeats(): void
+    {
+        if ($this->availableSeats <= 0) {
+            throw new InvalidArgumentException("Il n'y a plus de place disponible.");
+        }
+        $this->availableSeats--;
+    }
+
+    public function incrementAvailableSeats(): void
+    {
+        $this->availableSeats++;
+    }
+
 
     // ------ Validation interne de la durée -----
     private function validateDuration(): void
