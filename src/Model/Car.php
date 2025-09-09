@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Models\User;
 use App\Enum\CarPower;
-use App\Enum\CarColors;
+use App\Enum\CarColor;
 use InvalidArgumentException;
 use DateTimeImmutable;
 
@@ -23,7 +23,7 @@ class Car
         private ?User $owner = null, // car pas chargé dans hydrateCar de CarRepository
         private string $brand,
         private string $model,
-        private CarColors $color,
+        private CarColor $color,
         private int $year,
         private CarPower $power,
         private int $seatsNumber,
@@ -69,7 +69,7 @@ class Car
         return $this->model;
     }
 
-    public function getColor(): CarColors
+    public function getColor(): CarColor
     {
         return $this->color;
     }
@@ -151,7 +151,7 @@ class Car
         return $this;
     }
 
-    public function setColor(CarColors $color): self
+    public function setColor(CarColor $color): self
     {
         $this->color = $color;
         return $this;
