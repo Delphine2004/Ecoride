@@ -7,6 +7,7 @@ use App\Repositories\BookingRelationsRepository;
 use app\Repositories\UserRelationsRepository;
 use App\Services\BaseService;
 use App\Services\BookingService;
+use App\Services\CarService;
 use App\Services\NotificationService;
 use App\Models\Ride;
 use App\Models\Booking;
@@ -23,6 +24,7 @@ class RideService extends BaseService
         private BookingRelationsRepository $bookingRelationsRepository,
         private UserRelationsRepository $userRelationsRepository,
         private BookingService $bookingService,
+        private CarService $carService,
         private NotificationService $notificationService
     ) {
         parent::__construct();
@@ -32,13 +34,19 @@ class RideService extends BaseService
     //-----------------ACTIONS------------------------------
 
     // Permet à un utilisateur CONDUCTEUR de rajouter un trajet.
-    public function addRide(Ride $ride, int $userId): int
+    public function addRide(Ride $ride, int $driverId): int
     {
         // Vérification de la permission
-        $this->ensureDriver($userId);
+        $this->ensureDriver($driverId);
 
         // Récupération du chauffeur
-        $driver = $ride->getRideDriver($userId);
+        $driver = $ride->getRideDriver($driverId);
+
+        // Vérification que le chauffeur a bien au moins une voiture
+        if (!$this->carService->userHasCars($driverId)) {
+            throw new InvalidArgumentException("Le conducteur doit avoir au moins une voiture.");
+        }
+
 
         // Déduction de la commission
         $commission = $ride->getRideCommission();
@@ -107,10 +115,10 @@ class RideService extends BaseService
     }
 
     // Permet à un utilisateur CONDUCTEUR d'annuler un trajet.
-    public function cancelRide(int $rideId, int $userId): Ride
+    public function cancelRide(int $rideId, int $driverId): Ride
     {
         // Vérification des permissions
-        $this->ensureDriver($userId);
+        $this->ensureDriver($driverId);
 
         // Récupération de l'entité Ride
         $ride = $this->rideWithUserRepository->findRideById($rideId);
@@ -121,7 +129,7 @@ class RideService extends BaseService
         }
 
         // Vérification qu'il s'agit bien du conducteur
-        if ($ride->getRideDriverId() !== $userId) {
+        if ($ride->getRideDriverId() !== $driverId) {
             throw new InvalidArgumentException("Seulement le conducteur associé au trajet peut annuler son trajet.");
         }
 
