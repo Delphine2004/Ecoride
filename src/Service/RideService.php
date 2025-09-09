@@ -4,8 +4,7 @@ namespace App\Services;
 
 use App\Repositories\RideWithUsersRepository;
 use App\Repositories\BookingRelationsRepository;
-use app\Repositories\UserRelationsRepository;
-use App\Services\BaseService;
+use App\Repositories\UserRelationsRepository;
 use App\Services\BookingService;
 use App\Services\CarService;
 use App\Services\NotificationService;
@@ -26,6 +25,7 @@ class RideService extends BaseService
         private BookingService $bookingService,
         private CarService $carService,
         private NotificationService $notificationService
+
     ) {
         parent::__construct();
     }
@@ -34,19 +34,40 @@ class RideService extends BaseService
     //-----------------ACTIONS------------------------------
 
     // Permet à un utilisateur CONDUCTEUR de rajouter un trajet.
-    public function addRide(Ride $ride, int $driverId): int
-    {
-        // Vérification de la permission
-        $this->ensureDriver($driverId);
+    public function addRide(
+        Ride $ride,
+        int $userId
+    ): Ride {
+        // Récupération de l'id du conducteur
+        $driverId = $ride->getRideDriverId();
 
-        // Récupération du chauffeur
-        $driver = $ride->getRideDriver($driverId);
+        // Vérification de l'existence du conducteur
+        if (!$driverId) {
+            throw new InvalidArgumentException("Conducteur introuvable.");
+        }
+
+        // Vérification de l'existence de l'utilisateur
+        if (!$userId) {
+            throw new InvalidArgumentException("Utilisateur introuvable.");
+        }
+
+        // Vérification des permissions.
+        if (
+            !$this->roleService->hasRole($userId, 'CONDUCTEUR') &&
+            !$this->roleService->hasRole($userId, 'EMPLOYE') &&
+            !$this->roleService->hasRole($userId, 'ADMIN')
+        ) {
+            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à ajouter un trajet.");
+        }
 
         // Vérification que le chauffeur a bien au moins une voiture
         if (!$this->carService->userHasCars($driverId)) {
             throw new InvalidArgumentException("Le conducteur doit avoir au moins une voiture.");
         }
 
+
+        // Récupération du chauffeur
+        $driver = $ride->getRideDriver($driverId);
 
         // Déduction de la commission
         $commission = $ride->getRideCommission();
@@ -61,14 +82,16 @@ class RideService extends BaseService
         );
 
 
-        return $this->rideWithUserRepository->insertRide($ride);
+        $this->rideWithUserRepository->insertRide($ride);
+
+        return $ride;
     }
 
     // Permet à un utilisateur PASSAGER de réserver un trajet.
-    public function bookRide(int $rideId, int $passengerId): Booking
-    {
-        // Vérification de la permission
-        $this->ensurePassenger($passengerId);
+    public function bookRide(
+        int $rideId,
+        int $userId
+    ): Booking {
 
         // Récupération du trajet
         $ride = $this->rideWithUserRepository->findRideById($rideId);
@@ -82,15 +105,31 @@ class RideService extends BaseService
             throw new InvalidArgumentException("Trajet complet.");
         }
 
-        // Récupération du chauffeur aprés avoir validé Ride
+        // Vérification de l'existence de l'utilisateur
+        if (!$userId) {
+            throw new InvalidArgumentException("Utilisateur introuvable.");
+        }
+
+        // Vérification des permissions.
+        if (
+            !$this->roleService->hasRole($userId, 'PASSAGER') &&
+            !$this->roleService->hasRole($userId, 'EMPLOYE') &&
+            !$this->roleService->hasRole($userId, 'ADMIN')
+        ) {
+            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à réserver un trajet.");
+        }
+
+
+        // Récupération du chauffeur
         $driver = $ride->getRideDriver();
+
         // Vérification de l'existance du conducteur
         if (!$driver) {
             throw new InvalidArgumentException("Conducteur introuvable.");
         }
 
         // Vérification des crédits du passager
-        $passenger = $this->userRelationsRepository->findUserById($passengerId);
+        $passenger = $this->userRelationsRepository->findUserById($userId);
         if ($passenger->getUserCredits() < $ride->getRidePrice()) {
             throw new InvalidArgumentException("Crédits insuffisants.");
         }
@@ -106,7 +145,7 @@ class RideService extends BaseService
         );
 
         // Création de la réservation - dédrémentation du siége incluse
-        $booking = $this->bookingService->createBooking($ride, $driver, $passenger);
+        $booking = $this->bookingService->createBooking($ride, $driver, $passenger, $userId);
 
         // Notification
         $this->notificationService->sendRideConfirmationToPassenger($passenger, $ride);
@@ -115,10 +154,10 @@ class RideService extends BaseService
     }
 
     // Permet à un utilisateur CONDUCTEUR d'annuler un trajet.
-    public function cancelRide(int $rideId, int $driverId): Ride
-    {
-        // Vérification des permissions
-        $this->ensureDriver($driverId);
+    public function cancelRide(
+        int $rideId,
+        int $userId
+    ): Ride {
 
         // Récupération de l'entité Ride
         $ride = $this->rideWithUserRepository->findRideById($rideId);
@@ -126,6 +165,29 @@ class RideService extends BaseService
         // Vérification de l'existence du trajet
         if (!$ride) {
             throw new InvalidArgumentException("Trajet introuvable.");
+        }
+
+
+        // Récupération de l'id du conducteur
+        $driverId = $ride->getRideDriver()->getUserId();
+
+        // Vérification de l'existence du conducteur
+        if (!$driverId) {
+            throw new InvalidArgumentException("Conducteur introuvable.");
+        }
+
+        // Vérification de l'existence de l'utilisateur
+        if (!$userId) {
+            throw new InvalidArgumentException("Utilisateur introuvable.");
+        }
+
+        // Vérification des permissions.
+        if (
+            !$this->roleService->hasRole($userId, 'CONDUCTEUR') &&
+            !$this->roleService->hasRole($userId, 'EMPLOYE') &&
+            !$this->roleService->hasRole($userId, 'ADMIN')
+        ) {
+            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à annuler ce trajet.");
         }
 
         // Vérification qu'il s'agit bien du conducteur
@@ -146,23 +208,25 @@ class RideService extends BaseService
         $bookings = $this->bookingRelationsRepository->findBookingByRideId($rideId);
 
         foreach ($bookings as $booking) {
+
+            // Mise à jour du statut de la réservation 
             $booking->setBookingStatus(BookingStatus::ANNULEE);
+
+            // Enregistrement du statut en BD
             $this->bookingRelationsRepository->updateBooking($booking->getBookingId(), [
                 'booking_status' => $booking->getBookingStatus()
             ]);
 
-            // Trouver le passager
+            // Défini le remboursement au passager
             $passenger = $this->userRelationsRepository->findUserById($booking->getPassengerId());
-
-            // Définir le remboursement au passager
             $passenger->setUserCredits($passenger->getUserCredits() + $ride->getRidePrice());
 
-            // Enregistrer les crédits du passager en BD
+            // Enregistrement des crédits du passager en BD
             $this->userRelationsRepository->updateUser($passenger, [
                 'credits' => $passenger->getUserCredits()
             ]);
 
-            // Notifier 
+            // Envoi l'annulation
             $this->notificationService->sendRideCancelationToPassenger($passenger, $ride);
         }
 
@@ -172,7 +236,7 @@ class RideService extends BaseService
         ]);
 
 
-        //Envoi de confirmation
+        // Envoi de confirmation
         $driver = $ride->getRideDriver();
         $this->notificationService->sendRideCancelationToDriver($driver, $ride);
 
@@ -180,12 +244,12 @@ class RideService extends BaseService
     }
 
     // Permet à un utilisateur CONDUCTEUR de démarrer un trajet
-    public function startRide(int $rideId, int $driverId): void
-    {
-        // Vérification des permissions
-        $this->ensureDriver($driverId);
-
+    public function startRide(
+        Ride $ride,
+        int $userId
+    ): void {
         // Récupération du trajet
+        $rideId = $ride->getRideId();
         $ride = $this->rideWithUserRepository->findRideById($rideId);
 
         // Vérification de l'existence du trajet
@@ -193,7 +257,32 @@ class RideService extends BaseService
             throw new InvalidArgumentException("Trajet introuvable.");
         }
 
-        // Vérification qu'il s'agit bien du conducteur
+
+        // Récupération de l'id du conducteur
+        $driverId = $ride->getRideDriverId();
+
+        // Vérification de l'existence du conducteur
+        if (!$driverId) {
+            throw new InvalidArgumentException("Conducteur introuvable.");
+        }
+
+        // Vérification de l'existence de l'utilisateur
+        if (!$userId) {
+            throw new InvalidArgumentException("Utilisateur introuvable.");
+        }
+
+        // Vérification des permissions.
+        if (
+            !$this->roleService->hasRole($userId, 'CONDUCTEUR') &&
+            !$this->roleService->hasRole($userId, 'EMPLOYE') &&
+            !$this->roleService->hasRole($userId, 'ADMIN')
+        ) {
+            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à démarrer ce trajet.");
+        }
+
+
+
+        // Vérification que l'utilisateur est bien le conducteur du trajet
         if ($ride->getRideDriverId() !== $driverId) {
             throw new InvalidArgumentException("Seulement le conducteur associé au trajet peut demarrer son trajet.");
         }
@@ -207,18 +296,21 @@ class RideService extends BaseService
         $ride->setRideStatus(RideStatus::ENCOURS);
 
         // Enregistrement dans la BD
-        $this->rideWithUserRepository->updateRide($ride, [
-            'ride_status' => $ride->getRideStatus()
-        ]);
+        $this->rideWithUserRepository->updateRide(
+            $ride,
+            [
+                'ride_status' => $ride->getRideStatus()
+            ]
+        );
     }
 
     // Permet à un utilisateur CONDUCTEUR de finaliser un trajet
-    public function finalizeRide(int $rideId, int $driverId): void
-    {
-        // Vérification des permissions
-        $this->ensureDriver($driverId);
-
+    public function finalizeRide(
+        Ride $ride,
+        int $userId
+    ): void {
         // Récupération du trajet
+        $rideId = $ride->getRideId();
         $ride = $this->rideWithUserRepository->findRideById($rideId);
 
         // Vérification de l'existence du trajet
@@ -226,7 +318,31 @@ class RideService extends BaseService
             throw new InvalidArgumentException("Trajet introuvable.");
         }
 
-        // Vérification qu'il s'agit bien du conducteur
+
+        // Récupération de l'id du conducteur
+        $driverId = $ride->getRideDriverId();
+
+        // Vérification de l'existence du conducteur
+        if (!$driverId) {
+            throw new InvalidArgumentException("Conducteur introuvable.");
+        }
+
+        // Vérification de l'existence de l'utilisateur
+        if (!$userId) {
+            throw new InvalidArgumentException("Utilisateur introuvable.");
+        }
+
+        // Vérification des permissions.
+        if (
+            !$this->roleService->hasRole($userId, 'CONDUCTEUR') &&
+            !$this->roleService->hasRole($userId, 'EMPLOYE') &&
+            !$this->roleService->hasRole($userId, 'ADMIN')
+        ) {
+            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à finaliser ce trajet.");
+        }
+
+
+        // Vérification que l'utilisateur est bien le conducteur du trajet
         if ($ride->getRideDriverId() !== $driverId) {
             throw new InvalidArgumentException("Seulement le conducteur associé au trajet peut finaliser son trajet.");
         }
@@ -289,61 +405,185 @@ class RideService extends BaseService
     //------------------RECUPERATIONS------------------------
 
     // Récupére un trajet avec les passagers.
-    public function getRideWithPassengers(int $rideId): ?Ride
-    {
+    public function getRideWithPassengers(
+        int $rideId
+    ): ?Ride {
         return $this->rideWithUserRepository->findRideWithUsersByRideId($rideId);
     }
 
     //-------------Pour les conducteurs------------------
     // Récupére la liste brute des trajets d'un utilisateur CONDUCTEUR.
-    public function getAllRidesByDriver(int $driverId): array
-    {
-        $this->ensureDriver($driverId);
+    public function getAllRidesByDriver(
+        int $userId,
+        int $driverId
+    ): array {
+        // Vérification de l'existence des utilisateurs
+        if (!$userId) {
+            throw new InvalidArgumentException("Utilisateur introuvable.");
+        }
+
+        if (!$driverId) {
+            throw new InvalidArgumentException("Conducteur introuvable.");
+        }
+
+        // Vérification des permissions.
+        if (
+            !$this->roleService->hasRole($userId, 'CONDUCTEUR') &&
+            !$this->roleService->hasRole($userId, 'EMPLOYE') &&
+            !$this->roleService->hasRole($userId, 'ADMIN')
+        ) {
+            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
+        }
+
+
         return $this->rideWithUserRepository->fetchAllRidesByDriver($driverId);
     }
 
     // Récupére la liste d'objet Ride à venir d'un utilisateur CONDUCTEUR.
-    public function getUpcomingRidesByDriver(int $driverId): array
-    {
-        $this->ensureDriver($driverId);
+    public function getUpcomingRidesByDriver(
+        int $userId,
+        int $driverId
+    ): array {
+        // Vérification de l'existence des utilisateurs
+        if (!$userId) {
+            throw new InvalidArgumentException("Utilisateur introuvable.");
+        }
+
+        if (!$driverId) {
+            throw new InvalidArgumentException("Conducteur introuvable.");
+        }
+
+        // Vérification des permissions.
+        if (
+            !$this->roleService->hasRole($userId, 'CONDUCTEUR') &&
+            !$this->roleService->hasRole($userId, 'EMPLOYE') &&
+            !$this->roleService->hasRole($userId, 'ADMIN')
+        ) {
+            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
+        }
+
+
         return $this->rideWithUserRepository->findUpcomingRidesByDriver($driverId);
     }
 
     // Récupére la liste brute des trajets passés d'un utilisateur CONDUCTEUR.
-    public function getPastRidesByDriver(int $driverId): array
-    {
-        $this->ensureDriver($driverId);
+    public function getPastRidesByDriver(
+        int $userId,
+        int $driverId
+    ): array {
+        // Vérification de l'existence des utilisateurs
+        if (!$userId) {
+            throw new InvalidArgumentException("Utilisateur introuvable.");
+        }
+
+        if (!$driverId) {
+            throw new InvalidArgumentException("Conducteur introuvable.");
+        }
+
+        if (
+            !$this->roleService->hasRole($userId, 'CONDUCTEUR') &&
+            !$this->roleService->hasRole($userId, 'EMPLOYE') &&
+            !$this->roleService->hasRole($userId, 'ADMIN')
+        ) {
+            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
+        }
+
+
         return $this->rideWithUserRepository->fetchPastRidesByDriver($driverId);
     }
 
 
     //-------------Pour les Passagers------------------
     // Récupére la liste brute des trajets d'un utilisateur PASSAGER.
-    public function getAllRidesByPassenger(int $passengerId): array
-    {
-        $this->ensurePassenger($passengerId);
+    public function getAllRidesByPassenger(
+        int $userId,
+        int $passengerId
+    ): array {
+        // Vérification de l'existence des utilisateurs
+        if (!$userId) {
+            throw new InvalidArgumentException("Utilisateur introuvable.");
+        }
+
+        if (!$passengerId) {
+            throw new InvalidArgumentException("Passager introuvable.");
+        }
+
+        // Vérification des permissions.
+        if (
+            !$this->roleService->hasRole($userId, 'PASSAGER') &&
+            !$this->roleService->hasRole($userId, 'EMPLOYE') &&
+            !$this->roleService->hasRole($userId, 'ADMIN')
+        ) {
+            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
+        }
+
         return $this->rideWithUserRepository->fetchAllRidesByPassenger($passengerId);
     }
 
     // Récupére la liste d'objet Ride à venir d'un utilisateur PASSAGER.
-    public function getUpcomingRidesByPassenger(int $passengerId): array
-    {
-        $this->ensurePassenger($passengerId);
+    public function getUpcomingRidesByPassenger(
+        int $userId,
+        int $passengerId
+    ): array {
+        // Vérification de l'existence des utilisateurs
+        if (!$userId) {
+            throw new InvalidArgumentException("Utilisateur introuvable.");
+        }
+
+        if (!$passengerId) {
+            throw new InvalidArgumentException("Passager introuvable.");
+        }
+
+        // Vérification des permissions.
+        if (
+            !$this->roleService->hasRole($userId, 'PASSAGER') &&
+            !$this->roleService->hasRole($userId, 'EMPLOYE') &&
+            !$this->roleService->hasRole($userId, 'ADMIN')
+        ) {
+            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
+        }
+
         return $this->rideWithUserRepository->findUpcomingRidesByPassenger($passengerId);
     }
 
     // Récupére la liste brute des trajets passés d'un utilisateur PASSAGER.
-    public function getPastRidesByPassenger(int $passengerId): array
-    {
-        $this->ensurePassenger($passengerId);
+    public function getPastRidesByPassenger(
+        int $userId,
+        int $passengerId
+    ): array {
+        // Vérification de l'existence des utilisateurs
+        if (!$userId) {
+            throw new InvalidArgumentException("Utilisateur introuvable.");
+        }
+
+        if (!$passengerId) {
+            throw new InvalidArgumentException("Passager introuvable.");
+        }
+
+        // Vérification des permissions.
+        if (
+            !$this->roleService->hasRole($userId, 'PASSAGER') &&
+            !$this->roleService->hasRole($userId, 'EMPLOYE') &&
+            !$this->roleService->hasRole($userId, 'ADMIN')
+        ) {
+            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
+        }
+
         return $this->rideWithUserRepository->fetchPastRidesByPassenger($passengerId);
     }
 
     //-------------Pour les Admins------------------
     // Récupére le nombre de trajets effectués pour le jour J.
-    public function getNumberOfRidesFromToday(int $adminId): ?array
-    {
+    public function getNumberOfRidesFromToday(
+        int $adminId
+    ): array {
+        // Vérification de l'existence de l'admin
+        if (!$adminId) {
+            throw new InvalidArgumentException("Admin introuvable.");
+        }
+
         $this->ensureAdmin($adminId);
+
         return $this->rideWithUserRepository->countRidesByToday();
     }
 
@@ -352,15 +592,30 @@ class RideService extends BaseService
         int $adminId,
         DateTimeInterface $start,
         DateTimeInterface $end
-    ): ?array {
+    ): array {
+
+        // Vérification de l'existence de l'admin
+        if (!$adminId) {
+            throw new InvalidArgumentException("Admin introuvable.");
+        }
+
         $this->ensureAdmin($adminId);
+
         return $this->rideWithUserRepository->countRidesByPeriod($start, $end);
     }
 
     // Récupére le nombre de commission gagné pour le jour J.
-    public function getTotalCommissionFromToday(int $adminId): ?array
-    {
+    public function getTotalCommissionFromToday(
+        int $adminId
+    ): array {
+
+        // Vérification de l'existence de l'admin
+        if (!$adminId) {
+            throw new InvalidArgumentException("Admin introuvable.");
+        }
+
         $this->ensureAdmin($adminId);
+
         return $this->rideWithUserRepository->countCommissionByToday();
     }
 
@@ -369,8 +624,15 @@ class RideService extends BaseService
         int $adminId,
         DateTimeInterface $start,
         DateTimeInterface $end
-    ): ?array {
+    ): array {
+
+        // Vérification de l'existence de l'admin
+        if (!$adminId) {
+            throw new InvalidArgumentException("Admin introuvable.");
+        }
+
         $this->ensureAdmin($adminId);
+
         return $this->rideWithUserRepository->countCommissionByPeriod($start, $end);
     }
 }
