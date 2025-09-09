@@ -1,11 +1,10 @@
 <?php
 
-// Finie mais à vérifier
-
 namespace App\Models;
 
 use App\Models\User;
 use App\Enum\CarPower;
+use App\Enum\CarColors;
 use InvalidArgumentException;
 use DateTimeImmutable;
 
@@ -24,14 +23,14 @@ class Car
         private ?User $owner = null, // car pas chargé dans hydrateCar de CarRepository
         private string $brand,
         private string $model,
-        private string $color,
+        private CarColors $color,
         private int $year,
         private CarPower $power,
         private int $seatsNumber,
         private string $registrationNumber,
-        private \DateTimeImmutable $registrationDate,
+        private DateTimeImmutable $registrationDate,
 
-        private ?\DateTimeImmutable $createdAt = null // n'a pas de valeur au moment de l'instanciation
+        private ?DateTimeImmutable $createdAt = null // n'a pas de valeur au moment de l'instanciation
 
     ) {
 
@@ -70,7 +69,7 @@ class Car
         return $this->model;
     }
 
-    public function getColor(): string
+    public function getColor(): CarColors
     {
         return $this->color;
     }
@@ -123,6 +122,13 @@ class Car
         if (empty(trim($brand))) {
             throw new InvalidArgumentException("La marque ne peut pas être vide.");
         }
+
+        $brand = trim($brand);
+        $lenght = mb_strlen($brand, 'UTF-8');
+        if ($lenght > 20) {
+            throw new InvalidArgumentException("La marque ne peut dépasser 20 caractères.");
+        }
+
         $this->brand = trim($brand);
 
         return $this;
@@ -133,18 +139,21 @@ class Car
         if (empty(trim($model))) {
             throw new InvalidArgumentException("Le modéle ne peut pas être vide.");
         }
+
+        $model = trim($model);
+        $lenght = mb_strlen($model, 'UTF-8');
+        if ($lenght > 20) {
+            throw new InvalidArgumentException("Le modéle ne peut dépasser 20 caractères.");
+        }
+
         $this->model = trim($model);
 
         return $this;
     }
 
-    public function setColor(string $color): self
+    public function setColor(CarColors $color): self
     {
-        if (empty(trim($color))) {
-            throw new InvalidArgumentException("La couleur ne peut pas être vide.");
-        }
-        $this->color = trim($color);
-
+        $this->color = $color;
         return $this;
     }
 
