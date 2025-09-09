@@ -105,7 +105,11 @@ class Review
 
     public function setReviewComment(string $comment): self
     {
-
+        $comment = trim($comment);
+        $lenght = mb_strlen($comment, 'UTF-8');
+        if ($lenght > 200) {
+            throw new InvalidArgumentException("Le commentaire ne peut dépasser 200 caractères.");
+        }
         $this->comment = trim($comment);
         return $this;
     }
