@@ -22,7 +22,7 @@ CREATE TABLE users(
         first_name VARCHAR (50) NOT NULL,
         email VARCHAR (150) NOT NULL UNIQUE,
         password VARCHAR (255) NOT NULL,
-        user_name VARCHAR (50) NULL UNIQUE,
+        login VARCHAR (50) NULL UNIQUE,
         phone VARCHAR (20) NULL,
         address VARCHAR (100) NULL,
         city VARCHAR (50) NULL,

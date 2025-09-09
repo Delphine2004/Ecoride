@@ -48,34 +48,34 @@ class UserService extends BaseService
 
         // Vérifications des champs modifiés et ajouts des nouvelles valeurs
         if (isset($newData['last_name'])) {
-            $user->setLastName($newData['last_name']);
+            $user->setUserLastName($newData['last_name']);
         }
         if (isset($newData['first_name'])) {
-            $user->setFirstName($newData['first_name']);
+            $user->setUserFirstName($newData['first_name']);
         }
         if (isset($newData['email'])) {
-            $user->setEmail($newData['email']);
+            $user->setUserEmail($newData['email']);
         }
-        if (isset($newData['user_name'])) {
-            $user->setUserName($newData['user_name']);
+        if (isset($newData['login'])) {
+            $user->setUserLogin($newData['login']);
         }
         if (isset($newData['phone'])) {
-            $user->setPhone($newData['phone']);
+            $user->setUserPhone($newData['phone']);
         }
         if (isset($newData['address'])) {
-            $user->setAddress($newData['address']);
+            $user->setUserAddress($newData['address']);
         }
         if (isset($newData['city'])) {
-            $user->setCity($newData['city']);
+            $user->setUserCity($newData['city']);
         }
         if (isset($newData['zip_code'])) {
-            $user->setZipCode($newData['zip_code']);
+            $user->setUserZipCode($newData['zip_code']);
         }
         if (isset($newData['picture'])) {
-            $user->setUriPicture($newData['picture']);
+            $user->setUserUriPicture($newData['picture']);
         }
         if (isset($newData['licence_no'])) {
-            $user->setLicenceNo($newData['licence_no']);
+            $user->setUserLicenceNo($newData['licence_no']);
         }
 
         $this->userRelationsRepository->updateUser($user);

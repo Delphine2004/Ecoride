@@ -54,32 +54,32 @@ class UserRelationsRepository extends UserRepository
         // Vérification des relations
         if (in_array('cars', $with, true)) {
             // réinitialise la collection à un tableau vide
-            $user->setCars([]);
+            $user->setUserCars([]);
             // récuperation de la liste des voitures
             $cars = $this->carRepository->fetchAllCarsByOwner([$userId]);
             // Parcourir chaque voiture pour les ajouter à l'utilisateur
             foreach ($cars as $car) {
-                $user->addCar($car);
+                $user->addUserCar($car);
             }
         }
 
         if (in_array('rides', $with, true)) {
             // réinitialise la collection à un tableau vide
-            $user->setRides([]);
+            $user->setUserRides([]);
             // récuperation de la liste des trajets
             $rides = $this->rideRepository->fetchAllRidesByDriver($userId);
             foreach ($rides as $ride) {
-                $user->addRide($ride);
+                $user->addUserRide($ride);
             }
         }
 
         if (in_array('bookings', $with, true)) {
             // réinitialise la collection à un tableau vide
-            $user->setBookings([]);
+            $user->setUserBookings([]);
             // Récupération de la liste des réservations 
             $bookings = $this->bookingRepository->fetchAllBookingsByPassengerId([$userId]);
             foreach ($bookings as $booking) {
-                $user->addBooking($booking);
+                $user->addUserBooking($booking);
             }
         }
         return $user;

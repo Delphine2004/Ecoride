@@ -22,7 +22,7 @@ class UserRepository extends BaseRepository
         'last_name',
         'first_name',
         'email',
-        'user_name',
+        'login',
         'phone',
         'address',
         'city',
@@ -67,7 +67,7 @@ class UserRepository extends BaseRepository
             email: $data['email'],
             password: $data['password'], // ok si vient de la BD donc déjà hashé
             isHashed: true,
-            userName: $data['user_name'] ?? null,
+            login: $data['login'] ?? null,
             phone: $data['phone'] ?? null,
             address: $data['address'] ?? null,
             city: $data['city'] ?? null,
@@ -91,19 +91,19 @@ class UserRepository extends BaseRepository
     private function mapUserToArray(User $user): array
     {
         return [
-            'last_name' => $user->getLastName(),
-            'first_name' => $user->getFirstName(),
-            'email' => $user->getEmail(),
-            'password' => $user->getPassword(),
-            'user_name' => $user->getUserName(),
-            'phone' => $user->getPhone(),
-            'address' => $user->getAddress(),
-            'city' => $user->getCity(),
-            'zip_code' => $user->getZipCode(),
-            'picture' => $user->getUriPicture(),
-            'licence_no' => $user->getLicenceNo(),
-            'credit' => $user->getCredits(),
-            'api_token' => $user->getApiToken()
+            'last_name' => $user->getUserLastName(),
+            'first_name' => $user->getUserFirstName(),
+            'email' => $user->getUserEmail(),
+            'password' => $user->getUserPassword(),
+            'login' => $user->getUserlogin(),
+            'phone' => $user->getUserPhone(),
+            'address' => $user->getUserAddress(),
+            'city' => $user->getUserCity(),
+            'zip_code' => $user->getUserZipCode(),
+            'picture' => $user->getUserUriPicture(),
+            'licence_no' => $user->getUserLicenceNo(),
+            'credit' => $user->getUserCredits(),
+            'api_token' => $user->getUserApiToken()
         ];
     }
 

@@ -69,7 +69,7 @@ class RideWithUsersRepository extends RideRepository
             'user_id' => $row[$prefix . 'id'],
             'first_name' => $row[$prefix . 'first_name'],
             'last_name' => $row[$prefix . 'last_name'],
-            'user_name' => $row[$prefix . 'user_name']
+            'login' => $row[$prefix . 'login']
         ]);
     }
 
@@ -84,12 +84,12 @@ class RideWithUsersRepository extends RideRepository
                     d.user_id AS driver_id, 
                     d.first_name AS driver_first_name,
                     d.last_name AS driver_last_name,
-                    d.user_name AS driver_user_name,
+                    d.login AS driver_login,
 
                     p.user_id AS passenger_id,
                     p.first_name AS passenger_first_name,
                     p.last_name AS passenger_last_name,
-                    p.user_name AS passenger_user_name
+                    p.login AS passenger_login
                 FROM {$this->table} r
                 INNER JOIN users d ON r.driver_id = d.user_id
                 LEFT JOIN bookings b ON r.ride_id = b.ride_id
@@ -241,7 +241,7 @@ class RideWithUsersRepository extends RideRepository
                 // Puis ajout du conduteur en tableau
                 $rideMap[$rideId]->setRideDriver([
                     'user_id' => $row['driver_id'],
-                    'user_name' => $row['driver_user_name'],
+                    'login' => $row['driver_login'],
                     'first_name' => $row['driver_first_name'],
                     'last_name' => $row['driver_last_name'],
                 ]);
@@ -251,7 +251,7 @@ class RideWithUsersRepository extends RideRepository
             if (!empty($row['passenger_id'])) {
                 $rideMap[$rideId]->addRidePassenger([
                     'user_id' => $row['passenger_id'],
-                    'user_name' => $row['passenger_user_name'],
+                    'login' => $row['passenger_login'],
                     'first_name' => $row['passenger_first_name'],
                     'last_name' => $row['passenger_last_name'],
                 ]);

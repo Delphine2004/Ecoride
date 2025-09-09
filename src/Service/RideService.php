@@ -42,13 +42,13 @@ class RideService extends BaseService
 
         // Déduction de la commission
         $commission = $ride->getRideCommission();
-        $driver->setCredits($driver->getCredits() - $commission);
+        $driver->setUserCredits($driver->getUserCredits() - $commission);
 
         // Enregistrement de la modification des crédits
         $this->userRelationsRepository->updateUser(
             $driver,
             [
-                'credits' => $driver->getCredits()
+                'credits' => $driver->getUserCredits()
             ]
         );
 
@@ -83,17 +83,17 @@ class RideService extends BaseService
 
         // Vérification des crédits du passager
         $passenger = $this->userRelationsRepository->findUserById($passengerId);
-        if ($passenger->getCredits() < $ride->getRidePrice()) {
+        if ($passenger->getUserCredits() < $ride->getRidePrice()) {
             throw new InvalidArgumentException("Crédits insuffisants.");
         }
 
 
         // Décrémentation les crédits du passager
-        $passenger->setCredits($passenger->getCredits() - $ride->getRidePrice());
+        $passenger->setUserCredits($passenger->getUserCredits() - $ride->getRidePrice());
         $this->userRelationsRepository->updateUser(
             $passenger,
             [
-                'credits' => $passenger->getCredits()
+                'credits' => $passenger->getUserCredits()
             ]
         );
 
@@ -147,11 +147,11 @@ class RideService extends BaseService
             $passenger = $this->userRelationsRepository->findUserById($booking->getPassengerId());
 
             // Définir le remboursement au passager
-            $passenger->setCredits($passenger->getCredits() + $ride->getRidePrice());
+            $passenger->setUserCredits($passenger->getUserCredits() + $ride->getRidePrice());
 
             // Enregistrer les crédits du passager en BD
             $this->userRelationsRepository->updateUser($passenger, [
-                'credits' => $passenger->getCredits()
+                'credits' => $passenger->getUserCredits()
             ]);
 
             // Notifier 
@@ -264,11 +264,11 @@ class RideService extends BaseService
             }
         }
         $driver = $this->userRelationsRepository->findUserById($driverId);
-        $driver->setCredits($driver->getCredits() + $totalCredits);
+        $driver->setUserCredits($driver->getUserCredits() + $totalCredits);
         $this->userRelationsRepository->updateUser(
             $driver,
             [
-                'credits' => $driver->getCredits()
+                'credits' => $driver->getUserCredits()
             ]
         );
 

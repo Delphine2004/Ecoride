@@ -29,7 +29,7 @@ class User
         private string $password,
         private bool $isHashed = false,
 
-        private ?string $userName = null, // Champ optionnel en fonction du rôle
+        private ?string $login = null, // Champ optionnel en fonction du rôle
         private ?string $phone = null, // Champ optionnel en fonction du rôle
         private ?string $address = null, // Champ optionnel en fonction du rôle
         private ?string $city = null, // Champ optionnel en fonction du rôle
@@ -52,20 +52,20 @@ class User
     ) {
         // Affectation avec validation
         $this
-            ->setLastName($lastName)
-            ->setFirstName($firstName)
-            ->setUserName($userName)
-            ->setEmail($email)
-            ->setPassword($password, $isHashed)
-            ->setPhone($phone)
-            ->setAddress($address)
-            ->setCity($city)
-            ->setZipCode($zipCode)
-            ->setUriPicture($uriPicture)
-            ->setLicenceNo($licenceNo)
-            ->setCredits($credits)
-            ->setApiToken($apiToken)
-            ->setRoles($roles);
+            ->setUserLastName($lastName)
+            ->setUserFirstName($firstName)
+            ->setUserLogin($login)
+            ->setUserEmail($email)
+            ->setUserPassword($password, $isHashed)
+            ->setUserPhone($phone)
+            ->setUserAddress($address)
+            ->setUserCity($city)
+            ->setUserZipCode($zipCode)
+            ->setUserUriPicture($uriPicture)
+            ->setUserLicenceNo($licenceNo)
+            ->setUserCredits($credits)
+            ->setUserApiToken($apiToken)
+            ->setUserRoles($roles);
 
         $this->createdAt = $createdAt ?? new DateTimeImmutable();
         $this->updatedAt = $updatedAt ?? new DateTimeImmutable();
@@ -80,67 +80,67 @@ class User
         return $this->userId;
     }
 
-    public function getLastName(): string
+    public function getUserLastName(): string
     {
         return $this->lastName;
     }
 
-    public function getFirstName(): string
+    public function getUserFirstName(): string
     {
         return $this->firstName;
     }
 
-    public function getEmail(): string
+    public function getUserEmail(): string
     {
         return $this->email;
     }
 
-    public function getPassword(): string
+    public function getUserPassword(): string
     {
         return $this->password;
     }
 
-    public function getUserName(): ?string
+    public function getUserLogin(): ?string
     {
-        return $this->userName;
+        return $this->login;
     }
 
-    public function getPhone(): ?string
+    public function getUserPhone(): ?string
     {
         return $this->phone;
     }
 
-    public function getAddress(): ?string
+    public function getUserAddress(): ?string
     {
         return $this->address;
     }
 
-    public function getCity(): ?string
+    public function getUserCity(): ?string
     {
         return $this->city;
     }
 
-    public function getZipCode(): ?string
+    public function getUserZipCode(): ?string
     {
         return $this->zipCode;
     }
 
-    public function getUriPicture(): ?string
+    public function getUserUriPicture(): ?string
     {
         return $this->uriPicture;
     }
 
-    public function getLicenceNo(): ?string
+    public function getUserLicenceNo(): ?string
     {
         return $this->licenceNo;
     }
 
-    public function getCredits(): float
+    public function getUserCredits(): float
     {
         return $this->credits;
     }
 
-    public function getApiToken(): ?string
+    public function getUserApiToken(): ?string
     {
         return $this->apiToken;
     }
@@ -150,27 +150,27 @@ class User
         return $this->roles;
     }
 
-    public function getCars(): array
+    public function getUserCars(): array
     {
         return $this->cars;
     }
 
-    public function getRides(): array
+    public function getUserRides(): array
     {
         return $this->rides;
     }
 
-    public function getBookings(): array
+    public function getUserBookings(): array
     {
         return $this->bookings;
     }
 
-    public function getCreatedAt(): DateTimeImmutable
+    public function getUserCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): DateTimeImmutable
+    public function getUserUpdatedAt(): DateTimeImmutable
     {
         return $this->updatedAt;
     }
@@ -185,21 +185,21 @@ class User
         return $this;
     }
 
-    public function setLastName(string $lastName): self
+    public function setUserLastName(string $lastName): self
     {
         $this->lastName = trim($lastName);
         $this->updateTimestamp();
         return $this;
     }
 
-    public function setFirstName(string $firstName): self
+    public function setUserFirstName(string $firstName): self
     {
         $this->firstName = trim($firstName);
         $this->updateTimestamp();
         return $this;
     }
 
-    public function setEmail(string $email): self
+    public function setUserEmail(string $email): self
     {
         if (empty(trim($email))) {
             throw new InvalidArgumentException("L'email ne peut pas être vide. ");
@@ -213,7 +213,7 @@ class User
         return $this;
     }
 
-    public function setPassword(string $password, bool $isHashed = false): self
+    public function setUserPassword(string $password, bool $isHashed = false): self
     {
         if (!$isHashed) {
             $this->validatePassword($password);
@@ -225,17 +225,17 @@ class User
         return $this;
     }
 
-    public function setUserName(?string $userName): self
+    public function setUserLogin(?string $login): self
     {
-        if ($userName !== null && strlen(trim($userName)) > 50) {
+        if ($login !== null && strlen(trim($login)) > 50) {
             throw new InvalidArgumentException("Le nom d'utilisateur est trop long.");
         }
-        $this->userName = $userName !== null ? trim($userName) : null;
+        $this->login = $login !== null ? trim($login) : null;
         $this->updateTimestamp();
         return $this;
     }
 
-    public function setPhone(?string $phone): self
+    public function setUserPhone(?string $phone): self
     {
         if ($phone !== null && !preg_match('/^[0-9]{10}$/', trim($phone))) {
             throw new InvalidArgumentException("Le numéro de téléphone doit contenir 10 chiffres.");
@@ -245,7 +245,7 @@ class User
         return $this;
     }
 
-    public function setAddress(?string $address): self
+    public function setUserAddress(?string $address): self
     {
         if ($address !== null && strlen($address) > 100) {
             throw new InvalidArgumentException("L'adresse est trop longue.");
@@ -255,7 +255,7 @@ class User
         return $this;
     }
 
-    public function setCity(?string $city): self
+    public function setUserCity(?string $city): self
     {
         if ($city  !== null && strlen($city) > 50) {
             throw new InvalidArgumentException("Le nom de la ville est trop long.");
@@ -265,7 +265,7 @@ class User
         return $this;
     }
 
-    public function setZipCode(?string $zipCode): self
+    public function setUserZipCode(?string $zipCode): self
     {
         if ($zipCode  !== null && !preg_match('/^[0-9]{5}$/', trim($zipCode))) {
             throw new InvalidArgumentException("Le code postal doit contenir exactement 5 chiffres.");
@@ -275,7 +275,7 @@ class User
         return $this;
     }
 
-    public function setUriPicture(?string $uriPicture): self
+    public function setUserUriPicture(?string $uriPicture): self
     {
         if ($uriPicture  !== null && !filter_var($uriPicture, FILTER_VALIDATE_URL)) {
             throw new InvalidArgumentException("L'url de l'image est invalide.");
@@ -286,7 +286,7 @@ class User
         return $this;
     }
 
-    public function setLicenceNo(?string $licenceNo): self
+    public function setUserLicenceNo(?string $licenceNo): self
     {
         if ($licenceNo  !== null && strlen($licenceNo) > 50) {
             throw new InvalidArgumentException("Le numéro de permis est trop long.");
@@ -296,7 +296,7 @@ class User
         return $this;
     }
 
-    public function setCredits(?float $credits): self
+    public function setUserCredits(?float $credits): self
     {
         if ($credits !== null && $credits < 0) {
             throw new InvalidArgumentException("Le crédit ne peut pas être négatif.");
@@ -306,14 +306,14 @@ class User
         return $this;
     }
 
-    public function setApiToken(?string $apiToken): self
+    public function setUserApiToken(?string $apiToken): self
     {
         $this->apiToken = $apiToken;
         $this->updateTimestamp();
         return $this;
     }
 
-    public function setRoles(array $roles): self
+    public function setUserRoles(array $roles): self
     {
         foreach ($roles as $role) {
             if (!$role instanceof UserRoles) {
@@ -329,36 +329,36 @@ class User
         return $this;
     }
 
-    public function setCars(array $cars): self
+    public function setUserCars(array $cars): self
     {
         $this->cars = $cars;
         return $this;
     }
 
-    public function setRides(array $rides): self
+    public function setUserRides(array $rides): self
     {
         $this->rides = $rides;
         return $this;
     }
 
-    public function setBookings(array $bookings): self
+    public function setUserBookings(array $bookings): self
     {
         $this->bookings = $bookings;
         return $this;
     }
 
     //----------------------------------------
-    public function addCar(Car $car): void
+    public function addUserCar(Car $car): void
     {
         $this->cars[] = $car;
     }
 
-    public function addRide(Ride $ride): void
+    public function addUserRide(Ride $ride): void
     {
         $this->rides[] = $ride;
     }
 
-    public function addBooking(Booking $booking): void
+    public function addUserBooking(Booking $booking): void
     {
         $this->bookings[] = $booking;
     }
@@ -366,7 +366,7 @@ class User
 
     // ------- Gestion des rôles --------
 
-    public function addRole(UserRoles $role): self
+    public function addUserRole(UserRoles $role): self
     {
         if (!in_array($role, $this->roles, true)) {
             $this->roles[] = $role;
@@ -375,7 +375,7 @@ class User
         return $this;
     }
 
-    public function removeRole(UserRoles $role): self
+    public function removeUserRole(UserRoles $role): self
     {
         $this->roles = array_filter($this->roles, fn($r) => $r !== $role);
         $this->updateTimestamp();
