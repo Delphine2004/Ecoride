@@ -186,6 +186,13 @@ class Ride
         if (empty(trim($departurePlace))) {
             throw new InvalidArgumentException("La ville de départ ne peut pas être vide");
         }
+
+        $departurePlace = trim($departurePlace);
+        $lenght = mb_strlen($departurePlace, 'UTF-8');
+        if ($lenght > 20) {
+            throw new InvalidArgumentException("La ville ne peut dépasser 20 caractères.");
+        }
+
         $this->departurePlace = trim($departurePlace);
         $this->updateTimestamp();
         return $this;
@@ -208,6 +215,13 @@ class Ride
         if (empty(trim($arrivalPlace))) {
             throw new InvalidArgumentException("La ville d'arrivée ne peut pas être vide");
         }
+
+        $arrivalPlace = trim($arrivalPlace);
+        $lenght = mb_strlen($arrivalPlace, 'UTF-8');
+        if ($lenght > 20) {
+            throw new InvalidArgumentException("La ville ne peut dépasser 20 caractères.");
+        }
+
         $this->arrivalPlace = trim($arrivalPlace);
         $this->updateTimestamp();
         return $this;
@@ -215,8 +229,8 @@ class Ride
 
     public function setRidePrice(int $price): self
     {
-        if ($price <= 0) {
-            throw new InvalidArgumentException("Le prix doit être supérieure à 0.");
+        if ($price < 0 && $price >= 100) {
+            throw new InvalidArgumentException("Le prix doit être supérieure à 0 et inférieure à 100.");
         }
         $this->price = $price;
         $this->updateTimestamp();
