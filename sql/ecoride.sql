@@ -127,27 +127,5 @@ CREATE TABLE bookings(
 );
 
 
-#------------------------------------------------------------
-# Table: reviews
-#------------------------------------------------------------
-CREATE TABLE reviews(
-        review_id INT AUTO_INCREMENT PRIMARY KEY,
-        ride_id INT NOT NULL,
-        author_id INT NOT NULL,
-        target_id INT NOT NULL,
-        content VARCHAR(1000),
-        note TINYINT UNSIGNED NOT NULL CHECK (note BETWEEN 0 AND 10),
-        review_statut VARCHAR(20) NOT NULL,
-        created_at TIMESTAMP NOT NULL,
-        validated_at TIMESTAMP NOT NULL,
-        FOREIGN KEY (ride_id) REFERENCES rides(ride_id) ON DELETE CASCADE,
-        FOREIGN KEY (author_id) REFERENCES users(user_id) ON DELETE CASCADE,
-        FOREIGN KEY (target_id) REFERENCES users(user_id) ON DELETE CASCADE
-);
-
-
-
-
-
 /*--------------- remplissage de la table rôles avec la définission des rôles*/
 INSERT INTO roles(role_name) VALUES ('passager'), ('conducteur'), ('employé'), ('admin');
