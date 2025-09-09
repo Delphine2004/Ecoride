@@ -35,6 +35,7 @@ class Ride
         private int $price,
         private int $availableSeats,
         private RideStatus $rideStatus = RideStatus::DISPONIBLE, // Statut par défaut
+        private int $commission = 2,
         private ?array $passengers = null, // Pour charger plusieurs passagers
 
         private ?\DateTimeImmutable $createdAt = null, // n'a pas de valeur au moment de l'instanciation
@@ -50,7 +51,8 @@ class Ride
             ->setRideArrivalPlace($arrivalPlace)
             ->setRidePrice($price)
             ->setRideAvailableSeats($availableSeats)
-            ->setRideStatus($rideStatus);
+            ->setRideStatus($rideStatus)
+            ->setRideCommission($commission);
 
         $this->passengers = $passengers ?? [];
         $this->createdAt = $createdAt ?? new DateTimeImmutable();
@@ -110,6 +112,11 @@ class Ride
     public function getRideStatus(): RideStatus
     {
         return $this->rideStatus;
+    }
+
+    public function getRideCommission(): int
+    {
+        return $this->commission;
     }
 
     public function getRidePassengers(): ?array
@@ -223,6 +230,13 @@ class Ride
     public function setRideStatus(RideStatus $rideStatus): self
     {
         $this->rideStatus = $rideStatus;
+        $this->updateTimestamp();
+        return $this;
+    }
+
+    public function setRideCommission(int $commission): self
+    {
+        $this->commission = $commission;
         $this->updateTimestamp();
         return $this;
     }

@@ -91,6 +91,7 @@ CREATE TABLE rides(
         price DECIMAL(6,2) NOT NULL ,
         available_seats TINYINT UNSIGNED NOT NULL ,
         ride_status VARCHAR(20) NOT NULL,
+        commision INT NOT NULL,
         created_at TIMESTAMP NOT NULL,
         updated_at TIMESTAMP NOT NULL,
         FOREIGN KEY (driver_id) REFERENCES users(user_id) ON DELETE CASCADE
