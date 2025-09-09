@@ -124,9 +124,10 @@ class Car
         }
 
         $brand = trim($brand);
-        $lenght = mb_strlen($brand, 'UTF-8');
-        if ($lenght > 20) {
-            throw new InvalidArgumentException("La marque ne peut dépasser 20 caractères.");
+        $regexTextOnly = '/^[a-zA-ZÀ-ÿ\s\'-]{4,20}+$/u';
+
+        if (!preg_match($regexTextOnly, $brand)) {
+            throw new InvalidArgumentException("La marque ne peut dépasser 20 caractères autorisés.");
         }
 
         $this->brand = trim($brand);
@@ -141,9 +142,10 @@ class Car
         }
 
         $model = trim($model);
-        $lenght = mb_strlen($model, 'UTF-8');
-        if ($lenght > 20) {
-            throw new InvalidArgumentException("Le modéle ne peut dépasser 20 caractères.");
+        $regexTextOnly = '/^[a-zA-ZÀ-ÿ\s\'-]{4,20}+$/u';
+
+        if (!preg_match($regexTextOnly, $model)) {
+            throw new InvalidArgumentException("Le modéle ne peut dépasser 20 caractères autorisés.");
         }
 
         $this->model = trim($model);

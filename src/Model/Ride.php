@@ -188,9 +188,10 @@ class Ride
         }
 
         $departurePlace = trim($departurePlace);
-        $lenght = mb_strlen($departurePlace, 'UTF-8');
-        if ($lenght > 20) {
-            throw new InvalidArgumentException("La ville ne peut dépasser 20 caractères.");
+        $regexTextOnly = '/^[a-zA-ZÀ-ÿ\s\'-]{4,20}+$/u';
+
+        if (!preg_match($regexTextOnly, $departurePlace)) {
+            throw new InvalidArgumentException("Le ville ne peut dépasser 20 caractères autorisés.");
         }
 
         $this->departurePlace = trim($departurePlace);
@@ -217,9 +218,10 @@ class Ride
         }
 
         $arrivalPlace = trim($arrivalPlace);
-        $lenght = mb_strlen($arrivalPlace, 'UTF-8');
-        if ($lenght > 20) {
-            throw new InvalidArgumentException("La ville ne peut dépasser 20 caractères.");
+        $regexTextOnly = '/^[a-zA-ZÀ-ÿ\s\'-]{4,20}+$/u';
+
+        if (!preg_match($regexTextOnly, $arrivalPlace)) {
+            throw new InvalidArgumentException("Le ville ne peut dépasser 20 caractères autorisés.");
         }
 
         $this->arrivalPlace = trim($arrivalPlace);
