@@ -105,10 +105,11 @@ class Review
 
     public function setReviewComment(string $comment): self
     {
+        $commentRegex = '/^[a-zA-ZÀ-ÿ0-9\s\'".,;:!?()@$%&-]{0,255}+$/u';
         $comment = trim($comment);
-        $lenght = mb_strlen($comment, 'UTF-8');
-        if ($lenght > 200) {
-            throw new InvalidArgumentException("Le commentaire ne peut dépasser 200 caractères.");
+
+        if (!preg_match($commentRegex, $comment)) {
+            throw new InvalidArgumentException("Le commentaire peut contenir jusqu'à 255 caractères autorisés.");
         }
         $this->comment = trim($comment);
         return $this;
