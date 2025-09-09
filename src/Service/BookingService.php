@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Service;
+namespace App\Services;
 
 use App\Repositories\BookingRelationsRepository;
 use App\Repositories\RideWithUsersRepository;
-use App\Repositories\UserRepository;
+use App\Repositories\UserRelationsRepository;
+use App\Services\NotificationService;
 use App\Models\Booking;
 use App\Models\Ride;
 use App\Models\User;
-use App\Services\BaseService;
 use App\Enum\BookingStatus;
+use DateTimeImmutable;
 use DateTimeInterface;
 use InvalidArgumentException;
 
@@ -17,11 +18,12 @@ use InvalidArgumentException;
 
 class BookingService extends BaseService
 {
-    // Promotion des propriétés (depuis PHP 8)
+
     public function __construct(
         private BookingRelationsRepository $bookingRelationsRepository,
         private RideWithUsersRepository $rideWithUsersRepository,
-        private UserRepository $userRepository,
+        private UserRelationsRepository $userRelationsRepository,
+        private NotificationService $notificationService
 
     ) {
         parent::__construct();
@@ -31,8 +33,10 @@ class BookingService extends BaseService
     //--------------VERIFICATION-----------------
 
     // Vérifie que le passager n'a pas déjà une réservation
-    public function userHasBooking(User $user, Ride $ride): bool
-    {
+    public function userHasBooking(
+        User $user,
+        Ride $ride
+    ): bool {
         $booking = $this->bookingRelationsRepository->findBookingByFields([
             'user_id' => $user->getUserId(),
             'ride_id' => $ride->getRideId()
@@ -43,15 +47,27 @@ class BookingService extends BaseService
 
     //-----------------ACTIONS------------------------------
 
-    // Création d'une réservation - Fonction utilisé dabs bookRide
-    public function createBooking(Ride $ride, User $driver, User $passenger): Booking
-    {
-        // Vérification de la permission
-        $passengerId = $passenger->getUserId();
+    // Création d'une réservation - Fonction utilisé dans bookRide
+    public function createBooking(
+        Ride $ride,
+        User $driver,
+        User $passenger,
+        int $userId
+    ): Booking {
 
+        // Vérification de l'existence de l'utilisateur
+        if (!$userId) {
+            throw new InvalidArgumentException("utilisateur introuvable.");
+        }
 
         // Vérification des permissions.
-        $this->ensurePassenger($passengerId);
+        if (
+            !$this->roleService->hasRole($userId, 'PASSAGER') &&
+            !$this->roleService->hasRole($userId, 'EMPLOYE') &&
+            !$this->roleService->hasRole($userId, 'ADMIN')
+        ) {
+            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à annuler cette réservation.");
+        }
 
 
         // Vérification de l'existance des entités
@@ -86,8 +102,10 @@ class BookingService extends BaseService
     }
 
     // Permet à un utilisateur PASSAGER d'annuler une réservation.
-    public function cancelBooking(int $userId, int $bookingId): void
-    {
+    public function cancelBooking(
+        int $bookingId,
+        int $userId
+    ): Booking {
 
         // Récupération de l'entité Booking
         $booking = $this->bookingRelationsRepository->findBookingById($bookingId);
@@ -97,18 +115,25 @@ class BookingService extends BaseService
             throw new InvalidArgumentException("Réservation introuvable.");
         }
 
-        // Récupération de l'utilisateur
-        $passengerId = $booking->getBookingPassenger()->getUserId();
+        // Vérification de l'existence de l'utilisateur
+        if (!$userId) {
+            throw new InvalidArgumentException("Utilisateur introuvable.");
+        }
 
         // Vérification des permissions.
         if (
-            !$this->ensurePassenger($passengerId) &&
-            !$this->ensureAdmin($userId) &&
-            !$this->ensureEmployee($userId)
+            !$this->roleService->hasRole($userId, 'PASSAGER') &&
+            !$this->roleService->hasRole($userId, 'EMPLOYE') &&
+            !$this->roleService->hasRole($userId, 'ADMIN')
         ) {
             throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à annuler cette réservation.");
         }
 
+        // Vérification que la réservation appartient au passager
+        $passengerId = $booking->getBookingPassenger()->getUserId();
+        if ($booking->getBookingPassengerId() !== $userId) {
+            throw new InvalidArgumentException("Seulement le passager associé au trajet peut annuler sa réservation.");
+        }
 
         // Vérification du status de la réservation.
         if ($booking->getBookingStatus() === BookingStatus::ANNULEE) {
@@ -121,27 +146,59 @@ class BookingService extends BaseService
         // Mise à jour des places disponibles
         $ride = $booking->getBookingRide();
         $ride->incrementAvailableSeats();
+
+        // Enregistrement des modifications de trajet en BD
         $this->rideWithUsersRepository->updateRide($ride); // permet de conserver l'historique
 
-
-        // Enregistrement en BD
+        // Enregistrement des modifications de réservation en BD
         $this->bookingRelationsRepository->updateBooking($booking);
 
-        // ---->> ENVOIE DE LA CONFIRMATION D'ANNULATION AU PASSAGER ET AU CONDUCTEUR
+        // Récupération des utilisateurs
+        $passenger = $this->userRelationsRepository->findUserById($passengerId);
+        $driverId = $booking->getBookingDriver()->getUserId();
+        $driver = $this->userRelationsRepository->findUserById($driverId);
+
+        // Préparation des variables
+        $today = (new DateTimeImmutable());
+        $rideDate = $ride->getRideDepartureDateTime();
+        $refundableDeadLine = (clone $rideDate)->modify('-2 days');
+
+        // Vérification des conditions d'annulation
+        if ($today <= $refundableDeadLine) {
+
+            // Remboursement
+            $passenger->setUserCredits($passenger->getUserCredits() + $ride->getRidePrice());
+
+            // Envoi des confirmations sans frais
+            $this->notificationService->sendBookingCancelationToPassenger($passenger, $booking);
+            $this->notificationService->sendBookingCancelationToDriver($driver, $booking);
+
+            // Enregistrement des modifications de l'utilisateur en BD
+            $this->userRelationsRepository->updateUser($passenger);
+        } else {
+
+            // Envoi des confirmations avec frais
+            $this->notificationService->sendBookingLateCancelationToPassenger($passenger, $booking);
+            $this->notificationService->sendBookingLateCancelationToDriver($driver, $booking);
+        }
+        return $booking;
     }
 
-    // Envoi une confirmation de réservation par email.
-    public function sendBookingConfirmation(int $bookingId, int $userId) {}
-
-    // Envoi une confirmation d'annulation de réservation par email.
-    public function sendBookingCancelation(int $bookingId, int $userId) {}
 
 
     //------------------RECUPERATIONS------------------------
 
     // Récupére la réservation avec l'objet Ride et les objets User liés à la réservation
-    public function getBookingWithRideAndUsers(int $bookingId, int $employeeId): ?Booking
-    {
+    public function getBookingWithRideAndUsers(
+        int $bookingId,
+        int $employeeId
+    ): ?Booking {
+
+        // Vérification de l'existence de l'utilisateur
+        if (!$employeeId) {
+            throw new InvalidArgumentException("Employé introuvable.");
+        }
+
         // Vérification de la permission
         $this->ensureEmployee($employeeId);
 
@@ -157,8 +214,16 @@ class BookingService extends BaseService
     }
 
     // Récupére la liste des réservations en fonction de la date de création pour les utilisateurs avec le rôle EMPLOYEE
-    public function getBookingListByDate(DateTimeInterface $creationDate, int $employeeId)
-    {
+    public function getBookingListByDate(
+        DateTimeInterface $creationDate,
+        int $employeeId
+    ): array {
+
+        // Vérification de l'existence de l'utilisateur
+        if (!$employeeId) {
+            throw new InvalidArgumentException("Employé introuvable.");
+        }
+
         // Vérification de la permission
         $this->ensureEmployee($employeeId);
 
