@@ -13,6 +13,7 @@ use App\Models\Booking;
 use App\Enum\RideStatus;
 use App\Enum\BookingStatus;
 use InvalidArgumentException;
+use DateTimeInterface;
 
 class RideService extends BaseService
 {
@@ -33,7 +34,25 @@ class RideService extends BaseService
     // Permet à un utilisateur CONDUCTEUR de rajouter un trajet.
     public function addRide(Ride $ride, int $userId): int
     {
+        // Vérification de la permission
         $this->ensureDriver($userId);
+
+        // Récupération du chauffeur
+        $driver = $ride->getRideDriver($userId);
+
+        // Déduction de la commission
+        $commission = $ride->getRideCommission();
+        $driver->setCredits($driver->getCredits() - $commission);
+
+        // Enregistrement de la modification des crédits
+        $this->userRelationsRepository->updateUser(
+            $driver,
+            [
+                'credits' => $driver->getCredits()
+            ]
+        );
+
+
         return $this->rideWithUserRepository->insertRide($ride);
     }
 
@@ -78,11 +97,11 @@ class RideService extends BaseService
             ]
         );
 
-        // Création de la réservation - dédrémentation incluse
+        // Création de la réservation - dédrémentation du siége incluse
         $booking = $this->bookingService->createBooking($ride, $driver, $passenger);
 
         // Notification
-        $this->notificationService->sendRideConfirmation($passenger, $ride);
+        $this->notificationService->sendRideConfirmationToPassenger($passenger, $ride);
 
         return $booking;
     }
@@ -136,7 +155,7 @@ class RideService extends BaseService
             ]);
 
             // Notifier 
-            $this->notificationService->sendRideCancelation($passenger, $ride);
+            $this->notificationService->sendRideCancelationToPassenger($passenger, $ride);
         }
 
         // Enregistrement du statut du trajet en BD
@@ -224,10 +243,13 @@ class RideService extends BaseService
         // Créditer le conducteur avec le total des passagers
         $bookings = $this->bookingRelationsRepository->findBookingByRideId($rideId);
         $totalCredits = 0;
+
         // Calcule du total du coût de chaque passager
         foreach ($bookings as $booking) {
             if ($booking->getBookingStatus() === BookingStatus::CONFIRMEE) {
                 $totalCredits += $ride->getRidePrice();
+
+                // Mise à jour du statut de réservation
                 $booking->setBookingStatus(BookingStatus::PASSEE);
                 $this->bookingRelationsRepository->updateBooking(
                     $booking->getBookingId(),
@@ -235,6 +257,10 @@ class RideService extends BaseService
                         'booking_status' => $booking->getBookingStatus()
                     ]
                 );
+
+                // Notification du passager
+                $passenger = $this->userRelationsRepository->findUserById($booking->getPassengerId());
+                $this->notificationService->sendRideFinalizationToPassenger($passenger, $ride);
             }
         }
         $driver = $this->userRelationsRepository->findUserById($driverId);
@@ -247,7 +273,7 @@ class RideService extends BaseService
         );
 
         // Notification du conducteur
-        $this->notificationService->sendRideFinalization($driver, $ride);
+        $this->notificationService->sendRideFinalizationToDriver($driver, $ride);
     }
 
 
@@ -260,7 +286,7 @@ class RideService extends BaseService
         return $this->rideWithUserRepository->findRideWithUsersByRideId($rideId);
     }
 
-
+    //-------------Pour les conducteurs------------------
     // Récupére la liste brute des trajets d'un utilisateur CONDUCTEUR.
     public function getAllRidesByDriver(int $driverId): array
     {
@@ -283,6 +309,7 @@ class RideService extends BaseService
     }
 
 
+    //-------------Pour les Passagers------------------
     // Récupére la liste brute des trajets d'un utilisateur PASSAGER.
     public function getAllRidesByPassenger(int $passengerId): array
     {
@@ -302,5 +329,40 @@ class RideService extends BaseService
     {
         $this->ensurePassenger($passengerId);
         return $this->rideWithUserRepository->fetchPastRidesByPassenger($passengerId);
+    }
+
+    //-------------Pour les Admins------------------
+    // Récupére le nombre de trajets effectués pour le jour J.
+    public function getNumberOfRidesFromToday(int $adminId): ?array
+    {
+        $this->ensureAdmin($adminId);
+        return $this->rideWithUserRepository->countRidesByToday();
+    }
+
+    // Récupére le nombre de trajets effectués sur une période donnée.
+    public function getNumberOfRidesOverPeriod(
+        int $adminId,
+        DateTimeInterface $start,
+        DateTimeInterface $end
+    ): ?array {
+        $this->ensureAdmin($adminId);
+        return $this->rideWithUserRepository->countRidesByPeriod($start, $end);
+    }
+
+    // Récupére le nombre de commission gagné pour le jour J.
+    public function getTotalCommissionFromToday(int $adminId): ?array
+    {
+        $this->ensureAdmin($adminId);
+        return $this->rideWithUserRepository->countCommissionByToday();
+    }
+
+    // Récupére le nombre de commission gagné sur une période donnée.
+    public function getTotalCommissionOverPeriod(
+        int $adminId,
+        DateTimeInterface $start,
+        DateTimeInterface $end
+    ): ?array {
+        $this->ensureAdmin($adminId);
+        return $this->rideWithUserRepository->countCommissionByPeriod($start, $end);
     }
 }
