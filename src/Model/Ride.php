@@ -27,6 +27,7 @@ class Ride
 
         private ?int $driverId = null, // pour l'hydratation brute dans RideRepository
         private ?User $driver = null, // pour le mappingdans RideRepository
+        private ?int $passengerId = null,
 
         private \DateTimeImmutable $departureDateTime,
         private string $departurePlace,
@@ -69,6 +70,11 @@ class Ride
     public function getRideDriverId(): ?int
     {
         return $this->driverId;
+    }
+
+    public function getRidePassengerId(): ?int
+    {
+        return $this->passengerId;
     }
 
     public function getRideDepartureDateTime(): \DateTimeImmutable
