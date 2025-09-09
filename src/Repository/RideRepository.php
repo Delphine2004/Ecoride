@@ -6,8 +6,10 @@ use App\Repositories\BaseRepository;
 use App\Models\Ride;
 use App\Enum\RideStatus;
 use App\Enum\UserRoles;
+use DateTimeInterface;
 use PDO;
 use InvalidArgumentException;
+use DateTime;
 
 /**
  * Cette classe gére la correspondance entre un trajet et la BDD.
@@ -220,7 +222,13 @@ class RideRepository extends BaseRepository
         int $offset = 0
     ): array {
 
-        // Pas nécessaire de vérifier les champs car table pivot.
+        // Vérifie si chaque champ est autorisé.
+        foreach ($criteria as $field => $value) {
+            if (!$this->isAllowedField($field)) {
+                return [];
+            }
+        }
+
         // Vérifier si l'ordre et la direction sont définis et valides.
         [$orderBy, $orderDirection] = $this->sanitizeOrder(
             $orderBy,
@@ -468,6 +476,176 @@ class RideRepository extends BaseRepository
     public function fetchPastRidesByPassenger(int $passengerId): array
     {
         return $this->findAllRidesByPassenger($passengerId, RideStatus::TERMINE);
+    }
+
+
+    // Pour l'admin
+    /**
+     * Permet de calculer le nombre de trajet par champs.
+     *
+     * @param array $criteria
+     * @return array|null
+     */
+    public function countRidesByFields(
+        array $criteria,
+    ): ?array {
+        foreach ($criteria as $field => $value) {
+            if (!$this->isAllowedField($field)) {
+                return [];
+            }
+        }
+
+        // Construction du sql
+        $sql = "SELECT COUNT(ride_id) AS total_ride
+                FROM {$this->table} 
+                WHERE 1 = 1";
+
+        // Construction dynamique des conditions
+        foreach ($criteria as $field => $value) {
+            if (!$this->isAllowedField($field)) {
+                throw new InvalidArgumentException("Champ non autorisé : $field");
+            }
+            if ($value === null) {
+                $sql .= " AND $field IS NULL";
+            } else {
+                $sql .= " AND $field = :$field";
+            }
+        }
+
+
+        // Préparation de la requête
+        $stmt = $this->db->prepare($sql);
+        foreach ($criteria as $field => $value) {
+            if ($value !== null) {
+                $type = is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR;
+                $stmt->bindValue(":$field", $value, $type);
+            }
+        }
+        $stmt->execute();
+
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Permet de calculer le total des commissions par champs.
+     *
+     * @param array $criteria
+     * @param string|null $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array|null
+     */
+    public function countCommissionByFields(
+        array $criteria,
+        ?string $orderBy = null,
+        string $orderDirection = 'DESC',
+        int $limit = 50,
+        int $offset = 0
+    ): ?array {
+        // Vérifie si chaque champ est autorisé.
+        foreach ($criteria as $field => $value) {
+            if (!$this->isAllowedField($field)) {
+                return [];
+            }
+        }
+
+        // Vérifier si l'ordre et la direction sont définis et valides.
+        [$orderBy, $orderDirection] = $this->sanitizeOrder(
+            $orderBy,
+            $orderDirection,
+            'ride_id'
+        );
+
+        // Construction du sql
+        $sql = "SELECT SUM(commission) AS total_commission
+                FROM {$this->table} 
+                WHERE 1 = 1";
+
+        // Construction dynamique des conditions
+        foreach ($criteria as $field => $value) {
+            if (!$this->isAllowedField($field)) {
+                throw new InvalidArgumentException("Champ non autorisé : $field");
+            }
+            if ($value === null) {
+                $sql .= " AND $field IS NULL";
+            } else {
+                $sql .= " AND $field = :$field";
+            }
+        }
+
+        // Tri et limite
+        $sql .= " ORDER BY $orderBy $orderDirection 
+                LIMIT " . (int)$limit . " OFFSET " . (int)$offset;
+
+        // Préparation de la requête
+        $stmt = $this->db->prepare($sql);
+        foreach ($criteria as $field => $value) {
+            if ($value !== null) {
+                $type = is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR;
+                $stmt->bindValue(":$field", $value, $type);
+            }
+        }
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+
+    /**
+     * Calcule le nombre de trajet du jour.
+     *
+     * @return array|null
+     */
+    public function countRidesByToday(): ?array
+    {
+        $today = (new DateTime())->format('Y-m-d');
+        return $this->countRidesByFields(['DATE(created_at)' => $today]);
+    }
+
+    /**
+     * Calcule le total des commissions perçues du jour
+     *
+     * @return array|null
+     */
+    public function countCommissionByToday(): ?array
+    {
+        $today = (new DateTime())->format('Y-m-d');
+        return $this->countCommissionByFields(['DATE(created_at)' => $today]);
+    }
+
+    /**
+     * Calcule le nombre de trajet par période.
+     *
+     * @param DateTimeInterface $start
+     * @param DateTimeInterface $end
+     * @return array|null
+     */
+    public function countRidesByPeriod(
+        DateTimeInterface $start,
+        DateTimeInterface $end
+    ): ?array {
+        return $this->countRidesByFields([
+            'created_at >= ' => $start->format('Y-m-d H:i:s'),
+            'created_at <= ' => $end->format('Y-m-d H:i:s'),
+        ]);
+    }
+
+    /**
+     * Calcule le total des commissions perçues du jour
+     *
+     * @param DateTimeInterface $start
+     * @param DateTimeInterface $end
+     * @return array|null
+     */
+    public function countCommissionByPeriod(
+        DateTimeInterface $start,
+        DateTimeInterface $end
+    ): ?array {
+        return $this->countCommissionByFields([
+            'created_at >= ' => $start->format('Y-m-d H:i:s'),
+            'created_at <= ' => $end->format('Y-m-d H:i:s'),
+        ]);
     }
 
     //------------------------------------------
