@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Repositories\BaseRepository;
 use App\Models\Car;
 use App\Enum\CarPower;
+use App\Enum\CarColor;
 use PDO;
 
 /**
@@ -48,7 +49,7 @@ class CarRepository extends BaseRepository
             owner: null, // car pas encore chargé
             brand: $data['car_brand'],
             model: $data['car_model'],
-            color: $data['car_color'],
+            color: CarColor::from($data['car_color']),
             year: (int) $data['car_year'],
             power: CarPower::from($data['car_power']),
             seatsNumber: (int) $data['seats_number'],
