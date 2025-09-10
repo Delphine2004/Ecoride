@@ -69,14 +69,14 @@ class CarRepository extends BaseRepository
     {
         return [
             'user_id' => $car->getCarOwner()->getUserId(),
-            'car_brand' => $car->getBrand(),
-            'car_model' => $car->getModel(),
-            'car_color' => $car->getColor(),
-            'car_year' => $car->getYear(),
-            'car_power' => $car->getPower()->value,
-            'seats_number' => $car->getSeatsNumber(),
-            'registration_number' => $car->getRegistrationNumber(),
-            'registration_date' => $car->getRegistrationDate()->format('Y-m-d')
+            'car_brand' => $car->getCarBrand(),
+            'car_model' => $car->getCarModel(),
+            'car_color' => $car->getCarColor(),
+            'car_year' => $car->getCarYear(),
+            'car_power' => $car->getCarPower()->value,
+            'seats_number' => $car->getCarSeatsNumber(),
+            'registration_number' => $car->getCarRegistrationNumber(),
+            'registration_date' => $car->getCarRegistrationDate()->format('Y-m-d')
         ];
     }
 
