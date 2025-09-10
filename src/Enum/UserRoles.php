@@ -4,8 +4,8 @@ namespace App\Enum;
 
 enum UserRoles: string
 {
-    case PASSAGER = "passager";
-    case CONDUCTEUR = "conducteur";
-    case EMPLOYE = "employer";
-    case ADMIN = "admin";
+    case PASSAGER = "Passager";
+    case CONDUCTEUR = "Conducteur";
+    case EMPLOYE = "Employer";
+    case ADMIN = "Admin";
 }

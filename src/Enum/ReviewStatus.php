@@ -4,6 +4,6 @@ namespace App\Enum;
 
 enum ReviewStatus: string
 {
-    case ATTENTE = "en attente";
-    case CONFIRME = "confirmé";
+    case ATTENTE = "En attente";
+    case CONFIRME = "Confirmé";
 }

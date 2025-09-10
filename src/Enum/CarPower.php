@@ -4,9 +4,9 @@ namespace App\Enum;
 
 enum CarPower: string
 {
-    case DIESEL = "diesel";
-    case ESSENCE = "essence";
-    case ELECTRIQUE = "electrique";
-    case HYBRIDE = "hybride";
-    case GPL = "gpl";
+    case DIESEL = "Diesel";
+    case ESSENCE = "Essence";
+    case ELECTRIQUE = "Electrique";
+    case HYBRIDE = "Hybride";
+    case GPL = "Gpl";
 }

@@ -4,13 +4,13 @@ namespace App\Enum;
 
 enum CarColor: string
 {
-    case NOIRE = "noire";
-    case BLANCHE = "blanche";
-    case BEIGE = "beige";
-    case ROUGE = "rouge";
-    case VERTE = "verte";
-    case BLEUE = "bleue";
-    case JAUNE = "jaune";
-    case ORANGE = "orange";
-    case VIOLETTE = "violette";
+    case NOIRE = "Noire";
+    case BLANCHE = "Blanche";
+    case BEIGE = "Beige";
+    case ROUGE = "Rouge";
+    case VERTE = "Verte";
+    case BLEUE = "Bleue";
+    case JAUNE = "Jaune";
+    case ORANGE = "Orange";
+    case VIOLETTE = "Violette";
 }
