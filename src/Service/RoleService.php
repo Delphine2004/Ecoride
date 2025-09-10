@@ -28,6 +28,16 @@ class RoleService
         return in_array($roleName, $roles, true);
     }
 
+    public function hasAnyRole(int $userId, array $roles): bool
+    {
+        foreach ($roles as $role) {
+            if ($this->hasRole($userId, $role)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Vérifie si l'utilisateur a le rôle PASSAGER.
      *
