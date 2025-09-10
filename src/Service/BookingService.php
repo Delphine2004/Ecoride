@@ -47,7 +47,15 @@ class BookingService extends BaseService
 
     //-----------------ACTIONS------------------------------
 
-    // Création d'une réservation - Fonction utilisé dans bookRide
+    /**
+     * Création d'une réservation - Fonction utilisé dans bookRide
+     *
+     * @param Ride $ride
+     * @param User $driver
+     * @param User $passenger
+     * @param integer $userId
+     * @return Booking
+     */
     public function createBooking(
         Ride $ride,
         User $driver,
@@ -104,7 +112,13 @@ class BookingService extends BaseService
         return $booking;
     }
 
-    // Permet à un utilisateur PASSAGER d'annuler une réservation.
+    /**
+     * Permet à un utilisateur PASSAGER d'annuler une réservation.
+     *
+     * @param integer $bookingId
+     * @param integer $userId
+     * @return Booking
+     */
     public function cancelBooking(
         int $bookingId,
         int $userId
@@ -194,7 +208,13 @@ class BookingService extends BaseService
 
     //------------------RECUPERATIONS------------------------
 
-    // Récupére la réservation avec l'objet Ride et les objets User liés à la réservation
+    /**
+     * Récupére la réservation avec l'objet Ride et les objets User liés à la réservation
+     *
+     * @param integer $bookingId
+     * @param integer $employeeId
+     * @return Booking|null
+     */
     public function getBookingWithRideAndUsers(
         int $bookingId,
         int $employeeId
@@ -224,7 +244,13 @@ class BookingService extends BaseService
         return $this->bookingRelationsRepository->findBookingWithRideAndUsersByBookingId($bookingId);
     }
 
-    // Récupére la liste des réservations en fonction de la date de création pour les utilisateurs avec le rôle EMPLOYEE
+    /**
+     * Récupére la liste des réservations en fonction de la date de création pour les utilisateurs avec le rôle EMPLOYEE
+     *
+     * @param DateTimeInterface $creationDate
+     * @param integer $employeeId
+     * @return array
+     */
     public function getBookingListByDate(
         DateTimeInterface $creationDate,
         int $employeeId

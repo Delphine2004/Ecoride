@@ -33,7 +33,13 @@ class RideService extends BaseService
 
     //-----------------ACTIONS------------------------------
 
-    // Permet à un utilisateur CONDUCTEUR de rajouter un trajet.
+    /**
+     * Permet à un utilisateur CONDUCTEUR de rajouter un trajet.
+     *
+     * @param Ride $ride
+     * @param integer $userId
+     * @return Ride
+     */
     public function addRide(
         Ride $ride,
         int $userId
@@ -85,7 +91,13 @@ class RideService extends BaseService
         return $ride;
     }
 
-    // Permet à un utilisateur PASSAGER de réserver un trajet.
+    /**
+     * Permet à un utilisateur PASSAGER de réserver un trajet.
+     *
+     * @param integer $rideId
+     * @param integer $userId
+     * @return Booking
+     */
     public function bookRide(
         int $rideId,
         int $userId
@@ -155,7 +167,13 @@ class RideService extends BaseService
         return $booking;
     }
 
-    // Permet à un utilisateur CONDUCTEUR d'annuler un trajet.
+    /**
+     * Permet à un utilisateur CONDUCTEUR d'annuler un trajet.
+     *
+     * @param integer $rideId
+     * @param integer $userId
+     * @return Ride
+     */
     public function cancelRide(
         int $rideId,
         int $userId
@@ -251,7 +269,13 @@ class RideService extends BaseService
         return $ride;
     }
 
-    // Permet à un utilisateur CONDUCTEUR de démarrer un trajet
+    /**
+     * Permet à un utilisateur CONDUCTEUR de démarrer un trajet.
+     *
+     * @param Ride $ride
+     * @param integer $userId
+     * @return void
+     */
     public function startRide(
         Ride $ride,
         int $userId
@@ -315,7 +339,13 @@ class RideService extends BaseService
         );
     }
 
-    // Permet à un utilisateur CONDUCTEUR de finaliser un trajet
+    /**
+     * Permet à un utilisateur CONDUCTEUR de finaliser un trajet.
+     *
+     * @param Ride $ride
+     * @param integer $userId
+     * @return void
+     */
     public function finalizeRide(
         Ride $ride,
         int $userId
@@ -423,7 +453,12 @@ class RideService extends BaseService
 
     //------------------RECUPERATIONS------------------------
 
-    // Récupére un trajet avec les passagers.
+    /**
+     * Récupére un trajet avec les passagers.
+     *
+     * @param integer $rideId
+     * @return Ride|null
+     */
     public function getRideWithPassengers(
         int $rideId
     ): ?Ride {
@@ -431,7 +466,13 @@ class RideService extends BaseService
     }
 
     //-------------Pour les conducteurs------------------
-    // Récupére la liste brute des trajets d'un utilisateur CONDUCTEUR.
+    /**
+     * Récupére la liste brute des trajets d'un utilisateur CONDUCTEUR.
+     *
+     * @param integer $userId
+     * @param integer $driverId
+     * @return array
+     */
     public function getAllRidesByDriver(
         int $userId,
         int $driverId
@@ -463,7 +504,13 @@ class RideService extends BaseService
         return $this->rideWithUserRepository->fetchAllRidesByDriver($driverId);
     }
 
-    // Récupére la liste d'objet Ride à venir d'un utilisateur CONDUCTEUR.
+    /**
+     * Récupére la liste d'objet Ride à venir d'un utilisateur CONDUCTEUR.
+     *
+     * @param integer $userId
+     * @param integer $driverId
+     * @return array
+     */
     public function getUpcomingRidesByDriver(
         int $userId,
         int $driverId
@@ -497,7 +544,13 @@ class RideService extends BaseService
         return $this->rideWithUserRepository->findUpcomingRidesByDriver($driverId);
     }
 
-    // Récupére la liste brute des trajets passés d'un utilisateur CONDUCTEUR.
+    /**
+     * Récupére la liste brute des trajets passés d'un utilisateur CONDUCTEUR.
+     *
+     * @param integer $userId
+     * @param integer $driverId
+     * @return array
+     */
     public function getPastRidesByDriver(
         int $userId,
         int $driverId
@@ -534,7 +587,13 @@ class RideService extends BaseService
 
 
     //-------------Pour les Passagers------------------
-    // Récupére la liste brute des trajets d'un utilisateur PASSAGER.
+    /**
+     * Récupére la liste brute des trajets d'un utilisateur PASSAGER.
+     *
+     * @param integer $userId
+     * @param integer $passengerId
+     * @return array
+     */
     public function getAllRidesByPassenger(
         int $userId,
         int $passengerId
@@ -570,7 +629,13 @@ class RideService extends BaseService
         return $this->rideWithUserRepository->fetchAllRidesByPassenger($passengerId);
     }
 
-    // Récupére la liste d'objet Ride à venir d'un utilisateur PASSAGER.
+    /**
+     * Récupére la liste d'objet Ride à venir d'un utilisateur PASSAGER.
+     *
+     * @param integer $userId
+     * @param integer $passengerId
+     * @return array
+     */
     public function getUpcomingRidesByPassenger(
         int $userId,
         int $passengerId
@@ -604,7 +669,13 @@ class RideService extends BaseService
         return $this->rideWithUserRepository->findUpcomingRidesByPassenger($passengerId);
     }
 
-    // Récupére la liste brute des trajets passés d'un utilisateur PASSAGER.
+    /**
+     * Récupére la liste brute des trajets passés d'un utilisateur PASSAGER.
+     *
+     * @param integer $userId
+     * @param integer $passengerId
+     * @return array
+     */
     public function getPastRidesByPassenger(
         int $userId,
         int $passengerId
@@ -639,7 +710,12 @@ class RideService extends BaseService
     }
 
     //-------------Pour les Admins------------------
-    // Récupére le nombre de trajets effectués pour le jour J.
+    /**
+     * Récupére le nombre de trajets effectués pour le jour J.
+     *
+     * @param integer $adminId
+     * @return array
+     */
     public function getNumberOfRidesFromToday(
         int $adminId
     ): array {
@@ -657,7 +733,14 @@ class RideService extends BaseService
         return $this->rideWithUserRepository->countRidesByToday();
     }
 
-    // Récupére le nombre de trajets effectués sur une période donnée.
+    /**
+     * Récupére le nombre de trajets effectués sur une période donnée.
+     *
+     * @param integer $adminId
+     * @param DateTimeInterface $start
+     * @param DateTimeInterface $end
+     * @return array
+     */
     public function getNumberOfRidesOverPeriod(
         int $adminId,
         DateTimeInterface $start,
@@ -677,7 +760,12 @@ class RideService extends BaseService
         return $this->rideWithUserRepository->countRidesByPeriod($start, $end);
     }
 
-    // Récupére le nombre de commission gagné pour le jour J.
+    /**
+     * Récupére le nombre de commission gagné pour le jour J.
+     *
+     * @param integer $adminId
+     * @return array
+     */
     public function getTotalCommissionFromToday(
         int $adminId
     ): array {
@@ -695,7 +783,14 @@ class RideService extends BaseService
         return $this->rideWithUserRepository->countCommissionByToday();
     }
 
-    // Récupére le nombre de commission gagné sur une période donnée.
+    /**
+     * Récupére le nombre de commission gagné sur une période donnée.
+     *
+     * @param integer $adminId
+     * @param DateTimeInterface $start
+     * @param DateTimeInterface $end
+     * @return array
+     */
     public function getTotalCommissionOverPeriod(
         int $adminId,
         DateTimeInterface $start,

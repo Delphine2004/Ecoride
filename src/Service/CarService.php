@@ -19,7 +19,12 @@ class CarService extends BaseService
 
     //--------------VERIFICATION-----------------
 
-    // Vérifie si l'utilisateur a encore des voitures.
+    /**
+     * Vérifie si l'utilisateur a des voitures.
+     *
+     * @param integer $userId
+     * @return boolean
+     */
     public function userHasCars(int $userId): bool
     {
         // Récupération de l'utilisateur
@@ -37,7 +42,13 @@ class CarService extends BaseService
 
     //-----------------ACTIONS------------------------------
 
-    // Permet à un utilisateur CONDUCTEUR d'ajouter une voiture.
+    /**
+     * Permet à un utilisateur CONDUCTEUR d'ajouter une voiture.
+     *
+     * @param integer $userId
+     * @param Car $car
+     * @return integer
+     */
     public function addCar(int $userId, Car $car): int
     {
         // Récupération de l'utilisateur
@@ -51,7 +62,13 @@ class CarService extends BaseService
         return $this->carRepository->insertCar($car);
     }
 
-    // Permet à un utilisateur CONDUCTEUR de supprimer une voiture.
+    /**
+     * Permet à un utilisateur CONDUCTEUR de supprimer une voiture.
+     *
+     * @param integer $userId
+     * @param integer $carId
+     * @return void
+     */
     public function removeCar(int $userId, int $carId): void
     {
         // Récupération de l'utilisateur
@@ -72,7 +89,12 @@ class CarService extends BaseService
 
     //------------------RECUPERATIONS------------------------
 
-    // Récupére les voitures d'un utilisateur CONDUCTEUR.
+    /**
+     * Récupére les voitures d'un utilisateur CONDUCTEUR.
+     *
+     * @param integer $userId
+     * @return array
+     */
     public function getCarsByUser(int $userId): array
     {
         // Récupération de l'utilisateur

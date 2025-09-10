@@ -12,6 +12,13 @@ class RoleService
         private UserRepository $userRepository,
     ) {}
 
+    /**
+     * Vérifie un rôle en particulier.
+     *
+     * @param integer $userId
+     * @param string $roleName
+     * @return boolean
+     */
     public function hasRole(int $userId, string $roleName): bool
     {
         // Trouver les roles de l'utilisateur
@@ -21,7 +28,12 @@ class RoleService
         return in_array($roleName, $roles, true);
     }
 
-    // Vérifie si l'utilisateur a le rôle PASSAGER.
+    /**
+     * Vérifie si l'utilisateur a le rôle PASSAGER.
+     *
+     * @param integer $userId
+     * @return boolean
+     */
     public function isPassenger(int $userId): bool
     {
         // Trouver les roles de l'utilisateur
@@ -31,7 +43,12 @@ class RoleService
         return in_array(UserRoles::PASSAGER, $roles, true);
     }
 
-    // Vérifie si l'utilisateur a le rôle CONDUCTEUR.
+    /**
+     * Vérifie si l'utilisateur a le rôle CONDUCTEUR.
+     *
+     * @param integer $userId
+     * @return boolean
+     */
     public function isDriver(int $userId): bool
     {
         // Trouver les roles de l'utilisateur
@@ -41,7 +58,12 @@ class RoleService
         return in_array(UserRoles::CONDUCTEUR, $roles, true);
     }
 
-    // Vérifie si l'utilisateur a le rôle EMPLOYE
+    /**
+     * Vérifie si l'utilisateur a le rôle EMPLOYE.
+     *
+     * @param integer $userId
+     * @return boolean
+     */
     public function isEmployee(int $userId): bool
     {
         // Trouver les roles de l'utilisateur
@@ -51,7 +73,12 @@ class RoleService
         return in_array(UserRoles::EMPLOYE, $roles, true);
     }
 
-    // Vérifie si l'utilisateur a le rôle ADMIN
+    /**
+     * Vérifie si l'utilisateur a le rôle ADMIN.
+     *
+     * @param integer $userId
+     * @return boolean
+     */
     public function isAdmin(int $userId): bool
     {
         // Trouver les roles de l'utilisateur
