@@ -39,7 +39,7 @@ class User
         private ?int $credits = null,
         private ?string $apiToken = null, // n'a pas de valeur au moment de l'instanciation
 
-        private array $roles = [UserRoles::PASSAGER], // Statut par défaut / en tableau pour pouvoir stoker plusieurs rôles pour un utilisateur
+        private array $roles = [], // pour pouvoir stoker plusieurs rôles pour un utilisateur
         private array $cars = [], // pour stocker les voitures d'un conducteur
         private array $rides = [], // pour stocker les trajets d'un conducteur
         private array $bookings = [], // pour stocker les réservations
