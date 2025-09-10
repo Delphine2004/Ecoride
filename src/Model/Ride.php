@@ -1,7 +1,5 @@
 <?php
 
-// Finie mais à vérifier
-
 namespace App\Models;
 
 use App\Models\User;
@@ -9,8 +7,6 @@ use App\Enum\RideStatus;
 use InvalidArgumentException;
 use DateTimeImmutable;
 
-
-//Pas besoin de base model dans une entité
 
 /**
  * Cette classe représente un trajet dans la BDD.
@@ -25,9 +21,8 @@ class Ride
     public function __construct(
         private ?int $rideId = null, // n'a pas de valeur au moment de l'instanciation
 
-        private ?int $driverId = null, // pour l'hydratation brute dans RideRepository
-        private ?User $driver = null, // pour le mappingdans RideRepository
-        private ?int $passengerId = null,
+        private ?int $driverId = null, // pour l'hydratation brute
+        private ?User $driver = null, // pour le mapping
 
         private \DateTimeImmutable $departureDateTime,
         private string $departurePlace,
@@ -37,7 +32,9 @@ class Ride
         private int $availableSeats,
         private RideStatus $rideStatus = RideStatus::DISPONIBLE, // Statut par défaut
         private int $commission = 2,
-        private ?array $passengers = null, // Pour charger plusieurs passagers
+
+        private array $passengers = [], // Pour charger plusieurs passagers
+
 
         private ?\DateTimeImmutable $createdAt = null, // n'a pas de valeur au moment de l'instanciation
         private ?\DateTimeImmutable $updatedAt = null // n'a pas de valeur au moment de l'instanciation
@@ -53,15 +50,15 @@ class Ride
             ->setRidePrice($price)
             ->setRideAvailableSeats($availableSeats)
             ->setRideStatus($rideStatus)
-            ->setRideCommission($commission);
+            ->setRideCommission($commission)
+            ->setRidePassengers($passengers);
 
-        $this->passengers = $passengers ?? [];
         $this->createdAt = $createdAt ?? new DateTimeImmutable();
         $this->updatedAt = $updatedAt ?? new DateTimeImmutable();
     }
 
     // ---------Les Getters ---------
-    //Basiques
+
     public function getRideId(): ?int
     {
         return $this->rideId;
@@ -72,9 +69,9 @@ class Ride
         return $this->driverId;
     }
 
-    public function getRidePassengerId(): ?int
+    public function getRideDriver(): ?User
     {
-        return $this->passengerId;
+        return $this->driver;
     }
 
     public function getRideDepartureDateTime(): \DateTimeImmutable
@@ -125,7 +122,7 @@ class Ride
         return $this->commission;
     }
 
-    public function getRidePassengers(): ?array
+    public function getRidePassengers(): array
     {
         return $this->passengers;
     }
@@ -140,27 +137,16 @@ class Ride
         return $this->updatedAt;
     }
 
-    // Objets liés
-    public function getRideDriver(): ?User
-    {
-        return $this->driver;
-    }
 
     // ---------Les Setters ---------
 
-    // Pas de setId, de setCreatedAtcar et de setUpadetedAt car définis automatiquement par la BD
-    public function setRideDriver(User | array $driver): self
+    public function setRideDriver(?User $driver): self
     {
         $this->driver = $driver;
-        if ($driver instanceof User) {
-            $this->driverId = $driver->getUserId(); // pour setter les ids si l'objet est null
-        } elseif (is_array($driver) && isset($driver['user_id'])) {
-            $this->driverId = $driver['user_id'];
-        }
-
         $this->updateTimestamp();
         return $this;
     }
+
 
     public function setRideDepartureDateTime(\DateTimeImmutable $departureDateTime): self
     {
@@ -182,19 +168,18 @@ class Ride
 
     public function setRideDeparturePlace(string $departurePlace): self
     {
-        // Vérifier si la valeur n'est pas vide et utiliser trim pour que la valeur ne soit pas considéré comme rempli avec un espace
-        if (empty(trim($departurePlace))) {
-            throw new InvalidArgumentException("La ville de départ ne peut pas être vide");
-        }
-
         $departurePlace = trim($departurePlace);
-        $regexTextOnly = '/^[a-zA-ZÀ-ÿ\s\'-]{4,20}+$/u';
 
-        if (!preg_match($regexTextOnly, $departurePlace)) {
-            throw new InvalidArgumentException("Le ville ne peut dépasser 20 caractères autorisés.");
+        if (empty($departurePlace)) {
+            throw new InvalidArgumentException("La ville de départ est obligatoire.");
         }
 
-        $this->departurePlace = trim($departurePlace);
+        $regexTextOnly = '/^[a-zA-ZÀ-ÿ\s\'-]{4,20}$/u';
+        if (!preg_match($regexTextOnly, $departurePlace)) {
+            throw new InvalidArgumentException("Le nom de la ville doit être compris entre 4 et 20 caractères autorisés.");
+        }
+
+        $this->departurePlace = strtoupper($departurePlace);
         $this->updateTimestamp();
         return $this;
     }
@@ -213,18 +198,18 @@ class Ride
 
     public function setRideArrivalPlace(string $arrivalPlace): self
     {
-        if (empty(trim($arrivalPlace))) {
-            throw new InvalidArgumentException("La ville d'arrivée ne peut pas être vide");
-        }
-
         $arrivalPlace = trim($arrivalPlace);
-        $regexTextOnly = '/^[a-zA-ZÀ-ÿ\s\'-]{4,20}+$/u';
 
-        if (!preg_match($regexTextOnly, $arrivalPlace)) {
-            throw new InvalidArgumentException("Le ville ne peut dépasser 20 caractères autorisés.");
+        if (empty(trim($arrivalPlace))) {
+            throw new InvalidArgumentException("La ville d'arrivée est obligatoire.");
         }
 
-        $this->arrivalPlace = trim($arrivalPlace);
+        $regexTextOnly = '/^[a-zA-ZÀ-ÿ\s\'-]{4,20}$/u';
+        if (!preg_match($regexTextOnly, $arrivalPlace)) {
+            throw new InvalidArgumentException("Le nom de la ville doit être compris entre 4 et 20 caractères autorisés.");
+        }
+
+        $this->arrivalPlace = strtoupper($arrivalPlace);
         $this->updateTimestamp();
         return $this;
     }
@@ -266,18 +251,14 @@ class Ride
     public function setRidePassengers(array $passengers): self
     {
         $this->passengers = $passengers;
+        $this->updateTimestamp();
         return $this;
     }
 
-    public function addRidePassenger(User | array $passenger): self
+
+    public function addRidePassenger(User $passenger): void
     {
-        if ($passenger instanceof User) {
-            $this->passengers[] = $passenger;
-        } elseif (is_array($passenger)) {
-            $this->passengers[] = $passenger;
-        }
-        $this->updateTimestamp();
-        return $this;
+        $this->passengers[] = $passenger;
     }
 
     //-------Mise à jour du nombre de place ------

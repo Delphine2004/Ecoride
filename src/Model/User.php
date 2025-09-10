@@ -29,22 +29,20 @@ class User
         private string $password,
         private bool $isHashed = false,
 
-        private ?string $login = null, // Champ optionnel en fonction du rôle
-        private ?string $phone = null, // Champ optionnel en fonction du rôle
-        private ?string $address = null, // Champ optionnel en fonction du rôle
-        private ?string $city = null, // Champ optionnel en fonction du rôle
-        private ?string $zipCode = null, // Champ optionnel en fonction du rôle
-        private ?string $uriPicture = null, // Champ optionnel en fonction du rôle
-        private ?string $licenceNo = null, // Champ optionnel en fonction du rôle
-        private ?int $credits = null, // Champ optionnel en fonction du rôle
-
+        private ?string $login = null,
+        private ?string $phone = null,
+        private ?string $address = null,
+        private ?string $city = null,
+        private ?string $zipCode = null,
+        private ?string $uriPicture = null,
+        private ?string $licenceNo = null,
+        private ?int $credits = null,
         private ?string $apiToken = null, // n'a pas de valeur au moment de l'instanciation
-        /**@var UserRoles[] */
+
         private array $roles = [UserRoles::PASSAGER], // Statut par défaut / en tableau pour pouvoir stoker plusieurs rôles pour un utilisateur
         private array $cars = [], // pour stocker les voitures d'un conducteur
         private array $rides = [], // pour stocker les trajets d'un conducteur
         private array $bookings = [], // pour stocker les réservations
-
 
 
         private ?DateTimeImmutable $createdAt = null, // n'a pas de valeur au moment de l'instanciation
@@ -54,9 +52,9 @@ class User
         $this
             ->setUserLastName($lastName)
             ->setUserFirstName($firstName)
-            ->setUserLogin($login)
             ->setUserEmail($email)
             ->setUserPassword($password, $isHashed)
+            ->setUserLogin($login)
             ->setUserPhone($phone)
             ->setUserAddress($address)
             ->setUserCity($city)
@@ -65,7 +63,10 @@ class User
             ->setUserLicenceNo($licenceNo)
             ->setUserCredits($credits)
             ->setUserApiToken($apiToken)
-            ->setUserRoles($roles);
+            ->setUserRoles($roles)
+            ->setUserCars($cars)
+            ->setUserRides($rides)
+            ->setUserBookings($bookings);
 
         $this->createdAt = $createdAt ?? new DateTimeImmutable();
         $this->updatedAt = $updatedAt ?? new DateTimeImmutable();
@@ -179,15 +180,21 @@ class User
 
     // ---------Les Setters ---------
 
-    public function setUserId(int $id): self
-    {
-        $this->userId = $id;
-        return $this;
-    }
 
     public function setUserLastName(string $lastName): self
     {
         $this->lastName = trim($lastName);
+
+        if (empty($lastName)) {
+            throw new InvalidArgumentException("Le nom est obligatoire.");
+        }
+
+        $regexTextOnly = '/^[a-zA-ZÀ-ÿ\s\'-]{4,20}$/u';
+        if (!preg_match($regexTextOnly, $lastName)) {
+            throw new InvalidArgumentException("Le nom doit être compris entre 4 et 20 caractères autorisés.");
+        }
+
+        $this->lastName = strtoupper($lastName);
         $this->updateTimestamp();
         return $this;
     }
@@ -195,26 +202,41 @@ class User
     public function setUserFirstName(string $firstName): self
     {
         $this->firstName = trim($firstName);
+
+        if (empty($firstName)) {
+            throw new InvalidArgumentException("Le prénom est obligatoire.");
+        }
+
+        $regexTextOnly = '/^[a-zA-ZÀ-ÿ\s\'-]{4,20}+$/u';
+        if (!preg_match($regexTextOnly, $firstName)) {
+            throw new InvalidArgumentException("Le prénom doit être compris entre 4 et 20 caractères autorisés.");
+        }
+
+        $this->firstName = ucfirst($firstName);
         $this->updateTimestamp();
         return $this;
     }
 
     public function setUserEmail(string $email): self
     {
-        if (empty(trim($email))) {
-            throw new InvalidArgumentException("L'email ne peut pas être vide. ");
+        $this->email = trim($email);
+
+        if (empty($email)) {
+            throw new InvalidArgumentException("L'email est obligatoire. ");
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             throw new InvalidArgumentException("L'email est invalide.");
         }
-        $this->email = strtolower(trim($email));
+        $this->email = strtolower($email);
         $this->updateTimestamp();
         return $this;
     }
 
     public function setUserPassword(string $password, bool $isHashed = false): self
     {
+        $this->password = trim($password);
+
         if (!$isHashed) {
             $this->validatePassword($password);
             $password = password_hash($password, PASSWORD_DEFAULT);
@@ -225,73 +247,110 @@ class User
         return $this;
     }
 
+
     public function setUserLogin(?string $login): self
     {
-        if ($login !== null && strlen(trim($login)) > 50) {
-            throw new InvalidArgumentException("Le nom d'utilisateur est trop long.");
+        if ($login !== null) {
+            $login = trim($login);
+
+            $loginRegex = '/^[a-zA-ZÀ-ÿ0-9\s\-]{10,25}$/u';
+            if (!preg_match($loginRegex, $login)) {
+                throw new InvalidArgumentException("Le login doit contenir entre 10 et 25 caractères autorisés.");
+            }
         }
-        $this->login = $login !== null ? trim($login) : null;
+        $this->login = $login;
         $this->updateTimestamp();
         return $this;
     }
 
     public function setUserPhone(?string $phone): self
     {
-        if ($phone !== null && !preg_match('/^[0-9]{10}$/', trim($phone))) {
-            throw new InvalidArgumentException("Le numéro de téléphone doit contenir 10 chiffres.");
+        if ($phone !== null) {
+            $phone = trim($phone);
+
+            $frenchPhoneRegex = '/^[0-9]{10}$/';
+            if (!preg_match($frenchPhoneRegex, $phone)) {
+                throw new InvalidArgumentException("Le numéro de téléphone doit contenir 10 chiffres.");
+            }
         }
-        $this->phone = $phone !== null ? trim($phone) : null;
+
+        $this->phone = $phone;
         $this->updateTimestamp();
         return $this;
     }
 
     public function setUserAddress(?string $address): self
     {
-        if ($address !== null && strlen($address) > 100) {
-            throw new InvalidArgumentException("L'adresse est trop longue.");
+        if ($address !== null) {
+            $address = trim($address);
+
+            $addressRegex = '/^[0-9]{0,5}\s*[a-zA-ZÀ-ÿ\s\'-]{10,40}$/u';
+            if (!preg_match($addressRegex, $address)) {
+                throw new InvalidArgumentException("L'adresse doit contenir entre 5 et 40 caractères autorisés.");
+            }
         }
-        $this->address = $address !== null ? trim($address) : null;
+
+        $this->address = $address;
         $this->updateTimestamp();
         return $this;
     }
 
     public function setUserCity(?string $city): self
     {
-        if ($city  !== null && strlen($city) > 50) {
-            throw new InvalidArgumentException("Le nom de la ville est trop long.");
+        if ($city !== null) {
+            $city = trim($city);
+
+            $regexTextOnly = '/^[a-zA-ZÀ-ÿ\s\'-]{4,20}+$/u';
+            if (!preg_match($regexTextOnly, $city)) {
+                throw new InvalidArgumentException("Le ville doit contenir entre 4 et 20 caractères autorisés.");
+            }
         }
-        $this->city = $city !== null ? trim($city) : null;
+
+        $this->city = strtoupper($city);
         $this->updateTimestamp();
         return $this;
     }
 
     public function setUserZipCode(?string $zipCode): self
     {
-        if ($zipCode  !== null && !preg_match('/^[0-9]{5}$/', trim($zipCode))) {
-            throw new InvalidArgumentException("Le code postal doit contenir exactement 5 chiffres.");
+        if ($zipCode !== null) {
+            $zipCode = trim($zipCode);
+
+            $zipCodeRegex = '/^[0-9]{5}$/';
+            if (!preg_match($zipCodeRegex, $zipCode)) {
+                throw new InvalidArgumentException("Le code postal doit contenir exactement 5 chiffres.");
+            }
         }
-        $this->zipCode = $zipCode !== null ? trim($zipCode) : null;
+
+        $this->zipCode = $zipCode;
         $this->updateTimestamp();
         return $this;
     }
 
     public function setUserUriPicture(?string $uriPicture): self
     {
-        if ($uriPicture  !== null && !filter_var($uriPicture, FILTER_VALIDATE_URL)) {
+        if ($uriPicture !== null && !filter_var($uriPicture, FILTER_VALIDATE_URL)) {
             throw new InvalidArgumentException("L'url de l'image est invalide.");
         }
 
-        $this->uriPicture = $uriPicture !== null ? trim($uriPicture) : null;
+        $this->uriPicture = $uriPicture;
         $this->updateTimestamp();
         return $this;
     }
 
     public function setUserLicenceNo(?string $licenceNo): self
     {
-        if ($licenceNo  !== null && strlen($licenceNo) > 50) {
-            throw new InvalidArgumentException("Le numéro de permis est trop long.");
+        if ($licenceNo !== null) {
+            $licenceNo = trim($licenceNo);
+
+            $licenceNoOldFormat = '^[0-9]{8,12}$';
+            $licenceNoNewFormat = '^[0-9A-Z]{13}$';
+            if (!preg_match($licenceNoOldFormat, strtoupper($licenceNo)) && !preg_match($licenceNoNewFormat, strtoupper($licenceNo))) {
+                throw new InvalidArgumentException("Le format du numéro de permis est incorrect.");
+            }
         }
-        $this->licenceNo = $licenceNo !== null ? trim($licenceNo) : null;
+
+        $this->licenceNo = strtoupper($licenceNo);
         $this->updateTimestamp();
         return $this;
     }
@@ -301,6 +360,7 @@ class User
         if ($credits !== null && $credits < 0) {
             throw new InvalidArgumentException("Le crédit ne peut pas être négatif.");
         }
+
         $this->credits = $credits;
         $this->updateTimestamp();
         return $this;
@@ -315,15 +375,6 @@ class User
 
     public function setUserRoles(array $roles): self
     {
-        foreach ($roles as $role) {
-            if (!$role instanceof UserRoles) {
-                throw new InvalidArgumentException('Chaque rôle doit être une instance de UserRoles.');
-            }
-        }
-
-        if (!in_array(UserRoles::PASSAGER, $roles, true)) {
-            $roles[] = UserRoles::PASSAGER; //conserve le rôle passager
-        }
         $this->roles = $roles;
         $this->updateTimestamp();
         return $this;
@@ -332,18 +383,21 @@ class User
     public function setUserCars(array $cars): self
     {
         $this->cars = $cars;
+        $this->updateTimestamp();
         return $this;
     }
 
     public function setUserRides(array $rides): self
     {
         $this->rides = $rides;
+        $this->updateTimestamp();
         return $this;
     }
 
     public function setUserBookings(array $bookings): self
     {
         $this->bookings = $bookings;
+        $this->updateTimestamp();
         return $this;
     }
 
@@ -381,21 +435,6 @@ class User
         $this->updateTimestamp();
         return $this;
     }
-
-    //Fonction qui permet à un passager d'ajouter le rôle conducteur.
-
-    /*
-    public function changeToDriver(): void
-    {
-        if ($this->hasRole(UserRoles::CONDUCTEUR)) {
-            throw new InvalidArgumentException("L'utilisateur est déjà conducteur.");
-        }
-        if (!$this->hasRole(UserRoles::PASSAGER)) {
-            throw new InvalidArgumentException("Seulement les passagers peuvent devenir chaufeur.");
-        }
-        $this->addRole(UserRoles::CONDUCTEUR);
-    }*/
-
 
     // ----- Méthodes de vérification -----
 

@@ -24,39 +24,38 @@ class Booking
         private ?User $driver = null, // Pour mapping bookingRelationsRepository
 
         private BookingStatus $bookingStatus = BookingStatus::CONFIRMEE, // Statut par défaut
-        private ?array $passengers = null, // Pour charger plusieurs passagers
+        private array $passengers = [], // Pour charger plusieurs passagers
 
         private ?\DateTimeImmutable $createdAt = null, // n'a pas de valeur au moment de l'instanciation
         private ?\DateTimeImmutable $updatedAt = null // n'a pas de valeur au moment de l'instanciation
 
     ) {
 
-        $this->passengers = $passengers ?? [];
+
+        $this->setBookingRide($ride)
+            ->setBookingPassenger($passenger)
+            ->setBookingDriver($driver)
+            ->setBookingStatus($bookingStatus);
+
         $this->createdAt = $createdAt ?? new DateTimeImmutable();
         $this->updatedAt = $updatedAt ?? new DateTimeImmutable();
-
-        if ($ride !== null) {
-            $this->setBookingRide($ride);
-        }
-        if ($passenger !== null) {
-            $this->setBookingPassenger($passenger);
-        }
-        if ($driver !== null) {
-            $this->setBookingDriver($driver);
-        }
-        $this->setBookingStatus($bookingStatus);
     }
 
     // ---------Les Getters ---------
-    // Basiques
+
     public function getBookingId(): ?int
     {
         return $this->bookingId;
     }
 
-    public function getRideId(): ?int
+    public function getBookingRideId(): ?int
     {
         return $this->rideId;
+    }
+
+    public function getBookingRide(): ?Ride
+    {
+        return $this->ride;
     }
 
     public function getBookingPassengerId(): ?int
@@ -64,41 +63,14 @@ class Booking
         return $this->passengerId;
     }
 
-    public function getBookingDriverId(): ?int
-    {
-        return $this->driverId;
-    }
-
-    public function getBookingStatus(): BookingStatus
-    {
-        return $this->bookingStatus;
-    }
-
-    public function getBookingPassengers(): ?array
-    {
-        return $this->passengers;
-    }
-
-    public function getCreatedAt(): DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-
-    public function getUpdatedAt(): DateTimeImmutable
-    {
-        return $this->updatedAt;
-    }
-
-
-    // Objets liés
-    public function getBookingRide(): ?Ride
-    {
-        return $this->ride;
-    }
-
     public function getBookingPassenger(): ?User
     {
         return $this->passenger;
+    }
+
+    public function getBookingDriverId(): ?int
+    {
+        return $this->driverId;
     }
 
     public function getBookingDriver(): ?User
@@ -106,10 +78,30 @@ class Booking
         return $this->driver;
     }
 
+    public function getBookingStatus(): BookingStatus
+    {
+        return $this->bookingStatus;
+    }
+
+    public function getBookingPassengers(): array
+    {
+        return $this->passengers;
+    }
+
+    public function getBookingCreatedAt(): DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function getBookingUpdatedAt(): DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
+
 
     // ---------Les Setters ---------
 
-    // Pas de setId, de setCreatedAtcar et de setUpadetedAt car définis automatiquement par la BD
 
     public function setBookingRide(?Ride $ride): self
     {
@@ -166,6 +158,7 @@ class Booking
     public function setBookingPassengers(array $passengers): self
     {
         $this->passengers = $passengers;
+        $this->updateTimestamp();
         return $this;
     }
 

@@ -3,8 +3,9 @@
 namespace App\Models;
 
 use App\Models\User;
-use App\Enum\CarPower;
+use App\Enum\CarBrand;
 use App\Enum\CarColor;
+use App\Enum\CarPower;
 use InvalidArgumentException;
 use DateTimeImmutable;
 
@@ -20,8 +21,11 @@ class Car
     // Promotion des propriétés (depuis PHP 8)
     function __construct(
         private ?int $carId = null, // n'a pas de valeur au moment de l'instanciation
-        private ?User $owner = null, // car pas chargé dans hydrateCar de CarRepository
-        private string $brand,
+
+        private ?int $ownerId = null, // pour l'hydratation brute 
+        private ?User $owner = null, // // pour le mapping
+
+        private CarBrand $brand,
         private string $model,
         private CarColor $color,
         private int $year,
@@ -35,15 +39,15 @@ class Car
     ) {
 
         // Affectation avec validation
-        $this->setBrand($brand)
-            ->setCarOwner($owner)
-            ->setModel($model)
-            ->setColor($color)
-            ->setYear($year)
-            ->setPower($power)
-            ->setSeatsNumber($seatsNumber)
-            ->setRegistrationNumber($registrationNumber)
-            ->setRegistrationDate($registrationDate);
+        $this->setCarOwner($owner)
+            ->setCarBrand($brand)
+            ->setCarModel($model)
+            ->setCarColor($color)
+            ->setCarYear($year)
+            ->setCarPower($power)
+            ->setCarSeatsNumber($seatsNumber)
+            ->setCarRegistrationNumber($registrationNumber)
+            ->setCarRegistrationDate($registrationDate);
 
         $this->createdAt = $createdAt ?? new DateTimeImmutable();
     }
@@ -54,52 +58,57 @@ class Car
         return $this->carId;
     }
 
+    public function getCarOwnerId(): ?int
+    {
+        return $this->ownerId;
+    }
+
     public function getCarOwner(): ?User
     {
         return $this->owner;
     }
 
-    public function getBrand(): string
+    public function getCarBrand(): CarBrand
     {
         return $this->brand;
     }
 
-    public function getModel(): string
+    public function getCarModel(): string
     {
         return $this->model;
     }
 
-    public function getColor(): CarColor
+    public function getCarColor(): CarColor
     {
         return $this->color;
     }
 
-    public function getYear(): int
+    public function getCarYear(): int
     {
         return $this->year;
     }
 
-    public function getPower(): CarPower
+    public function getCarPower(): CarPower
     {
         return $this->power;
     }
 
-    public function getSeatsNumber(): int
+    public function getCarSeatsNumber(): int
     {
         return $this->seatsNumber;
     }
 
-    public function getRegistrationNumber(): string
+    public function getCarRegistrationNumber(): string
     {
         return $this->registrationNumber;
     }
 
-    public function getRegistrationDate(): DateTimeImmutable
+    public function getCarRegistrationDate(): DateTimeImmutable
     {
         return $this->registrationDate;
     }
 
-    public function getCreatedAt(): DateTimeImmutable
+    public function getCarCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
     }
@@ -108,88 +117,74 @@ class Car
 
     // ---------Les Setters ---------
 
-    // Pas de setId et de setCreatedAt car définis automatiquement par la BD
-
     public function setCarOwner(?User $owner): self
     {
         $this->owner = $owner;
         return $this;
     }
 
-    public function setBrand(string $brand): self
+    public function setCarBrand(CarBrand $brand): self
     {
-        // Vérifier si la valeur n'est pas vide et utiliser trim pour que la valeur ne soit pas considéré comme rempli avec un espace
-        if (empty(trim($brand))) {
-            throw new InvalidArgumentException("La marque ne peut pas être vide.");
-        }
-
-        $brand = trim($brand);
-        $regexTextOnly = '/^[a-zA-ZÀ-ÿ\s\'-]{4,20}+$/u';
-
-        if (!preg_match($regexTextOnly, $brand)) {
-            throw new InvalidArgumentException("La marque ne peut dépasser 20 caractères autorisés.");
-        }
-
-        $this->brand = trim($brand);
-
+        $this->brand = $brand;
         return $this;
     }
 
-    public function setModel(string $model): self
+    public function setCarModel(string $model): self
     {
-        if (empty(trim($model))) {
-            throw new InvalidArgumentException("Le modéle ne peut pas être vide.");
-        }
-
         $model = trim($model);
-        $regexTextOnly = '/^[a-zA-ZÀ-ÿ\s\'-]{4,20}+$/u';
 
-        if (!preg_match($regexTextOnly, $model)) {
-            throw new InvalidArgumentException("Le modéle ne peut dépasser 20 caractères autorisés.");
+        if (empty($model)) {
+            throw new InvalidArgumentException("Le modéle est obligatoire.");
         }
 
-        $this->model = trim($model);
+        $regexTextOnly = '/^[a-zA-ZÀ-ÿ\s\'-]{4,20}$/u';
+        if (!preg_match($regexTextOnly, $model)) {
+            throw new InvalidArgumentException("Le modéle doit être compris entre 4 et 20 caractères autorisés.");
+        }
 
+        $this->model = $model;
         return $this;
     }
 
-    public function setColor(CarColor $color): self
+    public function setCarColor(CarColor $color): self
     {
         $this->color = $color;
         return $this;
     }
 
-    public function setYear(int $year): self
+    public function setCarYear(int $year): self
     {
         $currentYear = (int)date('Y');
         if ($year < 1900 || $year > $currentYear) {
             throw new InvalidArgumentException("Année invalide.");
         }
-        $this->year = $year;
 
+        $this->year = $year;
         return $this;
     }
 
-    public function setPower(CarPower $power): self
+    public function setCarPower(CarPower $power): self
     {
         $this->power = $power;
         return $this;
     }
 
-    public function setSeatsNumber(int $seatsNumber): self
+    public function setCarSeatsNumber(int $seatsNumber): self
     {
-        if ($seatsNumber <= 0 || $seatsNumber > 7) {
-            throw new InvalidArgumentException("Le nombre de siége ne peut pas être égale à 0 ou supérieure à 7");
+        if ($seatsNumber < 0 || $seatsNumber > 7) {
+            throw new InvalidArgumentException("Le nombre de siége doit compris entre 1 et 6.");
         }
-        $this->seatsNumber = $seatsNumber;
 
+        $this->seatsNumber = $seatsNumber;
         return $this;
     }
 
-    public function setRegistrationNumber(string $registrationNumber): self
+    public function setCarRegistrationNumber(string $registrationNumber): self
     {
-        if (empty(trim($registrationNumber))) {
-            throw new InvalidArgumentException("La plaque d'immatriculation ne peut pas être vide.");
+        $registrationNumber = trim($registrationNumber);
+
+        if (empty($registrationNumber)) {
+            throw new InvalidArgumentException("La plaque d'immatriculation est obligatoire.");
         }
 
         $oldFormat = '/^[1-9]\d{0,3}\s?[A-Z]{1,3}\s?(?:0[1-9]|[1-8]\d|9[0-5]|2[AB])$/';
@@ -199,12 +194,12 @@ class Car
         if (!preg_match($newFormat, strtoupper($registrationNumber)) && !preg_match($oldFormat, strtoupper($registrationNumber))) {
             throw new InvalidArgumentException("Le format de la plaque d'immatriculation est invalide.");
         }
-        $this->registrationNumber = strtoupper(trim($registrationNumber));
 
+        $this->registrationNumber = strtoupper($registrationNumber);
         return $this;
     }
 
-    public function setRegistrationDate(DateTimeImmutable $registrationDate): self
+    public function setCarRegistrationDate(DateTimeImmutable $registrationDate): self
     {
         $minDate = new DateTimeImmutable('1970-01-01');
         if ($registrationDate < $minDate) {
@@ -212,7 +207,6 @@ class Car
         }
 
         $this->registrationDate = $registrationDate;
-
         return $this;
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enum\ReviewStatus;
 use InvalidArgumentException;
 use DateTimeImmutable;
 
@@ -19,7 +20,8 @@ class Review
         private int $authorId,
         private int $targetId,
         private int $rating,
-        private string $comment,
+        private ?string $comment = null,
+        private ReviewStatus $reviewStatus = ReviewStatus::ATTENTE,
         private ?DateTimeImmutable $createdAt = null,
         private ?DateTimeImmutable $validatedAt = null
     ) {
@@ -28,7 +30,8 @@ class Review
             ->setReviewAuthorId($authorId)
             ->setReviewTargetId($targetId)
             ->setReviewRating($rating)
-            ->setReviewComment($comment);
+            ->setReviewComment($comment)
+            ->setReviewStatus($reviewStatus);
 
         $this->createdAt = $createdAt ?? new DateTimeImmutable();
     }
@@ -58,9 +61,14 @@ class Review
         return $this->rating;
     }
 
-    public function getReviewComment(): string
+    public function getReviewComment(): ?string
     {
         return $this->comment;
+    }
+
+    public function getReviewStatus(): ReviewStatus
+    {
+        return $this->reviewStatus;
     }
 
     public function getReviewCreatedAt(): DateTimeImmutable
@@ -103,19 +111,29 @@ class Review
         return $this;
     }
 
-    public function setReviewComment(string $comment): self
+    public function setReviewComment(?string $comment): self
     {
-        $commentRegex = '/^[a-zA-ZÀ-ÿ0-9\s\'".,;:!?()@$%&-]{0,255}+$/u';
-        $comment = trim($comment);
 
-        if (!preg_match($commentRegex, $comment)) {
-            throw new InvalidArgumentException("Le commentaire peut contenir jusqu'à 255 caractères autorisés.");
+        if ($comment !== null) {
+            $comment = trim($comment);
+
+            $commentRegex = '/^[a-zA-ZÀ-ÿ0-9\s\'".,;:!?()@$%&-]{2,255}$/u';
+            if (!preg_match($commentRegex, $comment)) {
+                throw new InvalidArgumentException("Le commentaire peut contenir entre 2 et 255 caractères autorisés.");
+            }
         }
-        $this->comment = trim($comment);
+
+        $this->comment = ucfirst($comment);
         return $this;
     }
 
-    public function setReviwValidatedAt(DateTimeImmutable $validatedAt): self
+    public function setReviewStatus(ReviewStatus $reviewStatus): self
+    {
+        $this->reviewStatus = $reviewStatus;
+        return $this;
+    }
+
+    public function setReviewValidatedAt(DateTimeImmutable $validatedAt): self
     {
         $this->validatedAt = $validatedAt;
         return $this;
