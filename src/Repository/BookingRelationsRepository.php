@@ -48,7 +48,7 @@ class BookingRelationsRepository extends BookingRepository
         }
 
         // Récupération du trajet et des utilisateurs
-        $ride = $this->rideWithUserRepository->findRideWithUsersByRideId($booking->getRideId());
+        $ride = $this->rideWithUserRepository->findRideWithUsersByRideId($booking->getBookingRideId());
 
         if ($ride) {
             $booking->setBookingRide($ride);

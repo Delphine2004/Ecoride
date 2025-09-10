@@ -465,7 +465,7 @@ class User
         $this->credits = $amount;
     }
 
-    public function incrementCredit(float $amount): void
+    public function incrementCredits(float $amount): void
     {
         $this->credits += $amount;
     }

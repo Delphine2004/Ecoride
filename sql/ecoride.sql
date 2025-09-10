@@ -29,7 +29,7 @@ CREATE TABLE users(
         zip_code VARCHAR (10) NULL,
         picture VARCHAR (200) NULL,
         licence_no VARCHAR (50) NULL,
-        credit INT UNSIGNED NULL DEFAULT 0,
+        credits INT UNSIGNED NULL DEFAULT 0,
         api_token CHAR(64) NOT NULL UNIQUE,
         created_at TIMESTAMP NOT NULL,
         updated_at TIMESTAMP NOT NULL
