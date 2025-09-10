@@ -55,9 +55,12 @@ class BookingService extends BaseService
         int $userId
     ): Booking {
 
+        // Récupération de l'utilisateur
+        $user = $this->userRelationsRepository->findUserById($userId);
+
         // Vérification de l'existence de l'utilisateur
-        if (!$userId) {
-            throw new InvalidArgumentException("utilisateur introuvable.");
+        if (!$user) {
+            throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
         // Vérification des permissions.
@@ -115,8 +118,11 @@ class BookingService extends BaseService
             throw new InvalidArgumentException("Réservation introuvable.");
         }
 
+        // Récupération de l'utilisateur
+        $user = $this->userRelationsRepository->findUserById($userId);
+
         // Vérification de l'existence de l'utilisateur
-        if (!$userId) {
+        if (!$user) {
             throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
@@ -194,14 +200,6 @@ class BookingService extends BaseService
         int $employeeId
     ): ?Booking {
 
-        // Vérification de l'existence de l'utilisateur
-        if (!$employeeId) {
-            throw new InvalidArgumentException("Employé introuvable.");
-        }
-
-        // Vérification de la permission
-        $this->ensureEmployee($employeeId);
-
         // Récupération de la réservation
         $booking = $this->bookingRelationsRepository->findBookingById($bookingId);
 
@@ -209,6 +207,19 @@ class BookingService extends BaseService
         if (!$booking) {
             throw new InvalidArgumentException("Réservation introuvable.");
         }
+
+
+        // Récupération de l'employé
+        $employee = $this->userRelationsRepository->findUserById($employeeId);
+
+        // Vérification de l'existence de l'employé
+        if (!$employee) {
+            throw new InvalidArgumentException("Employé introuvable.");
+        }
+
+        // Vérification de la permission
+        $this->ensureEmployee($employeeId);
+
 
         return $this->bookingRelationsRepository->findBookingWithRideAndUsersByBookingId($bookingId);
     }
@@ -219,8 +230,11 @@ class BookingService extends BaseService
         int $employeeId
     ): array {
 
-        // Vérification de l'existence de l'utilisateur
-        if (!$employeeId) {
+        // Récupération de l'employé
+        $employee = $this->userRelationsRepository->findUserById($employeeId);
+
+        // Vérification de l'existence de l'employé
+        if (!$employee) {
             throw new InvalidArgumentException("Employé introuvable.");
         }
 

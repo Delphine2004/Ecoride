@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Repositories\CarRepository;
+use App\Repositories\UserRelationsRepository;
 use App\Models\Car;
 use InvalidArgumentException;
 
@@ -10,6 +11,7 @@ class CarService extends BaseService
 {
     public function __construct(
         private CarRepository $carRepository,
+        private UserRelationsRepository $userRelationsRepository
     ) {
         parent::__construct();
     }
@@ -20,8 +22,11 @@ class CarService extends BaseService
     // Vérifie si l'utilisateur a encore des voitures.
     public function userHasCars(int $userId): bool
     {
+        // Récupération de l'utilisateur
+        $user = $this->userRelationsRepository->findUserById($userId);
+
         // Vérification de l'existence de l'utilisateur
-        if (!$userId) {
+        if (!$user) {
             throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
@@ -35,8 +40,11 @@ class CarService extends BaseService
     // Permet à un utilisateur CONDUCTEUR d'ajouter une voiture.
     public function addCar(int $userId, Car $car): int
     {
+        // Récupération de l'utilisateur
+        $user = $this->userRelationsRepository->findUserById($userId);
+
         // Vérification de l'existence de l'utilisateur
-        if (!$userId) {
+        if (!$user) {
             throw new InvalidArgumentException("Utilisateur introuvable.");
         }
         $this->ensureDriver($userId);
@@ -46,8 +54,11 @@ class CarService extends BaseService
     // Permet à un utilisateur CONDUCTEUR de supprimer une voiture.
     public function removeCar(int $userId, int $carId): void
     {
+        // Récupération de l'utilisateur
+        $user = $this->userRelationsRepository->findUserById($userId);
+
         // Vérification de l'existence de l'utilisateur
-        if (!$userId) {
+        if (!$user) {
             throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
@@ -64,8 +75,11 @@ class CarService extends BaseService
     // Récupére les voitures d'un utilisateur CONDUCTEUR.
     public function getCarsByUser(int $userId): array
     {
+        // Récupération de l'utilisateur
+        $user = $this->userRelationsRepository->findUserById($userId);
+
         // Vérification de l'existence de l'utilisateur
-        if (!$userId) {
+        if (!$user) {
             throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
