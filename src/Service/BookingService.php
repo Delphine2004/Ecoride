@@ -73,7 +73,7 @@ class BookingService extends BaseService
         }
 
 
-        // Vérification de l'existance des entités
+        // Vérification de l'existence des entités
         if (!$ride  || !$driver || !$passenger) {
             throw new InvalidArgumentException("Trajet, conducteur ou passager introuvable.");
         }

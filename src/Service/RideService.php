@@ -125,7 +125,7 @@ class RideService extends BaseService
         // Récupération du chauffeur
         $driver = $ride->getRideDriver();
 
-        // Vérification de l'existance du conducteur
+        // Vérification de l'existence du conducteur
         if (!$driver) {
             throw new InvalidArgumentException("Conducteur introuvable.");
         }

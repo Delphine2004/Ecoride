@@ -45,7 +45,7 @@ class UserRelationsRepository extends UserRepository
         array $with = []
     ): ?User {
 
-        // Récuperation de l'utilisateur
+        // Récupération de l'utilisateur
         $user = $this->findUserById($userId);
         if (!$user) {
             return null;
@@ -55,7 +55,7 @@ class UserRelationsRepository extends UserRepository
         if (in_array('cars', $with, true)) {
             // réinitialise la collection à un tableau vide
             $user->setUserCars([]);
-            // récuperation de la liste des voitures
+            // Récupération de la liste des voitures
             $cars = $this->carRepository->fetchAllCarsByOwner([$userId]);
             // Parcourir chaque voiture pour les ajouter à l'utilisateur
             foreach ($cars as $car) {
@@ -66,7 +66,7 @@ class UserRelationsRepository extends UserRepository
         if (in_array('rides', $with, true)) {
             // réinitialise la collection à un tableau vide
             $user->setUserRides([]);
-            // récuperation de la liste des trajets
+            // Récupération de la liste des trajets
             $rides = $this->rideRepository->fetchAllRidesByDriver($userId);
             foreach ($rides as $ride) {
                 $user->addUserRide($ride);
@@ -98,7 +98,7 @@ class UserRelationsRepository extends UserRepository
         // Récupérer l'utilisateur avec la relation 'cars'
         $driver = $this->findUserWithRelations($driverId, ['cars']);
 
-        // Vérifier son existance
+        // Vérifier son existence
         if (!$driver) {
             return null;
         }
@@ -122,7 +122,7 @@ class UserRelationsRepository extends UserRepository
         // Récupérer l'utilisateur avec la relation 'rides'
         $driver = $this->findUserWithRelations($driverId, ['rides']);
 
-        // Vérifier son existance
+        // Vérifier son existence
         if (!$driver) {
             return null;
         }
@@ -146,7 +146,7 @@ class UserRelationsRepository extends UserRepository
         // Récupérer l'utilisateur avec la relation 'rides'
         $user = $this->findUserWithRelations($userId, ['bookings']);
 
-        // Vérifier son existance
+        // Vérifier son existence
         if (!$user) {
             return null;
         }

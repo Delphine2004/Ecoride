@@ -130,7 +130,7 @@ class RideRepository extends BaseRepository
         }
 
 
-        // Vérification de l'existance du status du trajet et ajout si existant.
+        // Vérification de l'existence du status du trajet et ajout si existant.
         if ($rideStatus !== null) {
             $sql .= " AND r.ride_status = :rideStatus";
         }

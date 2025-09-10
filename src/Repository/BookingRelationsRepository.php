@@ -41,7 +41,7 @@ class BookingRelationsRepository extends BookingRepository
         int $bookingId,
     ): ?Booking {
 
-        // Récuperation de la réservation
+        // Récupération de la réservation
         $booking = $this->findBookingById($bookingId);
         if (!$booking) {
             return null;
@@ -72,7 +72,7 @@ class BookingRelationsRepository extends BookingRepository
         int $limit = 20,
         int $offset = 0
     ): array {
-        // Récuperation de la réservation
+        // Récupération de la réservation
         $bookings = $this->findAllBookingsByFields([], $orderBy, $orderDirection, $limit, $offset);
 
         foreach ($bookings as $booking) {
@@ -100,7 +100,7 @@ class BookingRelationsRepository extends BookingRepository
         int $limit = 20,
         int $offset = 0
     ): array {
-        // Récuperation de la réservation
+        // Récupération de la réservation
         $bookings = $this->fetchAllBookingsRowsByFields([], $orderBy, $orderDirection, $limit, $offset);
 
         foreach ($bookings as $i => $booking) {
