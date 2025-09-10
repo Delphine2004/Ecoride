@@ -57,7 +57,6 @@ class RideRepository extends BaseRepository
             price: (float)$data['price'],
             availableSeats: (int)$data['available_seats'],
             rideStatus: RideStatus::from($data['ride_status']),
-            passengers: null, // car pas encore chargé
             createdAt: !empty($data['created_at']) ? new \DateTimeImmutable($data['created_at']) : null,
             updatedAt: !empty($data['updated_at']) ? new \DateTimeImmutable($data['updated_at']) : null
         );

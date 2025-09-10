@@ -50,8 +50,7 @@ class Ride
             ->setRidePrice($price)
             ->setRideAvailableSeats($availableSeats)
             ->setRideStatus($rideStatus)
-            ->setRideCommission($commission)
-            ->setRidePassengers($passengers);
+            ->setRideCommission($commission);
 
         $this->createdAt = $createdAt ?? new DateTimeImmutable();
         $this->updatedAt = $updatedAt ?? new DateTimeImmutable();
