@@ -236,25 +236,19 @@ class RideWithUsersRepository extends RideRepository
 
             // Création du ride seulement 1 fois car plusieurs ligne à cause des utilisateurs
             if (!isset($rideMap[$rideId])) {
-                $rideMap[$rideId] = $this->hydrateRide($row);
+                $ride = $this->hydrateRide($row);
 
-                // Puis ajout du conduteur en tableau
-                $rideMap[$rideId]->setRideDriver([
-                    'user_id' => $row['driver_id'],
-                    'login' => $row['driver_login'],
-                    'first_name' => $row['driver_first_name'],
-                    'last_name' => $row['driver_last_name'],
-                ]);
+                // Puis ajout du conducteur
+                $driver = $this->mapUser($row, 'driver_');
+                $ride->setRideDriver($driver);
+
+                $rideMap[$rideId] = $ride;
             }
 
             // Ajouter les passagers si présents
             if (!empty($row['passenger_id'])) {
-                $rideMap[$rideId]->addRidePassenger([
-                    'user_id' => $row['passenger_id'],
-                    'login' => $row['passenger_login'],
-                    'first_name' => $row['passenger_first_name'],
-                    'last_name' => $row['passenger_last_name'],
-                ]);
+                $passenger = $this->mapUser($row, 'passenger_');
+                $rideMap[$rideId]->addRidePassenger($passenger);
             }
         }
         return array_values($rideMap);
