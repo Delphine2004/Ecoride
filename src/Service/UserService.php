@@ -7,8 +7,6 @@ use App\Repositories\UserRelationsRepository;
 use App\Repositories\CarRepository;
 use App\Models\User;
 use App\Enum\UserRoles;
-
-
 use InvalidArgumentException;
 
 class UserService extends BaseService
@@ -23,7 +21,7 @@ class UserService extends BaseService
     }
 
 
-    //----------Action VISITEUR------------
+    //----------Action VISITEUR----------------------------
 
     // Permet à un visiteur de créer un compte.
     public function createAccount(array $data): User
@@ -60,7 +58,7 @@ class UserService extends BaseService
         return $user;
     }
 
-    // -----------------Actions PASSAGER ------------------
+    // ----------Actions PASSAGER --------------------------
 
     // Permet à un utilisateur de devenir CONDUCTEUR.
     public function becomeDriver(array $data, int $passengerId): User
@@ -92,8 +90,9 @@ class UserService extends BaseService
     //----------Actions PASSAGER OU CONDUCTEUR ------------
 
     // Permet à un utilisateur PASSAGER OU CONDUCTEUR de supprimer son compte.
-    public function deleteAccount(int $userId) //: bool
-    {
+    public function deleteAccount(
+        int $userId
+    ): bool {
         // Récupération de l'utilisateur
         $user = $this->userRelationsRepository->findUserById($userId);
 
@@ -104,8 +103,7 @@ class UserService extends BaseService
 
         // Vérification que l'utilisateur a supprimer n'a pas le rôle admin ou employé
         if (
-            $this->roleService->hasRole($userId, 'EMPLOYE') &&
-            $this->roleService->hasRole($userId, 'ADMIN')
+            ($this->roleService->hasAnyRole($userId, ['EMPLOYE', 'ADMIN']))
         ) {
             throw new InvalidArgumentException("Un admin ou un employé ne peut pas supprimer son compte.");
         }
@@ -120,13 +118,16 @@ class UserService extends BaseService
 
         // Enregistrement en Bd
         $this->userRelationsRepository->deleteUser($userId);
+        return true;
     }
 
     //----------Actions TOUT ROLE------------
 
     // Permet à tous les utilisateurs de modifier les informations relatives à leur compte.
-    public function updateProfile(array $newData, int $userId): ?User
-    {
+    public function updateProfile(
+        array $newData,
+        int $userId
+    ): ?User {
 
         // Récupération de l'utilisateur
         $user = $this->userRelationsRepository->findUserById($userId);
@@ -137,17 +138,9 @@ class UserService extends BaseService
         }
 
         // Vérification des permissions.
-        if (
-            !$this->roleService->hasRole($userId, 'PASSAGER') &&
-            !$this->roleService->hasRole($userId, 'CONDUCTEUR') &&
-            !$this->roleService->hasRole($userId, 'EMPLOYE') &&
-            !$this->roleService->hasRole($userId, 'ADMIN')
-        ) {
+        if (!$this->roleService->hasAnyRole($userId, ['PASSAGER', 'CONDUCTEUR', 'EMPLOYE', 'ADMIN'])) {
             throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à modifier son profil.");
         }
-
-        // Récupération de l'utilisateur
-        $user = $this->userRelationsRepository->findUserById($userId);
 
 
         // Vérifications des champs modifiés et ajouts des nouvelles valeurs
@@ -199,8 +192,11 @@ class UserService extends BaseService
     }
 
     // Permet à tous les utilisateurs de modifier le mot de passe
-    public function modifyPassword(string $newPassword, string $oldPassword, int $userId) //: bool
-    {
+    public function modifyPassword(
+        string $newPassword,
+        string $oldPassword,
+        int $userId
+    ): bool {
 
         // Récupération de l'utilisateur
         $user = $this->userRelationsRepository->findUserById($userId);
@@ -211,12 +207,7 @@ class UserService extends BaseService
         }
 
         // Vérification des permissions.
-        if (
-            !$this->roleService->hasRole($userId, 'PASSAGER') &&
-            !$this->roleService->hasRole($userId, 'CONDUCTEUR') &&
-            !$this->roleService->hasRole($userId, 'EMPLOYE') &&
-            !$this->roleService->hasRole($userId, 'ADMIN')
-        ) {
+        if (!$this->roleService->hasAnyRole($userId, ['PASSAGER', 'CONDUCTEUR', 'EMPLOYE', 'ADMIN'])) {
             throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à modifier son profil.");
         }
 
@@ -235,13 +226,17 @@ class UserService extends BaseService
 
         // Enregistrement dans la BD
         $this->userRelationsRepository->updateUser($user);
+
+        return true;
     }
 
     //----------Actions ADMIN ------------
 
     // Permet à un admin de créer un compte employé.
-    public function createEmployeeAccount(array $data, int $adminId) // : ?User
-    {
+    public function createEmployeeAccount(
+        array $data,
+        int $adminId
+    ): ?User {
         // Récupération de l'admin
         $admin = $this->userRelationsRepository->findUserById($adminId);
 
@@ -281,8 +276,10 @@ class UserService extends BaseService
     }
 
     // Permet à un admin de supprimer n'importe quel compte.
-    public function deleteAccountByAdmin(int $adminId, int $userId): void
-    {
+    public function deleteAccountByAdmin(
+        int $adminId,
+        int $userId
+    ): bool {
         // Récupération de l'utilisateur
         $user = $this->userRelationsRepository->findUserById($userId);
 
@@ -306,5 +303,7 @@ class UserService extends BaseService
 
         // Enregistrement en Bd
         $this->userRelationsRepository->deleteUser($userId);
+
+        return true;
     }
 }
