@@ -270,6 +270,17 @@ class UserRepository extends BaseRepository
     }
 
     /**
+     * Récupére un objet User par son login.
+     *
+     * @param string $login
+     * @return User|null
+     */
+    public function findUserByLogin(string $login): ?User
+    {
+        return $this->findUserByFields(['login' => $login]);
+    }
+
+    /**
      * Récupére un objet User par son token.
      *
      * @param string $token
