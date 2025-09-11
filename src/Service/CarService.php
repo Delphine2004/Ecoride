@@ -5,7 +5,11 @@ namespace App\Services;
 use App\Repositories\CarRepository;
 use App\Repositories\UserRelationsRepository;
 use App\Models\Car;
+use App\Enum\CarBrand;
+use App\Enum\CarColor;
+use App\Enum\CarPower;
 use InvalidArgumentException;
+use DateTimeImmutable;
 
 class CarService extends BaseService
 {
@@ -49,17 +53,38 @@ class CarService extends BaseService
      * @param Car $car
      * @return integer
      */
-    public function addCar(int $userId, Car $car): int
+    public function addCar(int $userId, array $data): Car
     {
-        // Récupération de l'utilisateur
+        // Récupération de l'utilisateur.
         $user = $this->userRelationsRepository->findUserById($userId);
 
-        // Vérification de l'existence de l'utilisateur
+        // Vérification de l'existence de l'utilisateur.
         if (!$user) {
             throw new InvalidArgumentException("Utilisateur introuvable.");
         }
+
+        // Vérification des permissions.
         $this->ensureDriver($userId);
-        return $this->carRepository->insertCar($car);
+
+
+        // Création de l'objet Car
+        $car = new Car();
+
+        // Remplissage de l'objet
+        $car->setCarOwnerId($userId);
+        $car->setCarBrand(CarBrand::from($data['car_brand']));
+        $car->setCarModel($data['car_model']);
+        $car->setCarColor(CarColor::from($data['car_color']));
+        $car->setCarYear($data['car_year']);
+        $car->setCarPower(CarPower::from($data['car_power']));
+        $car->setCarSeatsNumber($data['seats_number']);
+        $car->setCarRegistrationNumber($data['registration_number']);
+        $car->setCarRegistrationDate(new DateTimeImmutable($data['registration_date']));
+
+        // Enregistrement dans la BD.
+        $this->carRepository->insertCar($car);
+
+        return $car;
     }
 
     /**
@@ -71,18 +96,25 @@ class CarService extends BaseService
      */
     public function removeCar(int $userId, int $carId): void
     {
-        // Récupération de l'utilisateur
+        // Récupération de l'utilisateur.
         $user = $this->userRelationsRepository->findUserById($userId);
 
-        // Vérification de l'existence de l'utilisateur
+        // Vérification de l'existence de l'utilisateur.
         if (!$user) {
             throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
-        $this->ensureDriver($userId);
-        if (!$this->carRepository->isOwner($userId, $carId)) {
+        // Vérification des permissions.
+        if (!$this->roleService->hasAnyRole($userId, ['CONDUCTEUR', 'EMPLOYE', 'ADMIN'])) {
+            throw new InvalidArgumentException("Seulement les utilisateurs CONDUCTEUR, EMPLOYEE ou ADMIN peuvent effectuer cette action.");
+        }
+
+        // Vérification si l'utilisateur CONDUCTEUR est le propriétaire.
+        if ($this->roleService->isDriver($userId) && !$this->carRepository->isOwner($userId, $carId)) {
             throw new InvalidArgumentException("Vous ne pouvez pas supprimer cette voiture.");
         }
+
+        // Enregistrement dans la BD.
         $this->carRepository->deleteCar($carId);
     }
 
@@ -105,7 +137,10 @@ class CarService extends BaseService
             throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
+        // Vérification des permissions.
         $this->ensureDriver($userId);
+
+        // Enregistrement dans la BD.
         return $this->carRepository->findAllCarsByOwner($userId);
     }
 }

@@ -21,25 +21,26 @@ class Car
     // Promotion des propriétés (depuis PHP 8)
     function __construct(
         private ?int $carId = null, // n'a pas de valeur au moment de l'instanciation
-
         private ?int $ownerId = null, // pour l'hydratation brute 
         private ?User $owner = null, // // pour le mapping
 
-        private CarBrand $brand,
-        private string $model,
-        private CarColor $color,
-        private int $year,
-        private CarPower $power,
-        private int $seatsNumber,
-        private string $registrationNumber,
-        private DateTimeImmutable $registrationDate,
+        private ?CarBrand $brand = null,
+        private ?string $model = null,
+        private ?CarColor $color = null,
+        private ?int $year = null,
+        private ?CarPower $power = null,
+        private ?int $seatsNumber = null,
+        private ?string $registrationNumber = null,
+        private ?DateTimeImmutable $registrationDate = null,
 
         private ?DateTimeImmutable $createdAt = null // n'a pas de valeur au moment de l'instanciation
+
 
     ) {
 
         // Affectation avec validation
-        $this->setCarOwner($owner)
+        $this
+            ->setCarOwnerId($ownerId)
             ->setCarBrand($brand)
             ->setCarModel($model)
             ->setCarColor($color)
@@ -68,47 +69,47 @@ class Car
         return $this->owner;
     }
 
-    public function getCarBrand(): CarBrand
+    public function getCarBrand(): ?CarBrand
     {
         return $this->brand;
     }
 
-    public function getCarModel(): string
+    public function getCarModel(): ?string
     {
         return $this->model;
     }
 
-    public function getCarColor(): CarColor
+    public function getCarColor(): ?CarColor
     {
         return $this->color;
     }
 
-    public function getCarYear(): int
+    public function getCarYear(): ?int
     {
         return $this->year;
     }
 
-    public function getCarPower(): CarPower
+    public function getCarPower(): ?CarPower
     {
         return $this->power;
     }
 
-    public function getCarSeatsNumber(): int
+    public function getCarSeatsNumber(): ?int
     {
         return $this->seatsNumber;
     }
 
-    public function getCarRegistrationNumber(): string
+    public function getCarRegistrationNumber(): ?string
     {
         return $this->registrationNumber;
     }
 
-    public function getCarRegistrationDate(): DateTimeImmutable
+    public function getCarRegistrationDate(): ?DateTimeImmutable
     {
         return $this->registrationDate;
     }
 
-    public function getCarCreatedAt(): DateTimeImmutable
+    public function getCarCreatedAt(): ?DateTimeImmutable
     {
         return $this->createdAt;
     }
@@ -117,19 +118,26 @@ class Car
 
     // ---------Les Setters ---------
 
+    public function setCarOwnerId(?int $ownerId): self
+    {
+        $this->ownerId = $ownerId;
+        return $this;
+    }
+
+
     public function setCarOwner(?User $owner): self
     {
         $this->owner = $owner;
         return $this;
     }
 
-    public function setCarBrand(CarBrand $brand): self
+    public function setCarBrand(?CarBrand $brand): self
     {
         $this->brand = $brand;
         return $this;
     }
 
-    public function setCarModel(string $model): self
+    public function setCarModel(?string $model): self
     {
         $model = trim($model);
 
@@ -146,7 +154,7 @@ class Car
         return $this;
     }
 
-    public function setCarColor(CarColor $color): self
+    public function setCarColor(?CarColor $color): self
     {
         $this->color = $color;
         return $this;
@@ -163,13 +171,13 @@ class Car
         return $this;
     }
 
-    public function setCarPower(CarPower $power): self
+    public function setCarPower(?CarPower $power): self
     {
         $this->power = $power;
         return $this;
     }
 
-    public function setCarSeatsNumber(int $seatsNumber): self
+    public function setCarSeatsNumber(?int $seatsNumber): self
     {
         if ($seatsNumber < 0 || $seatsNumber > 7) {
             throw new InvalidArgumentException("Le nombre de siége doit compris entre 1 et 6.");
@@ -179,7 +187,7 @@ class Car
         return $this;
     }
 
-    public function setCarRegistrationNumber(string $registrationNumber): self
+    public function setCarRegistrationNumber(?string $registrationNumber): self
     {
         $registrationNumber = trim($registrationNumber);
 
@@ -199,7 +207,7 @@ class Car
         return $this;
     }
 
-    public function setCarRegistrationDate(DateTimeImmutable $registrationDate): self
+    public function setCarRegistrationDate(?DateTimeImmutable $registrationDate): self
     {
         $minDate = new DateTimeImmutable('1970-01-01');
         if ($registrationDate < $minDate) {
