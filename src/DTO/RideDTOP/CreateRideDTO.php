@@ -4,7 +4,6 @@ namespace App\DTO;
 
 use App\Enum\RideStatus;
 use DateTimeImmutable;
-use DateTime;
 use InvalidArgumentException;
 
 class CreateRideDTO
@@ -45,13 +44,13 @@ class CreateRideDTO
 
 
         $this->price = (int)($data['price'] ?? 0);
-        if ($this->price <= 0) {
-            throw new InvalidArgumentException("Le prix doit être supérieur à 0.");
+        if ($this->price < 0 && $this->price >= 100) {
+            throw new InvalidArgumentException("Le prix doit être supérieure à 0 et inférieure à 100.");
         }
 
         $this->availableSeats = (int)($data['available_seats'] ?? 0);
-        if ($this->availableSeats <= 0) {
-            throw new InvalidArgumentException("Le nombre de place doit être supérieur à 0.");
+        if ($this->availableSeats <= 0 && $this->availableSeats >= 7) {
+            throw new InvalidArgumentException("Le nombre de place disponible doit être supérieure à 0 et inférieure à 7.");
         }
 
 

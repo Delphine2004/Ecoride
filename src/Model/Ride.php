@@ -232,8 +232,8 @@ class Ride
 
     public function setRideAvailableSeats(?int $availableSeats): self
     {
-        if ($availableSeats <= 0) {
-            throw new InvalidArgumentException("Le nombre de place disponible doit être supérieure à 0.");
+        if ($availableSeats < 0 && $availableSeats >= 7) {
+            throw new InvalidArgumentException("Le nombre de place disponible doit être supérieure à 0 et inférieure à 7.");
         }
         $this->availableSeats = $availableSeats;
         $this->updateTimestamp();
