@@ -23,11 +23,11 @@ class User
     // Promotion des propriétés (depuis PHP 8)
     function __construct(
         private ?int $userId = null, // n'a pas de valeur au moment de l'instanciation
-        private string $lastName,
-        private string $firstName,
-        private string $email,
-        private string $password,
-        private bool $isHashed = false,
+        private ?string $lastName = null,
+        private ?string $firstName = null,
+        private ?string $email = null,
+        private ?string $password = null,
+        private ?bool $isHashed = false,
 
         private ?string $login = null,
         private ?string $phone = null,
@@ -81,22 +81,22 @@ class User
         return $this->userId;
     }
 
-    public function getUserLastName(): string
+    public function getUserLastName(): ?string
     {
         return $this->lastName;
     }
 
-    public function getUserFirstName(): string
+    public function getUserFirstName(): ?string
     {
         return $this->firstName;
     }
 
-    public function getUserEmail(): string
+    public function getUserEmail(): ?string
     {
         return $this->email;
     }
 
-    public function getUserPassword(): string
+    public function getUserPassword(): ?string
     {
         return $this->password;
     }
@@ -136,7 +136,7 @@ class User
         return $this->licenceNo;
     }
 
-    public function getUserCredits(): float
+    public function getUserCredits(): ?float
     {
         return $this->credits;
     }
@@ -181,7 +181,7 @@ class User
     // ---------Les Setters ---------
 
 
-    public function setUserLastName(string $lastName): self
+    public function setUserLastName(?string $lastName): self
     {
         $this->lastName = trim($lastName);
 
@@ -199,7 +199,7 @@ class User
         return $this;
     }
 
-    public function setUserFirstName(string $firstName): self
+    public function setUserFirstName(?string $firstName): self
     {
         $this->firstName = trim($firstName);
 
@@ -217,7 +217,7 @@ class User
         return $this;
     }
 
-    public function setUserEmail(string $email): self
+    public function setUserEmail(?string $email): self
     {
         $this->email = trim($email);
 
@@ -233,7 +233,7 @@ class User
         return $this;
     }
 
-    public function setUserPassword(string $password, bool $isHashed = false): self
+    public function setUserPassword(?string $password, bool $isHashed = false): self
     {
         $this->password = trim($password);
 

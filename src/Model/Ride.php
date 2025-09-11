@@ -24,16 +24,16 @@ class Ride
         private ?int $driverId = null, // pour l'hydratation brute
         private ?User $driver = null, // pour le mapping
 
-        private \DateTimeImmutable $departureDateTime,
-        private string $departurePlace,
-        private \DateTimeImmutable $arrivalDateTime,
-        private string $arrivalPlace,
-        private int $price,
-        private int $availableSeats,
-        private RideStatus $rideStatus = RideStatus::DISPONIBLE, // Statut par défaut
-        private int $commission = 2,
+        private ?\DateTimeImmutable $departureDateTime = null,
+        private ?string $departurePlace = null,
+        private ?\DateTimeImmutable $arrivalDateTime = null,
+        private ?string $arrivalPlace = null,
+        private ?int $price = null,
+        private ?int $availableSeats = null,
+        private ?RideStatus $rideStatus = null,
+        private ?int $commission = 2,
 
-        private array $passengers = [], // Pour charger plusieurs passagers
+        private ?array $passengers = [], // Pour charger plusieurs passagers
 
 
         private ?\DateTimeImmutable $createdAt = null, // n'a pas de valeur au moment de l'instanciation
@@ -42,7 +42,7 @@ class Ride
     ) {
         // Affectation avec validation
         $this
-            ->setRideDriver($driver)
+            ->setRideDriverId($driverId)
             ->setRideDepartureDateTime($departureDateTime)
             ->setRideDeparturePlace($departurePlace)
             ->setRideArrivalDateTime($arrivalDateTime)
@@ -73,27 +73,27 @@ class Ride
         return $this->driver;
     }
 
-    public function getRideDepartureDateTime(): \DateTimeImmutable
+    public function getRideDepartureDateTime(): ?DateTimeImmutable
     {
         return $this->departureDateTime;
     }
 
-    public function getRideDeparturePlace(): string
+    public function getRideDeparturePlace(): ?string
     {
         return $this->departurePlace;
     }
 
-    public function getRideArrivalDateTime(): \DateTimeImmutable
+    public function getRideArrivalDateTime(): ?DateTimeImmutable
     {
         return $this->arrivalDateTime;
     }
 
-    public function getRideArrivalPlace(): string
+    public function getRideArrivalPlace(): ?string
     {
         return $this->arrivalPlace;
     }
 
-    public function getRideDuration(): int
+    public function getRideDuration(): ?int
     {
         // Calcule de la différence en seconde
         $interval = $this->arrivalDateTime->getTimestamp() - $this->departureDateTime->getTimestamp();
@@ -101,27 +101,27 @@ class Ride
         return (int)($interval / 60);
     }
 
-    public function getRidePrice(): int
+    public function getRidePrice(): ?int
     {
         return $this->price;
     }
 
-    public function getRideAvailableSeats(): int
+    public function getRideAvailableSeats(): ?int
     {
         return $this->availableSeats;
     }
 
-    public function getRideStatus(): RideStatus
+    public function getRideStatus(): ?RideStatus
     {
         return $this->rideStatus;
     }
 
-    public function getRideCommission(): int
+    public function getRideCommission(): ?int
     {
         return $this->commission;
     }
 
-    public function getRidePassengers(): array
+    public function getRidePassengers(): ?array
     {
         return $this->passengers;
     }
@@ -139,6 +139,13 @@ class Ride
 
     // ---------Les Setters ---------
 
+    public function setRideDriverId(?int $driverId): self
+    {
+        $this->driverId = $driverId;
+        $this->updateTimestamp();
+        return $this;
+    }
+
     public function setRideDriver(?User $driver): self
     {
         $this->driver = $driver;
@@ -147,7 +154,7 @@ class Ride
     }
 
 
-    public function setRideDepartureDateTime(\DateTimeImmutable $departureDateTime): self
+    public function setRideDepartureDateTime(?DateTimeImmutable $departureDateTime): self
     {
         $today = new \DateTimeImmutable();
         $nextYear = (clone $today)->modify('+1 year');
@@ -165,7 +172,7 @@ class Ride
         return $this;
     }
 
-    public function setRideDeparturePlace(string $departurePlace): self
+    public function setRideDeparturePlace(?string $departurePlace): self
     {
         $departurePlace = trim($departurePlace);
 
@@ -183,7 +190,7 @@ class Ride
         return $this;
     }
 
-    public function setRideArrivalDateTime(\DateTimeImmutable $arrivalDateTime): self
+    public function setRideArrivalDateTime(?DateTimeImmutable $arrivalDateTime): self
     {
 
         if (isset($this->departureDateTime) && $arrivalDateTime <= $this->departureDateTime) {
@@ -195,7 +202,7 @@ class Ride
         return $this;
     }
 
-    public function setRideArrivalPlace(string $arrivalPlace): self
+    public function setRideArrivalPlace(?string $arrivalPlace): self
     {
         $arrivalPlace = trim($arrivalPlace);
 
@@ -213,7 +220,7 @@ class Ride
         return $this;
     }
 
-    public function setRidePrice(int $price): self
+    public function setRidePrice(?int $price): self
     {
         if ($price < 0 && $price >= 100) {
             throw new InvalidArgumentException("Le prix doit être supérieure à 0 et inférieure à 100.");
@@ -223,7 +230,7 @@ class Ride
         return $this;
     }
 
-    public function setRideAvailableSeats(int $availableSeats): self
+    public function setRideAvailableSeats(?int $availableSeats): self
     {
         if ($availableSeats <= 0) {
             throw new InvalidArgumentException("Le nombre de place disponible doit être supérieure à 0.");
@@ -233,21 +240,21 @@ class Ride
         return $this;
     }
 
-    public function setRideStatus(RideStatus $rideStatus): self
+    public function setRideStatus(?RideStatus $rideStatus): self
     {
         $this->rideStatus = $rideStatus;
         $this->updateTimestamp();
         return $this;
     }
 
-    public function setRideCommission(int $commission): self
+    public function setRideCommission(?int $commission): self
     {
         $this->commission = $commission;
         $this->updateTimestamp();
         return $this;
     }
 
-    public function setRidePassengers(array $passengers): self
+    public function setRidePassengers(?array $passengers): self
     {
         $this->passengers = $passengers;
         $this->updateTimestamp();

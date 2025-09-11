@@ -23,7 +23,7 @@ class Booking
         private ?User $passenger = null, // Pour le mapping dans bookingRelationsRepository
         private ?User $driver = null, // Pour mapping bookingRelationsRepository
 
-        private BookingStatus $bookingStatus = BookingStatus::CONFIRMEE, // Statut par défaut
+        private ?BookingStatus $bookingStatus = null,
         private array $passengers = [], // Pour charger plusieurs passagers
 
         private ?\DateTimeImmutable $createdAt = null, // n'a pas de valeur au moment de l'instanciation
@@ -78,7 +78,7 @@ class Booking
         return $this->driver;
     }
 
-    public function getBookingStatus(): BookingStatus
+    public function getBookingStatus(): ?BookingStatus
     {
         return $this->bookingStatus;
     }
@@ -148,7 +148,7 @@ class Booking
         return $this;
     }
 
-    public function setBookingStatus(BookingStatus $bookingStatus): self
+    public function setBookingStatus(?BookingStatus $bookingStatus): self
     {
         $this->bookingStatus = $bookingStatus;
         $this->updateTimestamp();

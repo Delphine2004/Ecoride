@@ -16,12 +16,12 @@ class Review
 
     function __construct(
         private int|string|null $reviewId = null, // n'a pas de valeur au moment de l'instanciation
-        private int $rideId,
-        private int $authorId,
-        private int $targetId,
-        private int $rating,
+        private ?int $rideId = null,
+        private ?int $authorId = null,
+        private ?int $targetId = null,
+        private ?int $rating = null,
         private ?string $comment = null,
-        private ReviewStatus $reviewStatus = ReviewStatus::ATTENTE,
+        private ?ReviewStatus $reviewStatus = null,
         private ?DateTimeImmutable $createdAt = null,
         private ?DateTimeImmutable $validatedAt = null
     ) {
@@ -41,22 +41,22 @@ class Review
         return $this->reviewId;
     }
 
-    public function getReviewRideId(): int
+    public function getReviewRideId(): ?int
     {
         return $this->rideId;
     }
 
-    public function getReviewAuthorId(): int
+    public function getReviewAuthorId(): ?int
     {
         return $this->authorId;
     }
 
-    public function getReviewTargetId(): int
+    public function getReviewTargetId(): ?int
     {
         return $this->targetId;
     }
 
-    public function getReviewRating(): int
+    public function getReviewRating(): ?int
     {
         return $this->rating;
     }
@@ -66,7 +66,7 @@ class Review
         return $this->comment;
     }
 
-    public function getReviewStatus(): ReviewStatus
+    public function getReviewStatus(): ?ReviewStatus
     {
         return $this->reviewStatus;
     }
@@ -84,25 +84,25 @@ class Review
 
     // ---------Les Setters ---------
 
-    public function setReviewRideId(int $rideId): self
+    public function setReviewRideId(?int $rideId): self
     {
         $this->rideId = $rideId;
         return $this;
     }
 
-    public function setReviewAuthorId(int $authorId): self
+    public function setReviewAuthorId(?int $authorId): self
     {
         $this->authorId = $authorId;
         return $this;
     }
 
-    public function setReviewTargetId(int $targetId): self
+    public function setReviewTargetId(?int $targetId): self
     {
         $this->targetId = $targetId;
         return $this;
     }
 
-    public function setReviewRating(int $rating): self
+    public function setReviewRating(?int $rating): self
     {
         if ($rating < 0 || $rating > 5) {
             throw new InvalidArgumentException("La note doit être comprise entre 0 et 5.");
@@ -127,7 +127,7 @@ class Review
         return $this;
     }
 
-    public function setReviewStatus(ReviewStatus $reviewStatus): self
+    public function setReviewStatus(?ReviewStatus $reviewStatus): self
     {
         $this->reviewStatus = $reviewStatus;
         return $this;
