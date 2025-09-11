@@ -6,7 +6,6 @@ use App\Enum\CarBrand;
 use App\Enum\CarColor;
 use App\Enum\CarPower;
 use DateTimeImmutable;
-use DateTime;
 use InvalidArgumentException;
 
 class CreateCarDTO
@@ -30,11 +29,10 @@ class CreateCarDTO
         $this->brand = $brand;
 
 
-        $model = trim(($data['car_model']));
+        $this->model = trim(($data['car_model']));
         if (empty($model)) {
             throw new InvalidArgumentException("Le modéle est obligatoire.");
         }
-        $this->model = $model;
 
 
         $color = CarColor::tryFrom($data['car_color'] ?? '');
@@ -44,12 +42,11 @@ class CreateCarDTO
         $this->color = $color;
 
 
-        $year = (int) ($data['car_year'] ?? 0);
+        $this->year = (int) ($data['car_year'] ?? 0);
         $currentYear = (int) date('Y');
-        if ($year < 1970 || $currentYear) {
+        if ($this->year < 1970 || $currentYear) {
             throw new InvalidArgumentException("Année invalide.");
         }
-        $this->year = $year;
 
 
         $power = CarPower::tryFrom($data['car_power'] ?? '');
@@ -59,25 +56,22 @@ class CreateCarDTO
         $this->power = $power;
 
 
-        $seatsNumber = (int)($data['seats_number']);
-        if ($seatsNumber > 0) {
-            throw new InvalidArgumentException("Le nombre de place doit être supérieur à 0.");
+        $this->seatsNumber = (int)($data['seats_number'] ?? 0);
+        if ($this->seatsNumber <= 0 && $this->seatsNumber >= 7) {
+            throw new InvalidArgumentException("Le nombre de place doit être supérieure à 0 et inférieure à 7.");
         }
-        $this->seatsNumber = $seatsNumber;
 
 
-        $registrationNumber = strtoupper(trim(($data['registration_number'])) ?? '');
-        if (empty($registrationNumber)) {
+        $this->registrationNumber = strtoupper(trim(($data['registration_number'])) ?? '');
+        if (empty($this->registrationNumber)) {
             throw new InvalidArgumentException("La plaque d'immatriculation est obligatoire.");
         }
-        $this->registrationNumber = $registrationNumber;
 
 
-        $registrationDate = ($data['registration_date']);
-        $today = (new DateTime())->format('Y-m-d');
-        if ($registrationDate < $today) {
+        $this->registrationDate = new DateTimeImmutable($data['registration_date'] ?? '');
+        $today = new DateTimeImmutable('today');
+        if ($this->registrationDate < $today) {
             throw new InvalidArgumentException("La date doit être inférieure à aujourd'hui.");
         }
-        $this->registrationDate = $registrationDate;
     }
 }
