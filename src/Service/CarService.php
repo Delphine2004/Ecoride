@@ -5,11 +5,9 @@ namespace App\Services;
 use App\Repositories\CarRepository;
 use App\Repositories\UserRelationsRepository;
 use App\Models\Car;
-use App\Enum\CarBrand;
-use App\Enum\CarColor;
-use App\Enum\CarPower;
+use App\DTO\CreateCarDTO;
 use InvalidArgumentException;
-use DateTimeImmutable;
+
 
 class CarService extends BaseService
 {
@@ -50,12 +48,12 @@ class CarService extends BaseService
      *  Permet à un utilisateur CONDUCTEUR d'ajouter une voiture.
      *
      * @param integer $userId
-     * @param array $data
+     * @param CreateCarDTO $dto
      * @return Car|null
      */
     public function addCar(
         int $userId,
-        array $data
+        CreateCarDTO $dto
     ): ?Car {
         // Récupération de l'utilisateur.
         $user = $this->userRelationsRepository->findUserById($userId);
@@ -74,14 +72,14 @@ class CarService extends BaseService
 
         // Remplissage de l'objet
         $car->setCarOwnerId($userId);
-        $car->setCarBrand(CarBrand::from($data['car_brand']));
-        $car->setCarModel($data['car_model']);
-        $car->setCarColor(CarColor::from($data['car_color']));
-        $car->setCarYear($data['car_year']);
-        $car->setCarPower(CarPower::from($data['car_power']));
-        $car->setCarSeatsNumber($data['seats_number']);
-        $car->setCarRegistrationNumber($data['registration_number']);
-        $car->setCarRegistrationDate(new DateTimeImmutable($data['registration_date']));
+        $car->setCarBrand($dto->brand);
+        $car->setCarModel($dto->model);
+        $car->setCarColor($dto->color);
+        $car->setCarYear($dto->year);
+        $car->setCarPower($dto->power);
+        $car->setCarSeatsNumber($dto->seatsNumber);
+        $car->setCarRegistrationNumber($dto->registrationNumber);
+        $car->setCarRegistrationDate($dto->registrationDate);
 
         // Enregistrement dans la BD.
         $this->carRepository->insertCar($car);

@@ -4,8 +4,10 @@ namespace App\Repositories;
 
 use App\Repositories\BaseRepository;
 use App\Models\Car;
-use App\Enum\CarPower;
+use App\Enum\CarBrand;
 use App\Enum\CarColor;
+use App\Enum\CarPower;
+
 use PDO;
 
 /**
@@ -47,7 +49,7 @@ class CarRepository extends BaseRepository
         return new Car(
             carId: (int)$data['car_id'],
             owner: null, // car pas encore chargé
-            brand: $data['car_brand'],
+            brand: CarBrand::from($data['car_brand']),
             model: $data['car_model'],
             color: CarColor::from($data['car_color']),
             year: (int) $data['car_year'],
