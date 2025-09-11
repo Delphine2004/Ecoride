@@ -6,6 +6,8 @@ namespace App\Services;
 use App\Repositories\UserRelationsRepository;
 use App\Repositories\CarRepository;
 use App\Models\User;
+use App\DTO\CreateUserDTO;
+use App\DTO\UpdateUserDTO;
 use App\Enum\UserRoles;
 use InvalidArgumentException;
 
@@ -26,14 +28,14 @@ class UserService extends BaseService
     /**
      * Permet à un visiteur de créer un compte.
      *
-     * @param array $data
+     * @param CreateUserDTO $dto
      * @return User|null
      */
     public function createAccount(
-        array $data
+        CreateUserDTO $dto
     ): ?User {
         // Vérifier que l'email n'est pas déjà utilisé
-        $existingUser = $this->userRelationsRepository->findUserByEmail($data['email']);
+        $existingUser = $this->userRelationsRepository->findUserByEmail($dto->email);
 
         if ($existingUser) {
             throw new InvalidArgumentException("Cet email est déjà utilisé.");
@@ -43,13 +45,13 @@ class UserService extends BaseService
         //Création de l'objet User
         $user = new User();
 
-        $user->setUserLogin($data['login']);
-        $user->setUserPhone($data['phone']);
-        $user->setUserAddress($data['address']);
-        $user->setUserCity($data['city']);
-        $user->setUserZipCode($data['zip_code']);
-        $user->setUserUriPicture($data['picture']) ?? null;
-        $user->setUserCredits(($data['credits'] ?? 0) + 20);
+        $user->setUserLogin($dto->login);
+        $user->setUserPhone($dto->phone);
+        $user->setUserAddress($dto->address);
+        $user->setUserCity($dto->city);
+        $user->setUserZipCode($dto->zipCode);
+        $user->setUserUriPicture($dto->uriPicture) ?? null;
+        $user->setUserCredits(20);
         $user->setUserRoles([UserRoles::PASSAGER]);
 
         // Enregistrement dans la BD
@@ -63,12 +65,12 @@ class UserService extends BaseService
     /**
      * Permet à un utilisateur de devenir CONDUCTEUR.
      *
-     * @param array $data
+     * @param UpdateUserDTO $dto
      * @param integer $passengerId
      * @return User|null
      */
     public function becomeDriver(
-        array $data,
+        UpdateUserDTO $dto,
         int $passengerId
     ): ?User {
         // Récupération du passager
@@ -85,7 +87,7 @@ class UserService extends BaseService
         $user = $this->userRelationsRepository->findUserById($passengerId);
 
         // Ajout des champs relatifs au CONDUCTEUR
-        $user->setUserLicenceNo($data['licence_no']);
+        $user->setUserLicenceNo($dto->licenceNo);
         $user->addUserRole(UserRoles::CONDUCTEUR);
 
 
@@ -130,12 +132,12 @@ class UserService extends BaseService
     /**
      * Permet à tous les utilisateurs de modifier les informations relatives à leur compte.
      *
-     * @param array $newData
+     * @param UpdateUserDTO $dto
      * @param integer $userId
      * @return User|null
      */
     public function updateProfile(
-        array $newData,
+        UpdateUserDTO $dto,
         int $userId
     ): ?User {
 
@@ -154,47 +156,47 @@ class UserService extends BaseService
 
 
         // Vérifications des champs modifiés et ajouts des nouvelles valeurs
-        if (!empty($newData['last_name'])) {
-            $user->setUserLastName($newData['last_name']);
+        if (!empty($dto->lastName)) {
+            $user->setUserLastName($dto->lastName);
         }
-        if (!empty($newData['first_name'])) {
-            $user->setUserFirstName($newData['first_name']);
+        if (!empty($dto->firstName)) {
+            $user->setUserFirstName($dto->firstName);
         }
-        if (!empty($newData['email'])) {
+        if (!empty($dto->email)) {
 
-            $existingUser = $this->userRelationsRepository->findUserByEmail($newData['email']);
+            $existingUser = $this->userRelationsRepository->findUserByEmail($dto->email);
 
-            if ($existingUser && $newData['email'] !== $user->getUserEmail()) {
+            if ($existingUser && $dto->email !== $user->getUserEmail()) {
                 throw new InvalidArgumentException("L'email est déjà utilisé.");
             }
 
-            $user->setUserEmail($newData['email']);
+            $user->setUserEmail($dto->email);
         }
-        if (!empty($newData['login'])) {
-            $existingUser = $this->userRelationsRepository->findUserByLogin($newData['login']);
+        if (!empty($dto->login)) {
+            $existingUser = $this->userRelationsRepository->findUserByLogin($dto->login);
 
-            if ($existingUser && $newData['login'] !== $user->getUserLogin()) {
+            if ($existingUser && $dto->login !== $user->getUserLogin()) {
                 throw new InvalidArgumentException("Le login est déjà utilisé.");
             }
-            $user->setUserLogin($newData['login']);
+            $user->setUserLogin($dto->login);
         }
-        if (!empty($newData['phone'])) {
-            $user->setUserPhone($newData['phone']);
+        if (!empty($dto->phone)) {
+            $user->setUserPhone($dto->phone);
         }
-        if (!empty($newData['address'])) {
-            $user->setUserAddress($newData['address']);
+        if (!empty($dto->address)) {
+            $user->setUserAddress($dto->address);
         }
-        if (!empty($newData['city'])) {
-            $user->setUserCity($newData['city']);
+        if (!empty($dto->city)) {
+            $user->setUserCity($dto->city);
         }
-        if (!empty($newData['zip_code'])) {
-            $user->setUserZipCode($newData['zip_code']);
+        if (!empty($dto->zip_code)) {
+            $user->setUserZipCode($dto->zipCode);
         }
-        if (!empty($newData['picture'])) {
-            $user->setUserUriPicture($newData['picture']);
+        if (!empty($dto->picture)) {
+            $user->setUserUriPicture($dto->uriPicture);
         }
-        if (!empty($newData['licence_no']) && $this->roleService->hasRole($userId, 'CONDUCTEUR')) {
-            $user->setUserLicenceNo($newData['licence_no']);
+        if (!empty($dto->licenceNo) && $this->roleService->hasRole($userId, 'CONDUCTEUR')) {
+            $user->setUserLicenceNo($dto->licenceNo);
         }
 
         $this->userRelationsRepository->updateUser($user);
@@ -257,7 +259,7 @@ class UserService extends BaseService
      * @return User|null
      */
     public function createEmployeeAccount(
-        array $data,
+        CreateUserDTO $dto,
         int $adminId
     ): ?User {
         // Récupération de l'admin
@@ -273,7 +275,7 @@ class UserService extends BaseService
 
 
         // Vérifier que l'email n'est pas déjà utilisé
-        $existingUser = $this->userRelationsRepository->findUserByEmail($data['email']);
+        $existingUser = $this->userRelationsRepository->findUserByEmail($dto->email);
 
         if ($existingUser) {
             throw new InvalidArgumentException("Cet email est déjà utilisé.");
@@ -282,10 +284,10 @@ class UserService extends BaseService
 
         //Création de l'objet User vide
         $user = new User(
-            $data['last_name'],
-            $data['first_name'],
-            $data['email'],
-            $data['password'],
+            $dto->lastName,
+            $dto->firstName,
+            $dto->email,
+            $dto->password,
             false
         );
 
