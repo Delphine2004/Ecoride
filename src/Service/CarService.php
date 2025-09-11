@@ -47,14 +47,16 @@ class CarService extends BaseService
     //-----------------ACTIONS------------------------------
 
     /**
-     * Permet à un utilisateur CONDUCTEUR d'ajouter une voiture.
+     *  Permet à un utilisateur CONDUCTEUR d'ajouter une voiture.
      *
      * @param integer $userId
-     * @param Car $car
-     * @return integer
+     * @param array $data
+     * @return Car|null
      */
-    public function addCar(int $userId, array $data): Car
-    {
+    public function addCar(
+        int $userId,
+        array $data
+    ): ?Car {
         // Récupération de l'utilisateur.
         $user = $this->userRelationsRepository->findUserById($userId);
 
@@ -94,8 +96,10 @@ class CarService extends BaseService
      * @param integer $carId
      * @return void
      */
-    public function removeCar(int $userId, int $carId): void
-    {
+    public function removeCar(
+        int $userId,
+        int $carId
+    ): void {
         // Récupération de l'utilisateur.
         $user = $this->userRelationsRepository->findUserById($userId);
 
@@ -127,8 +131,9 @@ class CarService extends BaseService
      * @param integer $userId
      * @return array
      */
-    public function getCarsByUser(int $userId): array
-    {
+    public function getCarsByUser(
+        int $userId
+    ): array {
         // Récupération de l'utilisateur
         $user = $this->userRelationsRepository->findUserById($userId);
 

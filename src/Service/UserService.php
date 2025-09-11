@@ -23,9 +23,15 @@ class UserService extends BaseService
 
     //----------Action VISITEUR----------------------------
 
-    // Permet à un visiteur de créer un compte.
-    public function createAccount(array $data): User
-    {
+    /**
+     * Permet à un visiteur de créer un compte.
+     *
+     * @param array $data
+     * @return User|null
+     */
+    public function createAccount(
+        array $data
+    ): ?User {
         // Vérifier que l'email n'est pas déjà utilisé
         $existingUser = $this->userRelationsRepository->findUserByEmail($data['email']);
 
@@ -34,14 +40,8 @@ class UserService extends BaseService
         }
 
 
-        //Création de l'objet User vide
-        $user = new User(
-            $data['last_name'],
-            $data['first_name'],
-            $data['email'],
-            $data['password'],
-            false
-        );
+        //Création de l'objet User
+        $user = new User();
 
         $user->setUserLogin($data['login']);
         $user->setUserPhone($data['phone']);
@@ -60,9 +60,17 @@ class UserService extends BaseService
 
     // ----------Actions PASSAGER --------------------------
 
-    // Permet à un utilisateur de devenir CONDUCTEUR.
-    public function becomeDriver(array $data, int $passengerId): User
-    {
+    /**
+     * Permet à un utilisateur de devenir CONDUCTEUR.
+     *
+     * @param array $data
+     * @param integer $passengerId
+     * @return User|null
+     */
+    public function becomeDriver(
+        array $data,
+        int $passengerId
+    ): ?User {
         // Récupération du passager
         $passenger = $this->userRelationsRepository->findUserById($passengerId);
 
@@ -89,7 +97,12 @@ class UserService extends BaseService
 
     //----------Actions PASSAGER OU CONDUCTEUR ------------
 
-    // Permet à un utilisateur PASSAGER OU CONDUCTEUR de supprimer son compte.
+    /**
+     * Permet à un utilisateur PASSAGER OU CONDUCTEUR de supprimer son compte.
+     *
+     * @param integer $userId
+     * @return boolean
+     */
     public function deleteAccount(
         int $userId
     ): bool {
@@ -101,20 +114,11 @@ class UserService extends BaseService
             throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
-        // Vérification que l'utilisateur a supprimer n'a pas le rôle admin ou employé
-        if (
-            ($this->roleService->hasAnyRole($userId, ['EMPLOYE', 'ADMIN']))
-        ) {
-            throw new InvalidArgumentException("Un admin ou un employé ne peut pas supprimer son compte.");
+        // Vérification que l'utilisateur à supprimer n'a pas le rôle ADMIN ou EMPLOYE
+        if ($this->ensureStaff($userId)) {
+            throw new InvalidArgumentException("Les admins ou les employés ne peuvent pas supprimer leur compte.");
         }
 
-        // Vérification des permissions pour PASSAGER et CONDUCTEUR
-        if (
-            !$this->roleService->hasRole($userId, 'PASSAGER') &&
-            !$this->roleService->hasRole($userId, 'CONDUCTEUR')
-        ) {
-            throw new InvalidArgumentException("Seuls les passagers et les conducteurs peuvent supprimer son compte.");
-        }
 
         // Enregistrement en Bd
         $this->userRelationsRepository->deleteUser($userId);
@@ -123,7 +127,13 @@ class UserService extends BaseService
 
     //----------Actions TOUT ROLE------------
 
-    // Permet à tous les utilisateurs de modifier les informations relatives à leur compte.
+    /**
+     * Permet à tous les utilisateurs de modifier les informations relatives à leur compte.
+     *
+     * @param array $newData
+     * @param integer $userId
+     * @return User|null
+     */
     public function updateProfile(
         array $newData,
         int $userId
@@ -138,7 +148,7 @@ class UserService extends BaseService
         }
 
         // Vérification des permissions.
-        if (!$this->roleService->hasAnyRole($userId, ['PASSAGER', 'CONDUCTEUR', 'EMPLOYE', 'ADMIN'])) {
+        if (!$this->ensureUser($userId)) {
             throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à modifier son profil.");
         }
 
@@ -191,7 +201,14 @@ class UserService extends BaseService
         return $user;
     }
 
-    // Permet à tous les utilisateurs de modifier le mot de passe
+    /**
+     * Permet à tous les utilisateurs de modifier le mot de passe
+     *
+     * @param string $newPassword
+     * @param string $oldPassword
+     * @param integer $userId
+     * @return boolean
+     */
     public function modifyPassword(
         string $newPassword,
         string $oldPassword,
@@ -207,7 +224,7 @@ class UserService extends BaseService
         }
 
         // Vérification des permissions.
-        if (!$this->roleService->hasAnyRole($userId, ['PASSAGER', 'CONDUCTEUR', 'EMPLOYE', 'ADMIN'])) {
+        if (!$this->ensureUser($userId)) {
             throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à modifier son profil.");
         }
 
@@ -232,7 +249,13 @@ class UserService extends BaseService
 
     //----------Actions ADMIN ------------
 
-    // Permet à un admin de créer un compte employé.
+    /**
+     * Permet à un admin de créer un compte employé.
+     *
+     * @param array $data
+     * @param integer $adminId
+     * @return User|null
+     */
     public function createEmployeeAccount(
         array $data,
         int $adminId
@@ -275,7 +298,13 @@ class UserService extends BaseService
         return $user;
     }
 
-    // Permet à un admin de supprimer n'importe quel compte.
+    /**
+     * Permet à un admin de supprimer n'importe quel compte.
+     *
+     * @param integer $adminId
+     * @param integer $userId
+     * @return boolean
+     */
     public function deleteAccountByAdmin(
         int $adminId,
         int $userId

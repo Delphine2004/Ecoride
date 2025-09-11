@@ -38,12 +38,12 @@ class RideService extends BaseService
      *
      * @param Ride $ride
      * @param integer $userId
-     * @return Ride
+     * @return Ride|null
      */
     public function addRide(
-        Ride $ride,
-        int $userId
-    ): Ride {
+        int $userId,
+        array $data
+    ): ?Ride {
         // Récupération de l'utilisateur
         $user = $this->userRelationsRepository->findUserById($userId);
 
@@ -53,40 +53,44 @@ class RideService extends BaseService
         }
 
         // Vérification des permissions.
-        $this->ensureDriver(!$userId);
-
-
-        // Récupération de l'id du conducteur
-        $driverId = $ride->getRideDriverId();
-        // Récupération du chauffeur
-        $driver = $ride->getRideDriver($driverId);
-
-        // Vérification de l'existence du conducteur
-        if (!$driver) {
-            throw new InvalidArgumentException("Conducteur introuvable.");
-        }
+        $this->ensureDriver($userId);
 
 
         // Vérification que le chauffeur a bien au moins une voiture
-        if (!$this->carService->userHasCars($driverId)) {
+        if (!$this->carService->userHasCars($userId)) {
             throw new InvalidArgumentException("Le conducteur doit avoir au moins une voiture.");
         }
 
 
-        // Déduction de la commission
+        // Création de l'objet Ride
+        $ride = new Ride();
+
+        // Remplissage de l'objet
+        $ride->setRideDriverId($userId);
+        $ride->setRideDepartureDateTime($data['departure_date_time']);
+        $ride->setRideDeparturePlace($data['departure_place']);
+        $ride->setRideArrivalDateTime($data['arrival_date_time']);
+        $ride->setRideArrivalPlace($data['arrival_place']);
+        $ride->setRidePrice($data['price']);
+        $ride->setRideAvailableSeats($data['available_seats']);
+        $ride->setRideStatus(RideStatus::DISPONIBLE);
+        $ride->setRideCommission($data['commision']);
+
+        // Enregistrement du trajet dans la BD.
+        $this->rideWithUserRepository->insertRide($ride);
+
+
+        // Déduction de la commission au conducteur
         $commission = $ride->getRideCommission();
-        $driver->setUserCredits($driver->getUserCredits() - $commission);
+        $user->setUserCredits($user->getUserCredits() - $commission);
 
         // Enregistrement de la modification des crédits
         $this->userRelationsRepository->updateUser(
-            $driver,
+            $user,
             [
-                'credits' => $driver->getUserCredits()
+                'credits' => $user->getUserCredits()
             ]
         );
-
-
-        $this->rideWithUserRepository->insertRide($ride);
 
         return $ride;
     }
@@ -96,12 +100,12 @@ class RideService extends BaseService
      *
      * @param integer $rideId
      * @param integer $userId
-     * @return Booking
+     * @return Booking|null
      */
     public function bookRide(
         int $rideId,
         int $userId
-    ): Booking {
+    ): ?Booking {
 
         // Récupération du trajet
         $ride = $this->rideWithUserRepository->findRideById($rideId);
@@ -125,13 +129,7 @@ class RideService extends BaseService
         }
 
         // Vérification des permissions.
-        if (
-            !$this->roleService->hasRole($userId, 'PASSAGER') &&
-            !$this->roleService->hasRole($userId, 'EMPLOYE') &&
-            !$this->roleService->hasRole($userId, 'ADMIN')
-        ) {
-            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à réserver un trajet.");
-        }
+        $this->ensurePassenger($userId);
 
 
         // Récupération du chauffeur
@@ -172,12 +170,12 @@ class RideService extends BaseService
      *
      * @param integer $rideId
      * @param integer $userId
-     * @return Ride
+     * @return Ride|null
      */
     public function cancelRide(
         int $rideId,
         int $userId
-    ): Ride {
+    ): ?Ride {
 
         // Récupération de l'entité Ride
         $ride = $this->rideWithUserRepository->findRideById($rideId);
@@ -196,11 +194,7 @@ class RideService extends BaseService
         }
 
         // Vérification des permissions.
-        if (
-            !$this->roleService->hasRole($userId, 'CONDUCTEUR') &&
-            !$this->roleService->hasRole($userId, 'EMPLOYE') &&
-            !$this->roleService->hasRole($userId, 'ADMIN')
-        ) {
+        if (!$this->roleService->hasAnyRole($userId, ['CONDUCTEUR', 'EMPLOYE', 'ADMIN'])) {
             throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à annuler ce trajet.");
         }
 
@@ -301,11 +295,7 @@ class RideService extends BaseService
         }
 
         // Vérification des permissions.
-        if (
-            !$this->roleService->hasRole($userId, 'CONDUCTEUR') &&
-            !$this->roleService->hasRole($userId, 'EMPLOYE') &&
-            !$this->roleService->hasRole($userId, 'ADMIN')
-        ) {
+        if (!$this->roleService->hasAnyRole($userId, ['CONDUCTEUR', 'EMPLOYE', 'ADMIN'])) {
             throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à démarrer ce trajet.");
         }
 
@@ -366,15 +356,9 @@ class RideService extends BaseService
         }
 
         // Vérification des permissions.
-        if (
-            !$this->roleService->hasRole($userId, 'CONDUCTEUR') &&
-            !$this->roleService->hasRole($userId, 'EMPLOYE') &&
-            !$this->roleService->hasRole($userId, 'ADMIN')
-        ) {
+        if (!$this->roleService->hasAnyRole($userId, ['CONDUCTEUR', 'EMPLOYE', 'ADMIN'])) {
             throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à finaliser ce trajet.");
         }
-
-
 
 
         // Récupération du chauffeur
@@ -487,11 +471,7 @@ class RideService extends BaseService
         }
 
         // Vérification des permissions.
-        if (
-            !$this->roleService->hasRole($userId, 'CONDUCTEUR') &&
-            !$this->roleService->hasRole($userId, 'EMPLOYE') &&
-            !$this->roleService->hasRole($userId, 'ADMIN')
-        ) {
+        if (!$this->roleService->hasAnyRole($userId, ['CONDUCTEUR', 'EMPLOYE', 'ADMIN'])) {
             throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
         }
 
@@ -524,11 +504,7 @@ class RideService extends BaseService
         }
 
         // Vérification des permissions.
-        if (
-            !$this->roleService->hasRole($userId, 'CONDUCTEUR') &&
-            !$this->roleService->hasRole($userId, 'EMPLOYE') &&
-            !$this->roleService->hasRole($userId, 'ADMIN')
-        ) {
+        if (!$this->roleService->hasAnyRole($userId, ['CONDUCTEUR', 'EMPLOYE', 'ADMIN'])) {
             throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
         }
 
@@ -564,11 +540,7 @@ class RideService extends BaseService
         }
 
 
-        if (
-            !$this->roleService->hasRole($userId, 'CONDUCTEUR') &&
-            !$this->roleService->hasRole($userId, 'EMPLOYE') &&
-            !$this->roleService->hasRole($userId, 'ADMIN')
-        ) {
+        if (!$this->roleService->hasAnyRole($userId, ['CONDUCTEUR', 'EMPLOYE', 'ADMIN'])) {
             throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
         }
 
@@ -607,11 +579,7 @@ class RideService extends BaseService
         }
 
         // Vérification des permissions.
-        if (
-            !$this->roleService->hasRole($userId, 'PASSAGER') &&
-            !$this->roleService->hasRole($userId, 'EMPLOYE') &&
-            !$this->roleService->hasRole($userId, 'ADMIN')
-        ) {
+        if (!$this->roleService->hasAnyRole($userId, ['PASSAGER', 'EMPLOYE', 'ADMIN'])) {
             throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
         }
 
@@ -649,11 +617,7 @@ class RideService extends BaseService
         }
 
         // Vérification des permissions.
-        if (
-            !$this->roleService->hasRole($userId, 'PASSAGER') &&
-            !$this->roleService->hasRole($userId, 'EMPLOYE') &&
-            !$this->roleService->hasRole($userId, 'ADMIN')
-        ) {
+        if (!$this->roleService->hasAnyRole($userId, ['PASSAGER', 'EMPLOYE', 'ADMIN'])) {
             throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
         }
 
@@ -689,11 +653,7 @@ class RideService extends BaseService
         }
 
         // Vérification des permissions.
-        if (
-            !$this->roleService->hasRole($userId, 'PASSAGER') &&
-            !$this->roleService->hasRole($userId, 'EMPLOYE') &&
-            !$this->roleService->hasRole($userId, 'ADMIN')
-        ) {
+        if (!$this->roleService->hasAnyRole($userId, ['PASSAGER', 'EMPLOYE', 'ADMIN'])) {
             throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
         }
 
