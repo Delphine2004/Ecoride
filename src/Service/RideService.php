@@ -10,6 +10,7 @@ use App\Services\CarService;
 use App\Services\NotificationService;
 use App\Models\Ride;
 use App\Models\Booking;
+use App\DTO\CreateRideDTO;
 use App\Enum\RideStatus;
 use App\Enum\BookingStatus;
 use InvalidArgumentException;
@@ -42,7 +43,7 @@ class RideService extends BaseService
      */
     public function addRide(
         int $userId,
-        array $data
+        CreateRideDTO $dto
     ): ?Ride {
         // Récupération de l'utilisateur
         $user = $this->userRelationsRepository->findUserById($userId);
@@ -67,14 +68,13 @@ class RideService extends BaseService
 
         // Remplissage de l'objet
         $ride->setRideDriverId($userId);
-        $ride->setRideDepartureDateTime($data['departure_date_time']);
-        $ride->setRideDeparturePlace($data['departure_place']);
-        $ride->setRideArrivalDateTime($data['arrival_date_time']);
-        $ride->setRideArrivalPlace($data['arrival_place']);
-        $ride->setRidePrice($data['price']);
-        $ride->setRideAvailableSeats($data['available_seats']);
-        $ride->setRideStatus(RideStatus::DISPONIBLE);
-        $ride->setRideCommission($data['commision']);
+        $ride->setRideDepartureDateTime($dto->departureDateTime);
+        $ride->setRideDeparturePlace($dto->departurePlace);
+        $ride->setRideArrivalDateTime($dto->arrivalDateTime);
+        $ride->setRideArrivalPlace($dto->arrivalPlace);
+        $ride->setRidePrice($dto->price);
+        $ride->setRideAvailableSeats($dto->availableSeats);
+        $ride->setRideStatus($dto->rideStatus);
 
         // Enregistrement du trajet dans la BD.
         $this->rideWithUserRepository->insertRide($ride);

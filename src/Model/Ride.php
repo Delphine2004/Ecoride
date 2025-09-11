@@ -24,9 +24,9 @@ class Ride
         private ?int $driverId = null, // pour l'hydratation brute
         private ?User $driver = null, // pour le mapping
 
-        private ?\DateTimeImmutable $departureDateTime = null,
+        private ?DateTimeImmutable $departureDateTime = null,
         private ?string $departurePlace = null,
-        private ?\DateTimeImmutable $arrivalDateTime = null,
+        private ?DateTimeImmutable $arrivalDateTime = null,
         private ?string $arrivalPlace = null,
         private ?int $price = null,
         private ?int $availableSeats = null,
@@ -36,8 +36,8 @@ class Ride
         private ?array $passengers = [], // Pour charger plusieurs passagers
 
 
-        private ?\DateTimeImmutable $createdAt = null, // n'a pas de valeur au moment de l'instanciation
-        private ?\DateTimeImmutable $updatedAt = null // n'a pas de valeur au moment de l'instanciation
+        private ?DateTimeImmutable $createdAt = null, // n'a pas de valeur au moment de l'instanciation
+        private ?DateTimeImmutable $updatedAt = null // n'a pas de valeur au moment de l'instanciation
 
     ) {
         // Affectation avec validation
