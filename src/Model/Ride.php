@@ -222,7 +222,7 @@ class Ride
 
     public function setRidePrice(?int $price): self
     {
-        if ($price < 0 && $price >= 100) {
+        if ($price < 0 || $price >= 100) {
             throw new InvalidArgumentException("Le prix doit être supérieure à 0 et inférieure à 100.");
         }
         $this->price = $price;
@@ -232,7 +232,7 @@ class Ride
 
     public function setRideAvailableSeats(?int $availableSeats): self
     {
-        if ($availableSeats < 0 && $availableSeats >= 7) {
+        if ($availableSeats < 0 || $availableSeats >= 7) {
             throw new InvalidArgumentException("Le nombre de place disponible doit être supérieure à 0 et inférieure à 7.");
         }
         $this->availableSeats = $availableSeats;

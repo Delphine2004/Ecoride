@@ -30,7 +30,7 @@ class CreateCarDTO
 
 
         $this->model = trim(($data['car_model']));
-        if (empty($model)) {
+        if (empty($this->model)) {
             throw new InvalidArgumentException("Le modéle est obligatoire.");
         }
 
@@ -44,7 +44,7 @@ class CreateCarDTO
 
         $this->year = (int) ($data['car_year'] ?? 0);
         $currentYear = (int) date('Y');
-        if ($this->year < 1970 || $currentYear) {
+        if ($this->year < 1970 || $this->year > $currentYear) {
             throw new InvalidArgumentException("Année invalide.");
         }
 
@@ -57,7 +57,7 @@ class CreateCarDTO
 
 
         $this->seatsNumber = (int)($data['seats_number'] ?? 0);
-        if ($this->seatsNumber <= 0 && $this->seatsNumber >= 7) {
+        if ($this->seatsNumber <= 0 || $this->seatsNumber >= 7) {
             throw new InvalidArgumentException("Le nombre de place doit être supérieure à 0 et inférieure à 7.");
         }
 
@@ -70,8 +70,8 @@ class CreateCarDTO
 
         $this->registrationDate = new DateTimeImmutable($data['registration_date'] ?? '');
         $today = new DateTimeImmutable('today');
-        if ($this->registrationDate < $today) {
-            throw new InvalidArgumentException("La date doit être inférieure à aujourd'hui.");
+        if ($this->registrationDate > $today) {
+            throw new InvalidArgumentException("La date d'immatriculation ne doit pas être dans le futur.");
         }
     }
 }
