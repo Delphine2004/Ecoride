@@ -39,7 +39,32 @@ abstract class BaseService
     }
 
     /**
-     * Vérifie que l'utilisateur a le rôle ADMIN.
+     * Vérifie que l'utilisateur a les rôles PASSAGER ou CONDUCTEUR.
+     *
+     * @param integer $userId
+     * @return void
+     */
+    protected function ensureCustomer(int $userId): void
+    {
+        if (!$this->roleService->isCustomer($userId)) {
+            throw new InvalidArgumentException("Seulement les utilisateurs ayant le role PASSAGER ou CONDUCTEUR peuvent effectuer cette action.");
+        }
+    }
+    /**
+     * Vérifie que l'utilisateur a le rôle EMPLOYE.
+     *
+     * @param integer $userId
+     * @return void
+     */
+    protected function ensureEmployee(int $userId): void
+    {
+        if (!$this->roleService->isEmployee($userId)) {
+            throw new InvalidArgumentException("Seulement les utilisateurs ayant le rôle EMPLOYE peuvent effectuer cette action.");
+        }
+    }
+
+    /**
+     * Vérifie que l'utilisateur a bien le rôle ADMIN.
      *
      * @param integer $userId
      * @return void
@@ -52,15 +77,28 @@ abstract class BaseService
     }
 
     /**
-     * Vérifie que l'utilisateur a le rôle EMPLOYEE.
+     * Vérifie que l'utilisateur a les rôles EMPLOYE ou ADMIN.
      *
      * @param integer $userId
      * @return void
      */
-    protected function ensureEmployee(int $userId): void
+    protected function ensureStaff(int $userId): void
     {
-        if (!$this->roleService->isEmployee($userId)) {
-            throw new InvalidArgumentException("Seulement les utilisateurs ayant le rôle EMPLOYEE peuvent effectuer cette action.");
+        if (!$this->roleService->isStaff($userId)) {
+            throw new InvalidArgumentException("Seulement les utilisateurs ayant le rôle EMPLOYE ou ADMIN peuvent effectuer cette action.");
+        }
+    }
+
+    /**
+     * Vérifie que l'utilisateur a bien un rôle .
+     *
+     * @param integer $userId
+     * @return void
+     */
+    protected function ensureUser(int $userId): void
+    {
+        if (!$this->roleService->isUser($userId)) {
+            throw new InvalidArgumentException("Seulement les utilisateurs ayant un rôle peuvent effectuer cette action.");
         }
     }
 }
