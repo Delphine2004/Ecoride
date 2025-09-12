@@ -11,22 +11,52 @@ abstract class BaseController
         private AuthService $authService
     ) {}
 
-    protected function jsonResponse(array $data, int $statusCode = 200): void
+    protected function jsonResponse(array $data, int $statusCode = 200, array $headers = []): void
     {
         http_response_code($statusCode);
+
+        // Header par défaut
         header("Content-Type: application/json");
-        echo json_encode($data);
+
+        // Headers additionnels
+        foreach ($headers as $key => $value) {
+            header("$key: $value");
+        }
+
+        echo json_encode(
+            $data,
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR
+        );
         exit;
     }
 
-    protected function successResponse(mixed $data, int $statusCode = 200): void
+    protected function successResponse(mixed $data, int $statusCode = 200, ?string $location = null): void
     {
-        $this->jsonResponse(['success' => true, 'data' => $data], $statusCode);
+        $headers = [];
+        if ($location !== null) {
+            $headers['Location'] = $location;
+        }
+
+        $this->jsonResponse(
+            [
+                'success' => true,
+                'data' => $data
+            ],
+            $statusCode
+        );
     }
 
-    protected function errorResponse(string $message, int $statusCode = 400): void
+    protected function errorResponse(string $message, int $statusCode = 400, array $context = []): void
     {
-        $this->jsonResponse(['success' => false, 'error' => $message], $statusCode);
+
+        $this->jsonResponse(
+            [
+                'success' => false,
+                'error' => $message,
+                'context' => $context
+            ],
+            $statusCode
+        );
     }
 
     protected function getJsonBody(): array
