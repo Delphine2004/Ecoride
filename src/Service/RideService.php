@@ -327,6 +327,17 @@ class RideService extends BaseService
                 'ride_status' => $ride->getRideStatus()
             ]
         );
+
+        // Notification des passagers
+        $rideId = $ride->getRideId();
+        $bookings = $this->bookingRelationsRepository->findBookingByRideId($rideId);
+        foreach ($bookings as $booking) {
+            $passenger = $this->userRelationsRepository->findUserById($booking->getPassengerId());
+            $this->notificationService->sendRideStart($passenger, $ride);
+        }
+
+        // Notification du conducteur
+        $this->notificationService->sendRideStart($driver, $ride);
     }
 
     /**
