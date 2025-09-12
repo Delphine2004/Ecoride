@@ -29,7 +29,8 @@ class RideRepository extends BaseRepository
         'arrival_place',
         'price',
         'available_seats',
-        'ride_status'
+        'ride_status',
+        'commission'
     ];
 
 
@@ -57,6 +58,7 @@ class RideRepository extends BaseRepository
             price: (float)$data['price'],
             availableSeats: (int)$data['available_seats'],
             rideStatus: RideStatus::from($data['ride_status']),
+            commission: (int)$data['commission'],
             createdAt: !empty($data['created_at']) ? new \DateTimeImmutable($data['created_at']) : null,
             updatedAt: !empty($data['updated_at']) ? new \DateTimeImmutable($data['updated_at']) : null
         );
@@ -78,7 +80,8 @@ class RideRepository extends BaseRepository
             'arrival_place' => $ride->getRideArrivalPlace(),
             'price' => $ride->getRidePrice(),
             'available_seats' => $ride->getRideAvailableSeats(),
-            'ride_status' => $ride->getRideStatus()->value
+            'ride_status' => $ride->getRideStatus()->value,
+            'commission' => $ride->getRideCommission()
         ];
     }
 
