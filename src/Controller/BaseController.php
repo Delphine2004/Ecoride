@@ -2,8 +2,14 @@
 
 namespace App\Controllers;
 
+use App\Security\AuthService;
+use InvalidArgumentException;
+
 abstract class BaseController
 {
+    public function __construct(
+        private AuthService $authService
+    ) {}
 
     protected function jsonResponse(array $data, int $statusCode = 200): void
     {
@@ -27,5 +33,16 @@ abstract class BaseController
     {
         $input = file_get_contents("php://input");
         return $input ? json_decode($input, true) ?? [] : [];
+    }
+
+    protected function getUserIdFromToken(string $jwtToken): int
+    {
+        $userdata = $this->authService->verifyToken($jwtToken);
+
+        if (!isset($userdata['user_id'])) {
+            throw new InvalidArgumentException("user_id manquant.");
+        }
+
+        return (int) $userdata['user_id'];
     }
 }
