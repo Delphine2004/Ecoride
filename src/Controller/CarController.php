@@ -4,19 +4,17 @@ namespace App\Controllers;
 
 use App\DTO\CreateCarDTO;
 use App\Services\CarService;
-use App\Security\AuthService;
 use InvalidArgumentException;
 
 class CarController extends BaseController
 {
     public function __construct(
         private CarService $carService,
-        private AuthService $authService
+
     ) {}
 
-    // PUT - pas de modification de voiture possible
 
-    // POST - manque l'authentification
+    // POST
     public function createCar(string $jwtToken): void
     {
         // Récupération des données
@@ -29,7 +27,6 @@ class CarController extends BaseController
         }
 
         try {
-
             // Récupération de l'id de l'utilisateur dans le token avec vérification
             $userId = $this->getUserIdFromToken($jwtToken);
 
@@ -46,15 +43,10 @@ class CarController extends BaseController
             } elseif (is_array($car)) {
                 $carId = $car['id'] ?? $car['car_id'] ?? null;
             }
-
-            if ($carId) {
-                header("Location: /users/{$userId}/cars/{$carId}");
-            }
-
             // Envoi de la réponse positive
-            $this->successResponse($car, 201);
+            $this->successResponse($car, 201, "/users/{$userId}/cars/{$carId}");
         } catch (InvalidArgumentException $e) {
-            // // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
+            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
             $this->errorResponse($e->getMessage(), 400);
         } catch (\Exception $e) {
             // Attrappe les erreurs "Internal Server Error"
@@ -63,7 +55,10 @@ class CarController extends BaseController
     }
 
 
-    // DELETE - manque l'authentification
+    // PUT - pas de modification de voiture possible
+
+
+    // DELETE
     public function deleteCar(string $jwtToken, int $carId): void
     {
         try {
@@ -89,7 +84,7 @@ class CarController extends BaseController
     }
 
 
-    // GET - manque l'authentification
+    // GET
     public function listUserCars(string $jwtToken): void
     {
         try {
