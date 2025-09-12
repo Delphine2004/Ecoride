@@ -2,12 +2,10 @@
 
 namespace App\Repositories;
 
-use App\Repositories\BaseRepository;
 use App\Models\Car;
 use App\Enum\CarBrand;
 use App\Enum\CarColor;
 use App\Enum\CarPower;
-
 use PDO;
 
 /**
@@ -32,8 +30,9 @@ class CarRepository extends BaseRepository
     ];
 
 
-    public function __construct(PDO $db)
-    {
+    public function __construct(
+        PDO $db
+    ) {
         parent::__construct($db);
     }
 

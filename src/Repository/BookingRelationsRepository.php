@@ -6,9 +6,7 @@ use App\Repositories\BookingRepository;
 use App\Repositories\UserRepository;
 use App\Repositories\RidewithUsersRepository;
 use App\Models\Booking;
-use App\Models\User;
 use PDO;
-use InvalidArgumentException;
 
 /**
  * Cette classe gére la correspondance entre une réservation et des utilisateurs et la BDD.

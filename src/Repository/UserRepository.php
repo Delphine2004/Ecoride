@@ -2,7 +2,6 @@
 
 namespace App\Repositories;
 
-use App\Repositories\BaseRepository;
 use App\Models\User;
 use App\Enum\UserRoles;
 use PDO;
@@ -33,8 +32,9 @@ class UserRepository extends BaseRepository
         'api_token'
     ];
 
-    public function __construct(PDO $db)
-    {
+    public function __construct(
+        PDO $db
+    ) {
         parent::__construct($db);
     }
 

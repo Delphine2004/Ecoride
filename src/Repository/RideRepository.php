@@ -2,7 +2,6 @@
 
 namespace App\Repositories;
 
-use App\Repositories\BaseRepository;
 use App\Models\Ride;
 use App\Enum\RideStatus;
 use App\Enum\UserRoles;
@@ -34,8 +33,9 @@ class RideRepository extends BaseRepository
     ];
 
 
-    public function __construct(PDO $db)
-    {
+    public function __construct(
+        PDO $db
+    ) {
         parent::__construct($db);
     }
 
