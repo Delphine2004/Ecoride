@@ -8,5 +8,6 @@ enum RideStatus: string
     case COMPLET = "Complet";
     case ANNULE = "Annulé";
     case ENCOURS = "En cours";
+    case ENATTENTE = "En attente";
     case TERMINE = "Terminé";
 }
