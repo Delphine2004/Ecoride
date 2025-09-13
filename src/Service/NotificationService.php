@@ -2,6 +2,10 @@
 
 namespace App\Services;
 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
+
 use App\Models\User;
 use App\Models\Ride;
 use App\Models\Booking;
@@ -9,31 +13,65 @@ use App\Models\Booking;
 
 class NotificationService
 {
+    //--------------------Trajet----------------------------
 
     // Envoi une confirmation de création de trajet par email.
-    public function sendRideConfirmation(User $user, Ride $ride)
+    // Confirmations
+    public function sendRideConfirmationToDriver(User $user, Ride $ride)
     {
         // Ici tu pourrais envoyer un email, un SMS, ou juste logger
         echo sprintf(
             "Confirmation envoyée à %s pour le trajet %d (départ %s)\n",
-            $user->getUserName(),
+            $user->getUserLogin(),
             $ride->getRideId(),
             $ride->getRideDepartureDateTime()
         );
     }
 
-    // Envoi une confirmation d'annulation de trajet par email.
-    public function sendRideCancelation(User $user, Ride $ride) {}
+    public function sendRideConfirmationToPassenger(User $user, Ride $ride) {}
 
-    public function sendRideCancelationToDriver(User $user, Ride $ride) {}
+    // Annulation
+    // Envoi une confirmation d'annulation de trajet par email au passager.
+    public function sendRideCancelationToPassenger(User $passenger, Ride $ride) {}
 
-    // Envoi une confirmation de finalisation de trajet par email
-    public function sendRideFinalization(User $user, Ride $ride) {}
+    // Envoi une confirmation d'annulation de trajet par email au conducteur.
+    public function sendRideCancelationToDriver(User $driver, Ride $ride) {}
 
+    // Actions
+    // envoi une confirmation de démarrage du trajet
+    public function sendRideStart() {}
+
+    public function sendRideConfirmationStopToDriver() {}
+
+    public function sendRideFinalizationRequestToPassenger() {}
+
+    // Envoi une confirmation de finalisation de trajet par email au passager. - Doit demander au participant de valider 
+    //- voir comment faire pour non validé
+    public function sendRideFinalizationToPassenger(User $passenger, Ride $ride) {}
+
+    // Envoi une confirmation de finalisation de trajet par email au conducteur.
+    public function sendRideFinalizationToDriver(User $driver, Ride $ride) {}
+
+
+    //-----------------Réservation--------------------------
 
     // Envoi une confirmation de création de réservation par email.
-    public function sendBookingConfirmation(User $user, Booking $booking) {}
+    public function sendBookingConfirmationToPassenger(User $passenger, Booking $booking) {}
 
-    // Envoi une confirmation d'annulation de réservation par email.
-    public function sendBookingCancelation(User $user, Booking $booking) {}
+    // Envoi une confirmation de création de réservation par email.
+    public function sendBookingConfirmationToDriver(User $driver, Booking $booking) {}
+
+
+    // Envoi une confirmation d'annulation de réservation sans frais par email au passager.
+    public function sendBookingCancelationToPassenger(User $passenger, Booking $booking) {}
+
+    // Envoi une confirmation d'annulation de réservation sans frais par email au conducteur.
+    public function sendBookingCancelationToDriver(User $driver, Booking $booking) {}
+
+
+    // Envoi une confirmation d'annulation de réservation tardive par email au passager.
+    public function sendBookingLateCancelationToPassenger(User $passenger, Booking $booking) {}
+
+    // Envoi une confirmation d'annulation de réservation tardive par email au conducteur.
+    public function sendBookingLateCancelationToDriver(User $driver, Booking $booking) {}
 }
