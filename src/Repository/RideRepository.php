@@ -46,8 +46,9 @@ class RideRepository extends BaseRepository
      * @param array $data
      * @return Ride
      */
-    public function hydrateRide(array $data): Ride
-    {
+    public function hydrateRide(
+        array $data
+    ): Ride {
         return new Ride(
             rideId: (int)$data['ride_id'],
             driver: null, // car pas encore chargé
@@ -70,8 +71,9 @@ class RideRepository extends BaseRepository
      * @param Ride $ride
      * @return array
      */
-    private function mapRideToArray(Ride $ride): array
-    {
+    private function mapRideToArray(
+        Ride $ride
+    ): array {
         return [
             'driver_id' => $ride->getRideDriver()->getUserId(),
             'departure_date_time' => $ride->getRideDepartureDateTime()->format('Y-m-d H:i:s'),
@@ -91,8 +93,9 @@ class RideRepository extends BaseRepository
      * @param string $field
      * @return boolean
      */
-    protected function isAllowedField(string $field): bool
-    {
+    protected function isAllowedField(
+        string $field
+    ): bool {
         return in_array($field, $this->allowedFields, true);
     }
 
@@ -163,8 +166,9 @@ class RideRepository extends BaseRepository
      * @param integer $rideId
      * @return Ride|null
      */
-    public function findRideById(int $rideId): ?Ride
-    {
+    public function findRideById(
+        int $rideId
+    ): ?Ride {
         // Chercher l'élément
         $row = parent::findById($rideId);
         return $row ? $this->hydrateRide((array) $row) : null;
@@ -396,8 +400,9 @@ class RideRepository extends BaseRepository
      * @param integer $driverId
      * @return array
      */
-    public function findUpcomingRidesByDriver(int $driverId): array
-    {
+    public function findUpcomingRidesByDriver(
+        int $driverId
+    ): array {
         return $this->findAllRidesByDriver($driverId, RideStatus::DISPONIBLE);
     }
 
@@ -407,8 +412,9 @@ class RideRepository extends BaseRepository
      * @param integer $driverId
      * @return array
      */
-    public function fetchPastRidesByDriver(int $driverId): array
-    {
+    public function fetchPastRidesByDriver(
+        int $driverId
+    ): array {
         return $this->fetchAllRidesByDriver($driverId, RideStatus::TERMINE);
     }
 

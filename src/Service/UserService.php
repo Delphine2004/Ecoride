@@ -78,7 +78,7 @@ class UserService extends BaseService
 
         // Vérification de l'existence du passeger
         if (!$passenger) {
-            throw new InvalidArgumentException("Passager introuvable.");
+            throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
         // Vérification des permissions.

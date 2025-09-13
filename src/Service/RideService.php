@@ -42,8 +42,8 @@ class RideService extends BaseService
      * @return Ride|null
      */
     public function addRide(
+        CreateRideDTO $dto,
         int $userId,
-        CreateRideDTO $dto
     ): ?Ride {
         // Récupération de l'utilisateur
         $user = $this->userRelationsRepository->findUserById($userId);
@@ -137,7 +137,7 @@ class RideService extends BaseService
 
         // Vérification de l'existence du conducteur
         if (!$driver) {
-            throw new InvalidArgumentException("Conducteur introuvable.");
+            throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
         // Vérification des crédits du passager
@@ -206,7 +206,7 @@ class RideService extends BaseService
 
         // Vérification de l'existence du conducteur
         if (!$driver) {
-            throw new InvalidArgumentException("Conducteur introuvable.");
+            throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
 
@@ -307,7 +307,7 @@ class RideService extends BaseService
 
         // Vérification de l'existence du conducteur
         if (!$driver) {
-            throw new InvalidArgumentException("Conducteur introuvable.");
+            throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
         // Vérification que l'utilisateur est bien le conducteur du trajet
@@ -377,7 +377,7 @@ class RideService extends BaseService
 
         // Vérification de l'existence du conducteur
         if (!$driver) {
-            throw new InvalidArgumentException("Conducteur introuvable.");
+            throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
 
@@ -448,6 +448,24 @@ class RideService extends BaseService
 
     //------------------RECUPERATIONS------------------------
 
+
+    /**
+     * Récupére les trajets disponibles en fonction de la date, la ville de départ et la ville d'arrivée.
+     *
+     * @param \DateTimeInterface $date
+     * @param string $departurePlace
+     * @param string $arrivalPlace
+     * @return void
+     */
+    public function SearchRidesByDateAndPlaces(
+        \DateTimeInterface $date,
+        string $departurePlace,
+        string $arrivalPlace
+    ) {
+        return $this->rideWithUserRepository->findAllRidesByDateAndPlace($date, $departurePlace, $arrivalPlace);
+    }
+
+
     /**
      * Récupére un trajet avec les passagers.
      *
@@ -459,6 +477,7 @@ class RideService extends BaseService
     ): ?Ride {
         return $this->rideWithUserRepository->findRideWithUsersByRideId($rideId);
     }
+
 
     //-------------Pour les conducteurs------------------
     /**
@@ -489,7 +508,7 @@ class RideService extends BaseService
         // Récupération du chauffeur
         $driver = $this->userRelationsRepository->findUserById($driverId);
         if (!$driver) {
-            throw new InvalidArgumentException("Conducteur introuvable.");
+            throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
         return $this->rideWithUserRepository->fetchAllRidesByDriver($driverId);
@@ -525,7 +544,7 @@ class RideService extends BaseService
 
         // Vérification de l'existence du conducteur
         if (!$driver) {
-            throw new InvalidArgumentException("Conducteur introuvable.");
+            throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
         return $this->rideWithUserRepository->findUpcomingRidesByDriver($driverId);
@@ -560,7 +579,7 @@ class RideService extends BaseService
 
         // Vérification de l'existence du conducteur
         if (!$driver) {
-            throw new InvalidArgumentException("Conducteur introuvable.");
+            throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
 
@@ -600,7 +619,7 @@ class RideService extends BaseService
 
         // Vérification de l'existence du passeger
         if (!$passenger) {
-            throw new InvalidArgumentException("Passager introuvable.");
+            throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
 
@@ -638,7 +657,7 @@ class RideService extends BaseService
 
         // Vérification de l'existence du passeger
         if (!$passenger) {
-            throw new InvalidArgumentException("Passager introuvable.");
+            throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
         return $this->rideWithUserRepository->findUpcomingRidesByPassenger($passengerId);
@@ -674,11 +693,28 @@ class RideService extends BaseService
 
         // Vérification de l'existence du passeger
         if (!$passenger) {
-            throw new InvalidArgumentException("Passager introuvable.");
+            throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
         return $this->rideWithUserRepository->fetchPastRidesByPassenger($passengerId);
     }
+
+    // -------------Pour le staff------------------
+    public function getAllRidesByCreationDate(
+        int $staffId
+    ) {
+
+        // Récupération de l'staff
+        $staff = $this->userRelationsRepository->findUserById($staffId);
+
+        // Vérification de l'existence de l'staff
+        if (!$staff) {
+            throw new InvalidArgumentException("Utilisateur introuvable.");
+        }
+
+        $this->ensureStaff($staffId);
+    }
+
 
     //-------------Pour les Admins------------------
     /**
@@ -696,7 +732,7 @@ class RideService extends BaseService
 
         // Vérification de l'existence de l'admin
         if (!$admin) {
-            throw new InvalidArgumentException("Admin introuvable.");
+            throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
         $this->ensureAdmin($adminId);
@@ -723,7 +759,7 @@ class RideService extends BaseService
 
         // Vérification de l'existence de l'admin
         if (!$admin) {
-            throw new InvalidArgumentException("Admin introuvable.");
+            throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
         $this->ensureAdmin($adminId);
@@ -746,7 +782,7 @@ class RideService extends BaseService
 
         // Vérification de l'existence de l'admin
         if (!$admin) {
-            throw new InvalidArgumentException("Admin introuvable.");
+            throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
         $this->ensureAdmin($adminId);
@@ -773,7 +809,7 @@ class RideService extends BaseService
 
         // Vérification de l'existence de l'admin
         if (!$admin) {
-            throw new InvalidArgumentException("Admin introuvable.");
+            throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
         $this->ensureAdmin($adminId);
