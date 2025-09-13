@@ -9,6 +9,7 @@ use DateTimeInterface;
 use PDO;
 use InvalidArgumentException;
 use DateTime;
+use DateTimeImmutable;
 
 /**
  * Cette classe gére la correspondance entre un trajet et la BDD.
@@ -52,16 +53,16 @@ class RideRepository extends BaseRepository
         return new Ride(
             rideId: (int)$data['ride_id'],
             driver: null, // car pas encore chargé
-            departureDateTime: new \DateTimeImmutable($data['departure_date_time']),
+            departureDateTime: new DateTimeImmutable($data['departure_date_time']),
             departurePlace: $data['departure_place'],
-            arrivalDateTime: new \DateTimeImmutable($data['arrival_date_time']),
+            arrivalDateTime: new DateTimeImmutable($data['arrival_date_time']),
             arrivalPlace: $data['arrival_place'],
             price: (float)$data['price'],
             availableSeats: (int)$data['available_seats'],
             rideStatus: RideStatus::from($data['ride_status']),
             commission: (int)$data['commission'],
-            createdAt: !empty($data['created_at']) ? new \DateTimeImmutable($data['created_at']) : null,
-            updatedAt: !empty($data['updated_at']) ? new \DateTimeImmutable($data['updated_at']) : null
+            createdAt: !empty($data['created_at']) ? new DateTimeImmutable($data['created_at']) : null,
+            updatedAt: !empty($data['updated_at']) ? new DateTimeImmutable($data['updated_at']) : null
         );
     }
 
@@ -288,7 +289,7 @@ class RideRepository extends BaseRepository
      * @return array
      */
     public function fetchAllRidesRowsByCreationDate(
-        int $creationDate,
+        DateTimeImmutable $creationDate,
         string $orderBy = 'created_at',
         string $orderDirection = 'DESC',
         int $limit = 20,
