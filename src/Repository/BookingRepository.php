@@ -174,6 +174,12 @@ class BookingRepository extends BaseRepository
         return $this->findBookingByFields(['ride_id' => $rideId]);
     }
 
+    public function findBookingByPassengerAndRide(int $userId, int $rideId): ?Booking
+    {
+        return $this->findBookingByFields(['user_id' => $userId, 'ride_id' => $rideId]);
+    }
+
+
     /**
      * Récupére la liste des objets Booking par date de départ avec tri et pargination.
      *
