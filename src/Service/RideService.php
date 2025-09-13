@@ -452,13 +452,13 @@ class RideService extends BaseService
     /**
      * Récupére les trajets disponibles en fonction de la date, la ville de départ et la ville d'arrivée.
      *
-     * @param \DateTimeInterface $date
+     * @param DateTimeInterface $date
      * @param string $departurePlace
      * @param string $arrivalPlace
      * @return void
      */
     public function SearchRidesByDateAndPlaces(
-        \DateTimeInterface $date,
+        DateTimeInterface $date,
         string $departurePlace,
         string $arrivalPlace
     ) {
@@ -473,8 +473,20 @@ class RideService extends BaseService
      * @return Ride|null
      */
     public function getRideWithPassengers(
+        int $userId,
         int $rideId
     ): ?Ride {
+        // Récupération de l'utilisateur
+        $user = $this->userRelationsRepository->findUserById($userId);
+
+        // Vérification de l'existence de l'utilisateur
+        if (!$user) {
+            throw new InvalidArgumentException("Utilisateur introuvable.");
+        }
+
+        // Vérification des permissions.
+        $this->ensureStaff($userId);
+
         return $this->rideWithUserRepository->findRideWithUsersByRideId($rideId);
     }
 
@@ -701,8 +713,9 @@ class RideService extends BaseService
 
     // -------------Pour le staff------------------
     public function getAllRidesByCreationDate(
-        int $staffId
-    ) {
+        int $staffId,
+        DateTimeInterface $creationDate
+    ): array {
 
         // Récupération de l'staff
         $staff = $this->userRelationsRepository->findUserById($staffId);
@@ -713,6 +726,8 @@ class RideService extends BaseService
         }
 
         $this->ensureStaff($staffId);
+
+        return $this->rideWithUserRepository->fetchAllRidesRowsByCreationDate($creationDate);
     }
 
 

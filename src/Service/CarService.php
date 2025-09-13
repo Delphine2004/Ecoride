@@ -143,7 +143,6 @@ class CarService extends BaseService
         // Vérification des permissions.
         $this->ensureDriver($userId);
 
-        // Enregistrement dans la BD.
         return $this->carRepository->findAllCarsByOwner($userId);
     }
 }
