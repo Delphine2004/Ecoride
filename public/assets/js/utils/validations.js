@@ -39,7 +39,7 @@ export function isTimeFormatValide(timeStr) {
 
 // Fonction qui vérifie un texte libre (commentaire, ...)
 export function isFreeTextValide(text) {
-  const freetextRegex = /^[a-zA-ZÀ-ÿ0-9\s'".,;:!?()@$%&-]{1,255}+$/u; //flag u (Unicode) est supporté par tous les navigateurs modernes
+  const freetextRegex = /^[a-zA-ZÀ-ÿ0-9\s'".,;:!?()@$%&-]{1,255}$/u; //flag u (Unicode) est supporté par tous les navigateurs modernes
 
   const cleanFreeText = text.trim();
 
