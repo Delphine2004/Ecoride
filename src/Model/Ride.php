@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\User;
 use App\Enum\RideStatus;
+use App\Utils\RegexPatterns;
 use InvalidArgumentException;
 use DateTimeImmutable;
 
@@ -180,8 +181,8 @@ class Ride
             throw new InvalidArgumentException("La ville de départ est obligatoire.");
         }
 
-        $regexTextOnly = '/^[a-zA-ZÀ-ÿ\s\'-]{4,20}$/u';
-        if (!preg_match($regexTextOnly, $departurePlace)) {
+
+        if (!preg_match(RegexPatterns::ONLY_TEXTE_REGEX, $departurePlace)) {
             throw new InvalidArgumentException("Le nom de la ville doit être compris entre 4 et 20 caractères autorisés.");
         }
 
@@ -210,8 +211,8 @@ class Ride
             throw new InvalidArgumentException("La ville d'arrivée est obligatoire.");
         }
 
-        $regexTextOnly = '/^[a-zA-ZÀ-ÿ\s\'-]{4,20}$/u';
-        if (!preg_match($regexTextOnly, $arrivalPlace)) {
+
+        if (!preg_match(RegexPatterns::ONLY_TEXTE_REGEX, $arrivalPlace)) {
             throw new InvalidArgumentException("Le nom de la ville doit être compris entre 4 et 20 caractères autorisés.");
         }
 

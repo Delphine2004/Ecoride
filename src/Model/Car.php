@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Enum\CarBrand;
 use App\Enum\CarColor;
 use App\Enum\CarPower;
+use App\Utils\RegexPatterns;
 use InvalidArgumentException;
 use DateTimeImmutable;
 
@@ -17,6 +18,7 @@ use DateTimeImmutable;
 
 class Car
 {
+
 
     // Promotion des propriétés (depuis PHP 8)
     function __construct(
@@ -145,8 +147,8 @@ class Car
             throw new InvalidArgumentException("Le modéle est obligatoire.");
         }
 
-        $regexTextOnly = '/^[a-zA-ZÀ-ÿ\s\'-]{4,20}$/u';
-        if (!preg_match($regexTextOnly, $model)) {
+
+        if (!preg_match(RegexPatterns::ONLY_TEXTE_REGEX, $model)) {
             throw new InvalidArgumentException("Le modéle doit être compris entre 4 et 20 caractères autorisés.");
         }
 
@@ -195,11 +197,9 @@ class Car
             throw new InvalidArgumentException("La plaque d'immatriculation est obligatoire.");
         }
 
-        $oldFormat = '/^[1-9]\d{0,3}\s?[A-Z]{1,3}\s?(?:0[1-9]|[1-8]\d|9[0-5]|2[AB])$/';
-        $newFormat = '/^[A-Z]{2}-\d{3}-[A-Z]{2}$/';
 
         // La plaque d'immatriculation doit correspondre à l'un ou l'autre format
-        if (!preg_match($newFormat, strtoupper($registrationNumber)) && !preg_match($oldFormat, strtoupper($registrationNumber))) {
+        if (!preg_match(RegexPatterns::OLD_REGISTRATION_NUMBER, strtoupper($registrationNumber)) && !preg_match(RegexPatterns::NEW_REGISTRATION_NUMBER, strtoupper($registrationNumber))) {
             throw new InvalidArgumentException("Le format de la plaque d'immatriculation est invalide.");
         }
 

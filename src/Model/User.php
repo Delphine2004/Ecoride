@@ -6,6 +6,7 @@ namespace App\Models;
 
 
 use App\Enum\UserRoles;
+use App\Utils\RegexPatterns;
 use InvalidArgumentException;
 use DateTimeImmutable;
 
@@ -189,8 +190,7 @@ class User
             throw new InvalidArgumentException("Le nom est obligatoire.");
         }
 
-        $regexTextOnly = '/^[a-zA-ZÀ-ÿ\s\'-]{4,20}$/u';
-        if (!preg_match($regexTextOnly, $lastName)) {
+        if (!preg_match(RegexPatterns::ONLY_TEXTE_REGEX, $lastName)) {
             throw new InvalidArgumentException("Le nom doit être compris entre 4 et 20 caractères autorisés.");
         }
 
@@ -207,8 +207,7 @@ class User
             throw new InvalidArgumentException("Le prénom est obligatoire.");
         }
 
-        $regexTextOnly = '/^[a-zA-ZÀ-ÿ\s\'-]{4,20}+$/u';
-        if (!preg_match($regexTextOnly, $firstName)) {
+        if (!preg_match(RegexPatterns::ONLY_TEXTE_REGEX, $firstName)) {
             throw new InvalidArgumentException("Le prénom doit être compris entre 4 et 20 caractères autorisés.");
         }
 
@@ -253,8 +252,7 @@ class User
         if ($login !== null) {
             $login = trim($login);
 
-            $loginRegex = '/^[a-zA-ZÀ-ÿ0-9\s\-]{10,25}$/u';
-            if (!preg_match($loginRegex, $login)) {
+            if (!preg_match(RegexPatterns::LOGIN, $login)) {
                 throw new InvalidArgumentException("Le login doit contenir entre 10 et 25 caractères autorisés.");
             }
         }
@@ -268,8 +266,7 @@ class User
         if ($phone !== null) {
             $phone = trim($phone);
 
-            $frenchPhoneRegex = '/^[0-9]{10}$/';
-            if (!preg_match($frenchPhoneRegex, $phone)) {
+            if (!preg_match(RegexPatterns::FRENCH_MOBILE_PHONE, $phone)) {
                 throw new InvalidArgumentException("Le numéro de téléphone doit contenir 10 chiffres.");
             }
         }
@@ -284,8 +281,7 @@ class User
         if ($address !== null) {
             $address = trim($address);
 
-            $addressRegex = '/^[0-9]{0,5}\s*[a-zA-ZÀ-ÿ\s\'-]{10,40}$/u';
-            if (!preg_match($addressRegex, $address)) {
+            if (!preg_match(RegexPatterns::ADDRESS, $address)) {
                 throw new InvalidArgumentException("L'adresse doit contenir entre 5 et 40 caractères autorisés.");
             }
         }
@@ -300,8 +296,7 @@ class User
         if ($city !== null) {
             $city = trim($city);
 
-            $regexTextOnly = '/^[a-zA-ZÀ-ÿ\s\'-]{4,20}+$/u';
-            if (!preg_match($regexTextOnly, $city)) {
+            if (!preg_match(RegexPatterns::ONLY_TEXTE_REGEX, $city)) {
                 throw new InvalidArgumentException("Le ville doit contenir entre 4 et 20 caractères autorisés.");
             }
         }
@@ -316,8 +311,7 @@ class User
         if ($zipCode !== null) {
             $zipCode = trim($zipCode);
 
-            $zipCodeRegex = '/^[0-9]{5}$/';
-            if (!preg_match($zipCodeRegex, $zipCode)) {
+            if (!preg_match(RegexPatterns::ZIP_CODE, $zipCode)) {
                 throw new InvalidArgumentException("Le code postal doit contenir exactement 5 chiffres.");
             }
         }
@@ -343,9 +337,7 @@ class User
         if ($licenceNo !== null) {
             $licenceNo = trim($licenceNo);
 
-            $licenceNoOldFormat = '^[0-9]{8,12}$';
-            $licenceNoNewFormat = '^[0-9A-Z]{13}$';
-            if (!preg_match($licenceNoOldFormat, strtoupper($licenceNo)) && !preg_match($licenceNoNewFormat, strtoupper($licenceNo))) {
+            if (!preg_match(RegexPatterns::OLD_LICENCE_NUMBER, strtoupper($licenceNo)) && !preg_match(RegexPatterns::NEW_LICENCE_NUMBER, strtoupper($licenceNo))) {
                 throw new InvalidArgumentException("Le format du numéro de permis est incorrect.");
             }
         }
@@ -446,10 +438,8 @@ class User
     private function validatePassword(string $password): void
     {
         $password = trim($password);
-        // modifier la longueur pour 14 plus tard
-        $regexPassword = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/';
 
-        if (!preg_match($regexPassword, $password)) {
+        if (!preg_match(RegexPatterns::PASSWORD, $password)) {
 
             throw new InvalidArgumentException('Le mot de passe doit contenir au minimun une minuscule, une majuscule, un chiffre, un caractère spécial et contenir 8 caractéres au total.');
         };
