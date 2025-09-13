@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Repositories\CarRepository;
 use App\Repositories\UserRelationsRepository;
 use App\Models\Car;
+use App\Enum\UserRoles;
 use App\DTO\CreateCarDTO;
 use InvalidArgumentException;
 
@@ -107,7 +108,11 @@ class CarService extends BaseService
         }
 
         // Vérification des permissions.
-        if (!$this->roleService->hasAnyRole($userId, ['CONDUCTEUR', 'EMPLOYE', 'ADMIN'])) {
+        if (!$this->roleService->hasAnyRole($userId, [
+            UserRoles::CONDUCTEUR,
+            UserRoles::EMPLOYE,
+            UserRoles::ADMIN
+        ])) {
             throw new InvalidArgumentException("Seulement les utilisateurs CONDUCTEUR, EMPLOYEE ou ADMIN peuvent effectuer cette action.");
         }
 

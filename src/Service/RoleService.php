@@ -19,13 +19,15 @@ class RoleService
      * @param string $roleName
      * @return boolean
      */
-    public function hasRole(int $userId, string $roleName): bool
+    public function hasRole(int $userId, UserRoles $role): bool
     {
         // Trouver les roles de l'utilisateur
         $roles = $this->userRepository->getUserRoles($userId);
 
+
+
         // Vérifier si le rôle qui lui est associé est correct
-        return in_array($roleName, $roles, true);
+        return in_array($role, $roles, true);
     }
 
     public function hasAnyRole(int $userId, array $roles): bool
@@ -41,41 +43,41 @@ class RoleService
 
     public function isPassenger(int $userId): bool
     {
-        return $this->hasRole($userId, 'PASSAGER');
+        return $this->hasRole($userId, UserRoles::PASSAGER);
     }
 
 
     public function isDriver(int $userId): bool
     {
-        return $this->hasRole($userId, 'CONDUCTEUR');
+        return $this->hasRole($userId, UserRoles::CONDUCTEUR);
     }
 
 
     public function isCustomer(int $userId): bool
     {
-        return $this->hasAnyRole($userId, ['PASSAGER', 'CONDUCTEUR']);
+        return $this->hasAnyRole($userId, [UserRoles::PASSAGER, UserRoles::CONDUCTEUR]);
     }
 
 
     public function isEmployee(int $userId): bool
     {
-        return $this->hasRole($userId, 'EMPLOYE');
+        return $this->hasRole($userId, UserRoles::EMPLOYE);
     }
 
 
     public function isAdmin(int $userId): bool
     {
-        return $this->hasRole($userId, 'ADMIN');
+        return $this->hasRole($userId, UserRoles::ADMIN);
     }
 
     public function isStaff(int $userId): bool
     {
-        return $this->hasAnyRole($userId, ['EMPLOYE', 'ADMIN']);
+        return $this->hasAnyRole($userId, [UserRoles::EMPLOYE, UserRoles::ADMIN]);
     }
 
 
     public function isUser(int $userId): bool
     {
-        return $this->hasAnyRole($userId, ['PASSAGER', 'CONDUCTEUR', 'EMPLOYE', 'ADMIN']);
+        return $this->hasAnyRole($userId, [UserRoles::PASSAGER, UserRoles::CONDUCTEUR, UserRoles::EMPLOYE, UserRoles::ADMIN]);
     }
 }

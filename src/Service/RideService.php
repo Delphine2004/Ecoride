@@ -13,6 +13,7 @@ use App\Models\Booking;
 use App\DTO\CreateRideDTO;
 use App\Enum\RideStatus;
 use App\Enum\BookingStatus;
+use App\Enum\UserRoles;
 use InvalidArgumentException;
 use DateTimeInterface;
 
@@ -194,7 +195,11 @@ class RideService extends BaseService
         }
 
         // Vérification des permissions.
-        if (!$this->roleService->hasAnyRole($userId, ['CONDUCTEUR', 'EMPLOYE', 'ADMIN'])) {
+        if (!$this->roleService->hasAnyRole($userId, [
+            UserRoles::CONDUCTEUR,
+            UserRoles::EMPLOYE,
+            UserRoles::ADMIN
+        ])) {
             throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à annuler ce trajet.");
         }
 
@@ -295,7 +300,11 @@ class RideService extends BaseService
         }
 
         // Vérification des permissions.
-        if (!$this->roleService->hasAnyRole($userId, ['CONDUCTEUR', 'EMPLOYE', 'ADMIN'])) {
+        if (!$this->roleService->hasAnyRole($userId, [
+            UserRoles::CONDUCTEUR,
+            UserRoles::EMPLOYE,
+            UserRoles::ADMIN
+        ])) {
             throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à démarrer ce trajet.");
         }
 
@@ -367,7 +376,11 @@ class RideService extends BaseService
         }
 
         // Vérification des permissions.
-        if (!$this->roleService->hasAnyRole($userId, ['CONDUCTEUR', 'EMPLOYE', 'ADMIN'])) {
+        if (!$this->roleService->hasAnyRole($userId, [
+            UserRoles::CONDUCTEUR,
+            UserRoles::EMPLOYE,
+            UserRoles::ADMIN
+        ])) {
             throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à finaliser ce trajet.");
         }
 
@@ -395,7 +408,7 @@ class RideService extends BaseService
         }
 
         // Modification du status
-        $ride->setRideStatus(RideStatus::TERMINE);
+        $ride->setRideStatus(RideStatus::ENATTENTE);
 
         // Enregistrement dans la BD
         $this->rideWithUserRepository->updateRide(
@@ -513,7 +526,11 @@ class RideService extends BaseService
         }
 
         // Vérification des permissions.
-        if (!$this->roleService->hasAnyRole($userId, ['CONDUCTEUR', 'EMPLOYE', 'ADMIN'])) {
+        if (!$this->roleService->hasAnyRole($userId, [
+            UserRoles::CONDUCTEUR,
+            UserRoles::EMPLOYE,
+            UserRoles::ADMIN
+        ])) {
             throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
         }
 
@@ -546,7 +563,11 @@ class RideService extends BaseService
         }
 
         // Vérification des permissions.
-        if (!$this->roleService->hasAnyRole($userId, ['CONDUCTEUR', 'EMPLOYE', 'ADMIN'])) {
+        if (!$this->roleService->hasAnyRole($userId, [
+            UserRoles::CONDUCTEUR,
+            UserRoles::EMPLOYE,
+            UserRoles::ADMIN
+        ])) {
             throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
         }
 
@@ -582,7 +603,11 @@ class RideService extends BaseService
         }
 
 
-        if (!$this->roleService->hasAnyRole($userId, ['CONDUCTEUR', 'EMPLOYE', 'ADMIN'])) {
+        if (!$this->roleService->hasAnyRole($userId, [
+            UserRoles::CONDUCTEUR,
+            UserRoles::EMPLOYE,
+            UserRoles::ADMIN
+        ])) {
             throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
         }
 
@@ -621,7 +646,11 @@ class RideService extends BaseService
         }
 
         // Vérification des permissions.
-        if (!$this->roleService->hasAnyRole($userId, ['PASSAGER', 'EMPLOYE', 'ADMIN'])) {
+        if (!$this->roleService->hasAnyRole($userId, [
+            UserRoles::CONDUCTEUR,
+            UserRoles::EMPLOYE,
+            UserRoles::ADMIN
+        ])) {
             throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
         }
 
@@ -659,7 +688,11 @@ class RideService extends BaseService
         }
 
         // Vérification des permissions.
-        if (!$this->roleService->hasAnyRole($userId, ['PASSAGER', 'EMPLOYE', 'ADMIN'])) {
+        if (!$this->roleService->hasAnyRole($userId, [
+            UserRoles::PASSAGER,
+            UserRoles::EMPLOYE,
+            UserRoles::ADMIN
+        ])) {
             throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
         }
 
@@ -695,7 +728,11 @@ class RideService extends BaseService
         }
 
         // Vérification des permissions.
-        if (!$this->roleService->hasAnyRole($userId, ['PASSAGER', 'EMPLOYE', 'ADMIN'])) {
+        if (!$this->roleService->hasAnyRole($userId, [
+            UserRoles::PASSAGER,
+            UserRoles::EMPLOYE,
+            UserRoles::ADMIN
+        ])) {
             throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
         }
 
