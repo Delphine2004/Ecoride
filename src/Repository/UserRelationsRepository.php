@@ -8,7 +8,7 @@ use App\Repositories\RideRepository;
 use App\Repositories\UserRepository;
 use App\Repositories\BookingRepository;
 use App\Models\User;
-use PDO;
+
 
 /**
  * Cette classe gére la correspondance entre un utilisateur et les voitures, les trajets et les réservations.
@@ -20,13 +20,11 @@ class UserRelationsRepository extends UserRepository
     protected string $primaryKey = 'user_id';
 
     public function __construct(
-        PDO $db,
+
         private CarRepository $carRepository,
         private RideRepository $rideRepository,
         private BookingRepository $bookingRepository
-    ) {
-        parent::__construct($db);
-    }
+    ) {}
 
     //-------------------------------------------
 

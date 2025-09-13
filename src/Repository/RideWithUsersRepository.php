@@ -19,12 +19,9 @@ class RideWithUsersRepository extends RideRepository
     protected string $primaryKey = 'ride_id';
 
     public function __construct(
-        PDO $db,
         private UserRepository $userRepository,
         private BookingRepository $bookingRepository
-    ) {
-        parent::__construct($db);
-    }
+    ) {}
 
     /**
      * Hydrate un objet Ride avec ses objet User (conducteur et passagers).

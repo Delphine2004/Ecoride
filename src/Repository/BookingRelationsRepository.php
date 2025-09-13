@@ -6,7 +6,7 @@ use App\Repositories\BookingRepository;
 use App\Repositories\UserRepository;
 use App\Repositories\RidewithUsersRepository;
 use App\Models\Booking;
-use PDO;
+
 
 /**
  * Cette classe gére la correspondance entre une réservation et des utilisateurs et la BDD.
@@ -19,13 +19,10 @@ class BookingRelationsRepository extends BookingRepository
     protected string $primaryKey = 'booking_id';
 
     public function __construct(
-        PDO $db,
+
         private RidewithUsersRepository $rideWithUserRepository,
-        private RideRepository $rideRepository,
         private UserRepository $userRepository
-    ) {
-        parent::__construct($db);
-    }
+    ) {}
 
     //  ------ Récupérations spécifiques ---------
 

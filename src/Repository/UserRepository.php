@@ -32,12 +32,6 @@ class UserRepository extends BaseRepository
         'api_token'
     ];
 
-    public function __construct(
-        PDO $db
-    ) {
-        parent::__construct($db);
-    }
-
 
 
     /**

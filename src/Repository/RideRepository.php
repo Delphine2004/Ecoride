@@ -34,12 +34,6 @@ class RideRepository extends BaseRepository
     ];
 
 
-    public function __construct(
-        PDO $db
-    ) {
-        parent::__construct($db);
-    }
-
 
     /**
      * Remplit un objet Ride avec les données de la table rides.
