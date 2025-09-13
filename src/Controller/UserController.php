@@ -26,7 +26,7 @@ class UserController extends BaseController
     public function becomeDriver(string $jwtToken) {}
 
     // DELETE
-    // Voir comment conserver l'historique
+    // Voir comment conserver l'historique des trajets et réservations
     public function deleteUser(string $jwtToken) {}
 
     public function deleteUserByAdmin(string $jwtToken) {}

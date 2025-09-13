@@ -9,8 +9,7 @@ use InvalidArgumentException;
 class CarController extends BaseController
 {
     public function __construct(
-        private CarService $carService,
-
+        private CarService $carService
     ) {}
 
 

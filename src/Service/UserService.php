@@ -195,7 +195,7 @@ class UserService extends BaseService
         if (!empty($dto->picture)) {
             $user->setUserUriPicture($dto->uriPicture);
         }
-        if (!empty($dto->licenceNo) && $this->roleService->hasRole($userId, 'CONDUCTEUR')) {
+        if (!empty($dto->licenceNo) && $this->ensureDriver($userId)) {
             $user->setUserLicenceNo($dto->licenceNo);
         }
 
