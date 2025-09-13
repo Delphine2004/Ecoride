@@ -10,6 +10,8 @@ use App\Models\Booking;
 use App\Models\Ride;
 use App\Models\User;
 use App\Enum\BookingStatus;
+use App\Enum\RideStatus;
+use App\Enum\UserRoles;
 use DateTimeImmutable;
 use DateTimeInterface;
 use InvalidArgumentException;
@@ -78,8 +80,12 @@ class BookingService extends BaseService
         }
 
         // Vérification des permissions.
-        if (!$this->roleService->hasAnyRole($userId, ['PASSAGER', 'EMPLOYE', 'ADMIN'])) {
-            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à annuler cette réservation.");
+        if (!$this->roleService->hasAnyRole($userId, [
+            UserRoles::PASSAGER,
+            UserRoles::EMPLOYE,
+            UserRoles::ADMIN
+        ])) {
+            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à créer une réservation.");
         }
 
 
@@ -98,8 +104,6 @@ class BookingService extends BaseService
             throw new InvalidArgumentException("Trajet complet.");
         }
 
-        // Décrémentation du nombre de place disponible
-        $ride->decrementAvailableSeats();
 
         // Création de Booking
         $booking = new Booking();
@@ -109,8 +113,19 @@ class BookingService extends BaseService
         $booking->setBookingDriver($driver);
         $booking->setBookingStatus(BookingStatus::CONFIRMEE);
 
+
         //Enregistrement en BD
         $this->bookingRelationsRepository->insertBooking($booking);
+
+
+        // Décrémentation du nombre de place disponible
+        $ride->decrementAvailableSeats();
+        $seatsLeft = $ride->getRideAvailableSeats();
+
+        // Modification du statut si complet
+        if ($seatsLeft === 0) {
+            $ride->setRideStatus(RideStatus::COMPLET);
+        }
 
         return $booking;
     }
@@ -144,7 +159,11 @@ class BookingService extends BaseService
         }
 
         // Vérification des permissions.
-        if (!$this->roleService->hasAnyRole($userId, ['PASSAGER', 'EMPLOYE', 'ADMIN'])) {
+        if (!$this->roleService->hasAnyRole($userId, [
+            UserRoles::PASSAGER,
+            UserRoles::EMPLOYE,
+            UserRoles::ADMIN
+        ])) {
             throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à annuler cette réservation.");
         }
 
