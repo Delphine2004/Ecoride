@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Repositories\RideWithUsersRepository;
 use App\Repositories\BookingRelationsRepository;
-use App\Repositories\UserRelationsRepository;
+use App\Repositories\UserRepository;
 use App\Services\BookingService;
 use App\Services\CarService;
 use App\Services\NotificationService;
@@ -21,9 +21,9 @@ class RideService extends BaseService
 {
 
     public function __construct(
-        private RideWithUsersRepository $rideWithUserRepository,
-        private BookingRelationsRepository $bookingRelationsRepository,
-        private UserRelationsRepository $userRelationsRepository,
+        private RideWithUsersRepository $rideWithUsersRepository, // simplifier pour rideRepo
+        private BookingRelationsRepository $bookingRelationsRepository, // simplifier pour bookingRepo
+        private UserRepository $userRepository,
         private BookingService $bookingService,
         private CarService $carService,
         private NotificationService $notificationService
@@ -47,7 +47,7 @@ class RideService extends BaseService
         int $userId,
     ): ?Ride {
         // Récupération de l'utilisateur
-        $user = $this->userRelationsRepository->findUserById($userId);
+        $user = $this->userRepository->findUserById($userId);
 
         // Vérification de l'existence de l'utilisateur
         if (!$user) {
@@ -78,7 +78,7 @@ class RideService extends BaseService
         $ride->setRideStatus($dto->rideStatus);
 
         // Enregistrement du trajet dans la BD.
-        $this->rideWithUserRepository->insertRide($ride);
+        $this->rideWithUsersRepository->insertRide($ride);
 
 
         // Déduction de la commission au conducteur
@@ -86,7 +86,7 @@ class RideService extends BaseService
         $user->setUserCredits($user->getUserCredits() - $commission);
 
         // Enregistrement de la modification des crédits
-        $this->userRelationsRepository->updateUser(
+        $this->userRepository->updateUser(
             $user,
             [
                 'credits' => $user->getUserCredits()
@@ -109,7 +109,7 @@ class RideService extends BaseService
     ): ?Booking {
 
         // Récupération du trajet
-        $ride = $this->rideWithUserRepository->findRideById($rideId);
+        $ride = $this->rideWithUsersRepository->findRideById($rideId);
 
         // Vérification de l'existence du trajet
         if (!$ride) {
@@ -122,7 +122,7 @@ class RideService extends BaseService
 
 
         // Récupération de l'utilisateur
-        $user = $this->userRelationsRepository->findUserById($userId);
+        $user = $this->userRepository->findUserById($userId);
 
         // Vérification de l'existence de l'utilisateur
         if (!$user) {
@@ -142,7 +142,7 @@ class RideService extends BaseService
         }
 
         // Vérification des crédits du passager
-        $passenger = $this->userRelationsRepository->findUserById($userId);
+        $passenger = $this->userRepository->findUserById($userId);
         if ($passenger->getUserCredits() < $ride->getRidePrice()) {
             throw new InvalidArgumentException("Crédits insuffisants.");
         }
@@ -150,7 +150,7 @@ class RideService extends BaseService
 
         // Décrémentation les crédits du passager
         $passenger->setUserCredits($passenger->getUserCredits() - $ride->getRidePrice());
-        $this->userRelationsRepository->updateUser(
+        $this->userRepository->updateUser(
             $passenger,
             [
                 'credits' => $passenger->getUserCredits()
@@ -179,7 +179,7 @@ class RideService extends BaseService
     ): ?Ride {
 
         // Récupération de l'entité Ride
-        $ride = $this->rideWithUserRepository->findRideById($rideId);
+        $ride = $this->rideWithUsersRepository->findRideById($rideId);
 
         // Vérification de l'existence du trajet
         if (!$ride) {
@@ -187,7 +187,7 @@ class RideService extends BaseService
         }
 
         // Récupération de l'utilisateur
-        $user = $this->userRelationsRepository->findUserById($userId);
+        $user = $this->userRepository->findUserById($userId);
 
         // Vérification de l'existence de l'utilisateur
         if (!$user) {
@@ -243,11 +243,11 @@ class RideService extends BaseService
             ]);
 
             // Défini le remboursement au passager
-            $passenger = $this->userRelationsRepository->findUserById($booking->getPassengerId());
+            $passenger = $this->userRepository->findUserById($booking->getPassengerId());
             $passenger->setUserCredits($passenger->getUserCredits() + $ride->getRidePrice());
 
             // Enregistrement des crédits du passager en BD
-            $this->userRelationsRepository->updateUser($passenger, [
+            $this->userRepository->updateUser($passenger, [
                 'credits' => $passenger->getUserCredits()
             ]);
 
@@ -256,7 +256,7 @@ class RideService extends BaseService
         }
 
         // Enregistrement du statut du trajet en BD
-        $this->rideWithUserRepository->updateRide($ride, [
+        $this->rideWithUsersRepository->updateRide($ride, [
             'ride_status' => $ride->getRideStatus()
         ]);
 
@@ -292,7 +292,7 @@ class RideService extends BaseService
 
 
         // Récupération de l'utilisateur
-        $user = $this->userRelationsRepository->findUserById($userId);
+        $user = $this->userRepository->findUserById($userId);
 
         // Vérification de l'existence de l'utilisateur
         if (!$user) {
@@ -330,7 +330,7 @@ class RideService extends BaseService
         $ride->setRideStatus(RideStatus::ENCOURS);
 
         // Enregistrement dans la BD
-        $this->rideWithUserRepository->updateRide(
+        $this->rideWithUsersRepository->updateRide(
             $ride,
             [
                 'ride_status' => $ride->getRideStatus()
@@ -341,7 +341,7 @@ class RideService extends BaseService
         $rideId = $ride->getRideId();
         $bookings = $this->bookingRelationsRepository->findBookingByRideId($rideId);
         foreach ($bookings as $booking) {
-            $passenger = $this->userRelationsRepository->findUserById($booking->getPassengerId());
+            $passenger = $this->userRepository->findUserById($booking->getPassengerId());
             $this->notificationService->sendRideStart($passenger, $ride);
         }
 
@@ -370,7 +370,7 @@ class RideService extends BaseService
 
 
         // Récupération de l'utilisateur
-        $user = $this->userRelationsRepository->findUserById($userId);
+        $user = $this->userRepository->findUserById($userId);
 
         // Vérification de l'existence de l'utilisateur
         if (!$user) {
@@ -404,7 +404,7 @@ class RideService extends BaseService
         $ride->setRideStatus(RideStatus::ENATTENTE);
 
         // Enregistrement dans la BD
-        $this->rideWithUserRepository->updateRide(
+        $this->rideWithUsersRepository->updateRide(
             $ride,
             [
                 'ride_status' => $ride->getRideStatus()
@@ -418,7 +418,7 @@ class RideService extends BaseService
 
         foreach ($passengersId as $passengerId) {
             // Récupération du passager
-            $passenger = $this->userRelationsRepository->findUserById($passengerId);
+            $passenger = $this->userRepository->findUserById($passengerId);
 
             // Vérification de l'existence du passager
             if (!$passenger) {
@@ -446,7 +446,7 @@ class RideService extends BaseService
         }
 
         // Récupération de l'utilisateur
-        $user = $this->userRelationsRepository->findUserById($userId);
+        $user = $this->userRepository->findUserById($userId);
 
         // Vérification de l'existence de l'utilisateur
         if (!$user) {
@@ -475,7 +475,7 @@ class RideService extends BaseService
 
         foreach ($passengersId as $passengerId) {
             // Récupération du passager
-            $passenger = $this->userRelationsRepository->findUserById($passengerId);
+            $passenger = $this->userRepository->findUserById($passengerId);
 
             // Vérification de l'existence du passager
             if (!$passenger) {
@@ -516,7 +516,7 @@ class RideService extends BaseService
         $driverId = $ride->getRideDriverId();
 
         // Récupération du conducteur
-        $driver = $this->userRelationsRepository->findUserById($driverId);
+        $driver = $this->userRepository->findUserById($driverId);
 
         // Vérification de l'existence du conducteur
         if (!$driver) {
@@ -533,14 +533,14 @@ class RideService extends BaseService
         $ride->setRideStatus(RideStatus::TERMINE);
 
         // Enregistrements dans la bd.
-        $this->rideWithUserRepository->updateRide(
+        $this->rideWithUsersRepository->updateRide(
             $ride,
             [
                 'ride_status' => $ride->getRideStatus()
             ]
         );
 
-        $this->userRelationsRepository->updateUser(
+        $this->userRepository->updateUser(
             $driver,
             [
                 'credits' => $driver->getUserCredits()
@@ -567,7 +567,7 @@ class RideService extends BaseService
         string $departurePlace,
         string $arrivalPlace
     ) {
-        return $this->rideWithUserRepository->findAllRidesByDateAndPlace($date, $departurePlace, $arrivalPlace);
+        return $this->rideWithUsersRepository->findAllRidesByDateAndPlace($date, $departurePlace, $arrivalPlace);
     }
 
 
@@ -582,7 +582,7 @@ class RideService extends BaseService
         int $rideId
     ): ?Ride {
         // Récupération de l'utilisateur
-        $user = $this->userRelationsRepository->findUserById($userId);
+        $user = $this->userRepository->findUserById($userId);
 
         // Vérification de l'existence de l'utilisateur
         if (!$user) {
@@ -592,7 +592,7 @@ class RideService extends BaseService
         // Vérification des permissions.
         $this->ensureStaff($userId);
 
-        return $this->rideWithUserRepository->findRideWithUsersByRideId($rideId);
+        return $this->rideWithUsersRepository->findRideWithUsersByRideId($rideId);
     }
 
 
@@ -610,7 +610,7 @@ class RideService extends BaseService
     ): array {
 
         // Récupération de l'utilisateur
-        $user = $this->userRelationsRepository->findUserById($userId);
+        $user = $this->userRepository->findUserById($userId);
 
         // Vérification de l'existence des utilisateurs
         if (!$user) {
@@ -627,12 +627,12 @@ class RideService extends BaseService
         }
 
         // Récupération du chauffeur
-        $driver = $this->userRelationsRepository->findUserById($driverId);
+        $driver = $this->userRepository->findUserById($driverId);
         if (!$driver) {
             throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
-        return $this->rideWithUserRepository->fetchAllRidesByDriver($driverId);
+        return $this->rideWithUsersRepository->fetchAllRidesByDriver($driverId);
     }
 
     /**
@@ -647,7 +647,7 @@ class RideService extends BaseService
         int $driverId
     ): array {
         // Récupération de l'utilisateur
-        $user = $this->userRelationsRepository->findUserById($userId);
+        $user = $this->userRepository->findUserById($userId);
 
         // Vérification de l'existence des utilisateurs
         if (!$user) {
@@ -665,14 +665,14 @@ class RideService extends BaseService
 
 
         // Récupération du conducteur
-        $driver = $this->userRelationsRepository->findUserById($driverId);
+        $driver = $this->userRepository->findUserById($driverId);
 
         // Vérification de l'existence du conducteur
         if (!$driver) {
             throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
-        return $this->rideWithUserRepository->findUpcomingRidesByDriver($driverId);
+        return $this->rideWithUsersRepository->findUpcomingRidesByDriver($driverId);
     }
 
     /**
@@ -687,7 +687,7 @@ class RideService extends BaseService
         int $driverId
     ): array {
         // Récupération de l'utilisateur
-        $user = $this->userRelationsRepository->findUserById($userId);
+        $user = $this->userRepository->findUserById($userId);
 
         // Vérification de l'existence de l'utilisateur
         if (!$user) {
@@ -704,7 +704,7 @@ class RideService extends BaseService
         }
 
         // Récupération du conducteur
-        $driver = $this->userRelationsRepository->findUserById($driverId);
+        $driver = $this->userRepository->findUserById($driverId);
 
         // Vérification de l'existence du conducteur
         if (!$driver) {
@@ -713,7 +713,7 @@ class RideService extends BaseService
 
 
 
-        return $this->rideWithUserRepository->fetchPastRidesByDriver($driverId);
+        return $this->rideWithUsersRepository->fetchPastRidesByDriver($driverId);
     }
 
 
@@ -730,7 +730,7 @@ class RideService extends BaseService
         int $passengerId
     ): array {
         // Récupération de l'utilisateur
-        $user = $this->userRelationsRepository->findUserById($userId);
+        $user = $this->userRepository->findUserById($userId);
 
         // Vérification de l'existence de l'utilisateur
         if (!$user) {
@@ -748,7 +748,7 @@ class RideService extends BaseService
 
 
         // Récupération du passager
-        $passenger = $this->userRelationsRepository->findUserById($passengerId);
+        $passenger = $this->userRepository->findUserById($passengerId);
 
         // Vérification de l'existence du passeger
         if (!$passenger) {
@@ -757,7 +757,7 @@ class RideService extends BaseService
 
 
 
-        return $this->rideWithUserRepository->fetchAllRidesByPassenger($passengerId);
+        return $this->rideWithUsersRepository->fetchAllRidesByPassenger($passengerId);
     }
 
     /**
@@ -772,7 +772,7 @@ class RideService extends BaseService
         int $passengerId
     ): array {
         // Récupération de l'utilisateur
-        $user = $this->userRelationsRepository->findUserById($userId);
+        $user = $this->userRepository->findUserById($userId);
 
         // Vérification de l'existence de l'utilisateur
         if (!$user) {
@@ -790,14 +790,14 @@ class RideService extends BaseService
 
 
         // Récupération du passager
-        $passenger = $this->userRelationsRepository->findUserById($passengerId);
+        $passenger = $this->userRepository->findUserById($passengerId);
 
         // Vérification de l'existence du passeger
         if (!$passenger) {
             throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
-        return $this->rideWithUserRepository->findUpcomingRidesByPassenger($passengerId);
+        return $this->rideWithUsersRepository->findUpcomingRidesByPassenger($passengerId);
     }
 
     /**
@@ -812,7 +812,7 @@ class RideService extends BaseService
         int $passengerId
     ): array {
         // Récupération de l'utilisateur
-        $user = $this->userRelationsRepository->findUserById($userId);
+        $user = $this->userRepository->findUserById($userId);
 
         // Vérification de l'existence de l'utilisateur
         if (!$user) {
@@ -830,14 +830,14 @@ class RideService extends BaseService
 
 
         // Récupération du passager
-        $passenger = $this->userRelationsRepository->findUserById($passengerId);
+        $passenger = $this->userRepository->findUserById($passengerId);
 
         // Vérification de l'existence du passeger
         if (!$passenger) {
             throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
-        return $this->rideWithUserRepository->fetchPastRidesByPassenger($passengerId);
+        return $this->rideWithUsersRepository->fetchPastRidesByPassenger($passengerId);
     }
 
     // -------------Pour le staff------------------
@@ -847,7 +847,7 @@ class RideService extends BaseService
     ): array {
 
         // Récupération de l'staff
-        $staff = $this->userRelationsRepository->findUserById($staffId);
+        $staff = $this->userRepository->findUserById($staffId);
 
         // Vérification de l'existence de l'staff
         if (!$staff) {
@@ -856,7 +856,7 @@ class RideService extends BaseService
 
         $this->ensureStaff($staffId);
 
-        return $this->rideWithUserRepository->fetchAllRidesRowsByCreationDate($creationDate);
+        return $this->rideWithUsersRepository->fetchAllRidesRowsByCreationDate($creationDate);
     }
 
 
@@ -872,7 +872,7 @@ class RideService extends BaseService
     ): array {
 
         // Récupération de l'admin
-        $admin = $this->userRelationsRepository->findUserById($adminId);
+        $admin = $this->userRepository->findUserById($adminId);
 
         // Vérification de l'existence de l'admin
         if (!$admin) {
@@ -881,7 +881,7 @@ class RideService extends BaseService
 
         $this->ensureAdmin($adminId);
 
-        return $this->rideWithUserRepository->countRidesByToday();
+        return $this->rideWithUsersRepository->countRidesByToday();
     }
 
     /**
@@ -899,7 +899,7 @@ class RideService extends BaseService
     ): array {
 
         // Récupération de l'admin
-        $admin = $this->userRelationsRepository->findUserById($adminId);
+        $admin = $this->userRepository->findUserById($adminId);
 
         // Vérification de l'existence de l'admin
         if (!$admin) {
@@ -908,7 +908,7 @@ class RideService extends BaseService
 
         $this->ensureAdmin($adminId);
 
-        return $this->rideWithUserRepository->countRidesByPeriod($start, $end);
+        return $this->rideWithUsersRepository->countRidesByPeriod($start, $end);
     }
 
     /**
@@ -922,7 +922,7 @@ class RideService extends BaseService
     ): array {
 
         // Récupération de l'admin
-        $admin = $this->userRelationsRepository->findUserById($adminId);
+        $admin = $this->userRepository->findUserById($adminId);
 
         // Vérification de l'existence de l'admin
         if (!$admin) {
@@ -931,7 +931,7 @@ class RideService extends BaseService
 
         $this->ensureAdmin($adminId);
 
-        return $this->rideWithUserRepository->countCommissionByToday();
+        return $this->rideWithUsersRepository->countCommissionByToday();
     }
 
     /**
@@ -949,7 +949,7 @@ class RideService extends BaseService
     ): array {
 
         // Récupération de l'admin
-        $admin = $this->userRelationsRepository->findUserById($adminId);
+        $admin = $this->userRepository->findUserById($adminId);
 
         // Vérification de l'existence de l'admin
         if (!$admin) {
@@ -958,6 +958,6 @@ class RideService extends BaseService
 
         $this->ensureAdmin($adminId);
 
-        return $this->rideWithUserRepository->countCommissionByPeriod($start, $end);
+        return $this->rideWithUsersRepository->countCommissionByPeriod($start, $end);
     }
 }
