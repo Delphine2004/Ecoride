@@ -9,7 +9,7 @@ use App\Enum\CarPower;
 use PDO;
 
 /**
- * Cette classe gére la correspondance entre une voiture et la BDD.
+ * Cette classe gère la correspondance entre une voiture et la BDD.
  */
 
 class CarRepository extends BaseRepository
@@ -26,7 +26,9 @@ class CarRepository extends BaseRepository
         'car_year',
         'car_power',
         'seats_number',
-        'registration_number'
+        'registration_number',
+        'registration_date',
+        'created_at'
     ];
 
 
@@ -36,8 +38,9 @@ class CarRepository extends BaseRepository
      * @param array $data
      * @return Car
      */
-    public function hydrateCar(array $data): Car
-    {
+    public function hydrateCar(
+        array $data
+    ): Car {
         return new Car(
             carId: (int)$data['car_id'],
             owner: null, // car pas encore chargé
@@ -59,13 +62,14 @@ class CarRepository extends BaseRepository
      * @param Car $car
      * @return array
      */
-    private function mapCarToArray(Car $car): array
-    {
+    private function mapCarToArray(
+        Car $car
+    ): array {
         return [
-            'user_id' => $car->getCarOwner()->getUserId(),
-            'car_brand' => $car->getCarBrand(),
+            'user_id' => $car->getCarOwner() ? $car->getCarOwner()->getUserId() : null, // à surveiller
+            'car_brand' => $car->getCarBrand()->value,
             'car_model' => $car->getCarModel(),
-            'car_color' => $car->getCarColor(),
+            'car_color' => $car->getCarColor()->value,
             'car_year' => $car->getCarYear(),
             'car_power' => $car->getCarPower()->value,
             'seats_number' => $car->getCarSeatsNumber(),
@@ -80,14 +84,23 @@ class CarRepository extends BaseRepository
      * @param string $field
      * @return boolean
      */
-    protected function isAllowedField(string $field): bool
-    {
+    protected function isAllowedField(
+        string $field
+    ): bool {
         return in_array($field, $this->allowedFields, true);
     }
 
-    // Permet de savoir si le conducteur est le propriétaire de la voiture.
-    public function isOwner(int $userId, int $carId)
-    {
+    /**
+     * Permet de savoir si le conducteur est le propriétaire de la voiture.
+     *
+     * @param integer $userId
+     * @param integer $carId
+     * @return boolean
+     */
+    public function isOwner(
+        int $userId,
+        int $carId
+    ): bool {
 
         // Construction du sql
         $sql = "SELECT COUNT(*)
@@ -106,20 +119,21 @@ class CarRepository extends BaseRepository
     // ------ Récupérations ------ 
 
     /**
-     * Récupére une objet Car par son id.
+     * Récupère un objet Car par son id.
      *
      * @param integer $carId
      * @return Car|null
      */
-    public function findCarById(int $carId): ?Car
-    {
+    public function findCarById(
+        int $carId
+    ): ?Car {
         // Chercher l'élément
         $row = parent::findById($carId);
         return $row ? $this->hydrateCar((array) $row) : null;
     }
 
     /**
-     * Récupére la liste des objets Car selon un ou plusieurs champs spécifiques avec tri et pargination.
+     * Récupère la liste des objets Car selon un ou plusieurs champs spécifiques avec tri et pagination.
      *
      * @param array $criteria
      * @param string|null $orderBy
@@ -155,7 +169,7 @@ class CarRepository extends BaseRepository
     }
 
     /**
-     * Récupére une liste brute des voitures selon un champ spécifique avec tri et pargination.
+     * Récupère une liste brute des voitures selon un champ spécifique avec tri et pagination.
      *
      * @param array $criteria
      * @param string|null $orderBy
@@ -188,7 +202,7 @@ class CarRepository extends BaseRepository
     // ------ Récupérations spécifiques de liste d'objet ---------
 
     /**
-     * Récupére la liste des objets Car selon l'energie utilisée avec tri et pargination.
+     * Récupère la liste des objets Car selon l'énergie utilisée avec tri et pagination.
      *
      * @param string $power
      * @param string|null $orderBy
@@ -208,7 +222,7 @@ class CarRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste des objets Car selon l'id du propriétaire avec tri et pargination.
+     * Récupère la liste des objets Car selon l'id du propriétaire avec tri et pagination.
      *
      * @param int $userId
      * @param string|null $orderBy
@@ -229,9 +243,9 @@ class CarRepository extends BaseRepository
 
     // ------ Récupérations spécifiques de liste brute ---------
     /**
-     * Récupére la liste brute des voitures par l'id du conducteur avec tri et pagination.
+     * Récupère la liste brute des voitures par l'id du conducteur avec tri et pagination.
      *
-     * @param array $ownerId
+     * @param int $ownerId
      * @param string $orderBy
      * @param string $orderDirection
      * @param integer $limit
@@ -239,7 +253,7 @@ class CarRepository extends BaseRepository
      * @return array
      */
     public function fetchAllCarsByOwner(
-        array $ownerId,
+        int $ownerId,
         ?string $orderBy = null,
         string $orderDirection = 'DESC',
         int $limit = 20,
