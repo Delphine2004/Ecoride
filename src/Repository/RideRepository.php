@@ -30,7 +30,9 @@ class RideRepository extends BaseRepository
         'price',
         'available_seats',
         'ride_status',
-        'commission'
+        'commission',
+        'created_at',
+        'updated_at'
     ];
 
 
@@ -70,7 +72,7 @@ class RideRepository extends BaseRepository
         Ride $ride
     ): array {
         return [
-            'driver_id' => $ride->getRideDriver()->getUserId(),
+            'driver_id' => $ride->getRideDriver() ? $ride->getRideDriver()->getUserId() : null, // à surveiller 
             'departure_date_time' => $ride->getRideDepartureDateTime()->format('Y-m-d H:i:s'),
             'departure_place' => $ride->getRideDeparturePlace(),
             'arrival_date_time' => $ride->getRideArrivalDateTime()->format('Y-m-d H:i:s'),
@@ -94,6 +96,18 @@ class RideRepository extends BaseRepository
         return in_array($field, $this->allowedFields, true);
     }
 
+    /**
+     * Requête de base pour Récupèrer les utilisateurs selon leur rôle.
+     *
+     * @param integer $userId
+     * @param UserRoles $role
+     * @param RideStatus|null $rideStatus
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
     private function baseQueryRidesByUserRole(
         int $userId,
         UserRoles $role,
@@ -156,7 +170,7 @@ class RideRepository extends BaseRepository
     // ------ Récupérations ------ 
 
     /**
-     * Récupére un objet Ride par son id.
+     * Récupère un objet Ride par son id.
      *
      * @param integer $rideId
      * @return Ride|null
@@ -170,7 +184,7 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste des objets Ride selon un ou plusieurs champs spécifiques avec tri et pargination.
+     * Récupère la liste des objets Ride selon un ou plusieurs champs spécifiques avec tri et pagination.
      *
      * @param array $criteria
      * @param string|null $orderBy
@@ -206,7 +220,7 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste brute des trajets selon un champ spécifique avec tri et pargination.
+     * Récupère la liste brute des trajets selon un champ spécifique avec tri et pagination.
      *
      * @param array $criteria
      * @param string|null $orderBy
@@ -245,7 +259,7 @@ class RideRepository extends BaseRepository
     //  ------ Récupérations spécifiques ---------
 
     /**
-     * Récupére la liste des objets Ride selon la date, le lieu de depart et le lieu d'arrivée avec tri et pargination.
+     * Récupère la liste des objets Ride selon la date, le lieu de depart et le lieu d'arrivée avec tri et pagination.
      *
      * @param \DateTimeInterface $date
      * @param string $departurePlace
@@ -273,7 +287,7 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste brute des trajets selon la date de création avec tri et pargination.
+     * Récupère la liste brute des trajets selon la date de création avec tri et pagination.
      *
      * @param integer $creationDate
      * @param string $orderBy
@@ -295,7 +309,7 @@ class RideRepository extends BaseRepository
 
     //------ Récupérations en fonction du rôle ------
     /**
-     * Récupére la liste des objets Ride selon le statut de l'utilisateur avec tri et pargination.
+     * Récupère la liste des objets Ride selon le statut de l'utilisateur avec tri et pagination.
      *
      * @param int $userId
      * @param UserRoles $role
@@ -320,7 +334,7 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste brute des trajets selon le rôle de l'utilisateur avec tri et pargination.
+     * Récupère la liste brute des trajets selon le rôle de l'utilisateur avec tri et pagination.
      *
      * @param int $userId
      * @param UserRoles $role
@@ -346,7 +360,7 @@ class RideRepository extends BaseRepository
 
     // Pour les conducteurs
     /**
-     * Récupére la liste des objets Ride d'un conducteur avec tri et pargination.
+     * Récupère la liste des objets Ride d'un conducteur avec tri et pagination.
      *
      * @param int $driverId
      * @param RideStatus|null $rideStatus
@@ -368,7 +382,7 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste brute des trajets d'un conducteur avec tri et pagination.
+     * Récupère la liste brute des trajets d'un conducteur avec tri et pagination.
      *
      * @param int $driverId
      * @param RideStatus|null $rideStatus
@@ -390,7 +404,7 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste des objets Ride à venir d'un conducteur avec tri et pargination.
+     * Récupère la liste des objets Ride à venir d'un conducteur avec tri et pagination.
      *
      * @param integer $driverId
      * @return array
@@ -402,7 +416,7 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste brute des trajets passés d'un conducteur avec tri et pagination.
+     * Récupère la liste brute des trajets passés d'un conducteur avec tri et pagination.
      *
      * @param integer $driverId
      * @return array
@@ -416,7 +430,7 @@ class RideRepository extends BaseRepository
 
     //Pour les passagers
     /**
-     * Récupére la liste des objets Ride d'un passager avec tri et pargination.
+     * Récupère la liste des objets Ride d'un passager avec tri et pagination.
      *
      * @param integer $passengerId
      * @param string|null $rideStatus
@@ -438,7 +452,7 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste brute des trajets d'un passager avec tri et pagination.
+     * Récupère la liste brute des trajets d'un passager avec tri et pagination.
      *
      * @param int $passengerId
      * @param RideStatus|null $rideStatus
@@ -460,7 +474,7 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste des objets Ride à venir d'un passager
+     * Récupère la liste des objets Ride à venir d'un passager
      *
      * @param integer $passengerId
      * @return array
@@ -471,14 +485,14 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste brute des trajets passés d'un passager avec tri et pagination.
+     * Récupère la liste brute des trajets passés d'un passager avec tri et pagination.
      *
      * @param integer $passengerId
      * @return array
      */
     public function fetchPastRidesByPassenger(int $passengerId): array
     {
-        return $this->findAllRidesByPassenger($passengerId, RideStatus::TERMINE);
+        return $this->fetchAllRidesByPassenger($passengerId, RideStatus::TERMINE);
     }
 
 
@@ -492,11 +506,6 @@ class RideRepository extends BaseRepository
     public function countRidesByFields(
         array $criteria,
     ): ?array {
-        foreach ($criteria as $field => $value) {
-            if (!$this->isAllowedField($field)) {
-                return [];
-            }
-        }
 
         // Construction du sql
         $sql = "SELECT COUNT(ride_id) AS total_ride
@@ -505,9 +514,6 @@ class RideRepository extends BaseRepository
 
         // Construction dynamique des conditions
         foreach ($criteria as $field => $value) {
-            if (!$this->isAllowedField($field)) {
-                throw new InvalidArgumentException("Champ non autorisé : $field");
-            }
             if ($value === null) {
                 $sql .= " AND $field IS NULL";
             } else {
@@ -546,12 +552,7 @@ class RideRepository extends BaseRepository
         int $limit = 50,
         int $offset = 0
     ): ?array {
-        // Vérifie si chaque champ est autorisé.
-        foreach ($criteria as $field => $value) {
-            if (!$this->isAllowedField($field)) {
-                return [];
-            }
-        }
+
 
         // Vérifier si l'ordre et la direction sont définis et valides.
         [$orderBy, $orderDirection] = $this->sanitizeOrder(
@@ -567,9 +568,6 @@ class RideRepository extends BaseRepository
 
         // Construction dynamique des conditions
         foreach ($criteria as $field => $value) {
-            if (!$this->isAllowedField($field)) {
-                throw new InvalidArgumentException("Champ non autorisé : $field");
-            }
             if ($value === null) {
                 $sql .= " AND $field IS NULL";
             } else {
