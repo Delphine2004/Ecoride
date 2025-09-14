@@ -28,9 +28,7 @@ class RideService extends BaseService
         private CarService $carService,
         private NotificationService $notificationService
 
-    ) {
-        parent::__construct();
-    }
+    ) {}
 
 
     //-----------------ACTIONS------------------------------
@@ -560,8 +558,8 @@ class RideService extends BaseService
      * @return Ride|null
      */
     public function getRideWithPassengers(
-        int $userId,
-        int $rideId
+        int $rideId,
+        int $userId
     ): ?Ride {
         // Récupération de l'utilisateur
         $user = $this->userRepository->findUserById($userId);
@@ -572,24 +570,17 @@ class RideService extends BaseService
         }
 
         // Vérification des permissions.
-        $this->ensureStaff($userId);
+        $this->ensureUser($userId);
 
         return $this->rideRepository->findRideWithUsersByRideId($rideId);
     }
 
-    /**
-     * Récupére les trajets disponibles en fonction de la date, la ville de départ et la ville d'arrivée.
-     *
-     * @param DateTimeInterface $date
-     * @param string $departurePlace
-     * @param string $arrivalPlace
-     * @return void
-     */
+    // Récupére les trajets disponibles en fonction de la date, la ville de départ et la ville d'arrivée.
     public function listRidesByDateAndPlaces(
         DateTimeInterface $date,
         string $departurePlace,
         string $arrivalPlace
-    ) {
+    ): array {
         return $this->rideRepository->findAllRidesByDateAndPlace($date, $departurePlace, $arrivalPlace);
     }
 
@@ -603,8 +594,8 @@ class RideService extends BaseService
      * @return array
      */
     public function listRidesByDriver(
-        int $userId,
-        int $driverId
+        int $driverId,
+        int $userId
     ): array {
 
         // Récupération de l'utilisateur
@@ -641,8 +632,8 @@ class RideService extends BaseService
      * @return array
      */
     public function listUpcomingRidesByDriver(
-        int $userId,
-        int $driverId
+        int $driverId,
+        int $userId
     ): array {
         // Récupération de l'utilisateur
         $user = $this->userRepository->findUserById($userId);
@@ -681,8 +672,8 @@ class RideService extends BaseService
      * @return array
      */
     public function listPastRidesByDriver(
-        int $userId,
-        int $driverId
+        int $driverId,
+        int $userId
     ): array {
         // Récupération de l'utilisateur
         $user = $this->userRepository->findUserById($userId);
@@ -724,8 +715,8 @@ class RideService extends BaseService
      * @return array
      */
     public function listRidesByPassenger(
-        int $userId,
-        int $passengerId
+        int $passengerId,
+        int $userId
     ): array {
         // Récupération de l'utilisateur
         $user = $this->userRepository->findUserById($userId);
@@ -737,7 +728,7 @@ class RideService extends BaseService
 
         // Vérification des permissions.
         if (!$this->roleService->hasAnyRole($userId, [
-            UserRoles::CONDUCTEUR,
+            UserRoles::PASSAGER,
             UserRoles::EMPLOYE,
             UserRoles::ADMIN
         ])) {
@@ -766,8 +757,8 @@ class RideService extends BaseService
      * @return array
      */
     public function listUpcomingRidesByPassenger(
-        int $userId,
-        int $passengerId
+        int $passengerId,
+        int $userId
     ): array {
         // Récupération de l'utilisateur
         $user = $this->userRepository->findUserById($userId);
@@ -806,8 +797,8 @@ class RideService extends BaseService
      * @return array
      */
     public function listPastRidesByPassenger(
-        int $userId,
-        int $passengerId
+        int $passengerId,
+        int $userId
     ): array {
         // Récupération de l'utilisateur
         $user = $this->userRepository->findUserById($userId);
@@ -838,20 +829,21 @@ class RideService extends BaseService
         return $this->rideRepository->fetchPastRidesByPassenger($passengerId);
     }
 
-    // -------------Pour le staff------------------
+    //------- Pour le staff uniquement ---------
     public function listRidesByCreationDate(
-        int $staffId,
-        DateTimeInterface $creationDate
+        DateTimeInterface $creationDate,
+        int $staffId
     ): array {
 
-        // Récupération de l'staff
+        // Récupération du membre du personnel
         $staff = $this->userRepository->findUserById($staffId);
 
-        // Vérification de l'existence de l'staff
+        // Vérification de l'existence du membre du personnel
         if (!$staff) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
+            throw new InvalidArgumentException("Membre du personnel introuvable..");
         }
 
+        // Vérification de la permission
         $this->ensureStaff($staffId);
 
         return $this->rideRepository->fetchAllRidesRowsByCreationDate($creationDate);
@@ -877,6 +869,7 @@ class RideService extends BaseService
             throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
+        // Vérification de la permission
         $this->ensureAdmin($adminId);
 
         return $this->rideRepository->countRidesByToday();
@@ -891,9 +884,9 @@ class RideService extends BaseService
      * @return array
      */
     public function getNumberOfRidesOverPeriod(
-        int $adminId,
         DateTimeInterface $start,
-        DateTimeInterface $end
+        DateTimeInterface $end,
+        int $adminId
     ): array {
 
         // Récupération de l'admin
@@ -904,6 +897,7 @@ class RideService extends BaseService
             throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
+        // Vérification de la permission
         $this->ensureAdmin($adminId);
 
         return $this->rideRepository->countRidesByPeriod($start, $end);
@@ -927,6 +921,7 @@ class RideService extends BaseService
             throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
+        // Vérification de la permission
         $this->ensureAdmin($adminId);
 
         return $this->rideRepository->countCommissionByToday();
@@ -941,9 +936,9 @@ class RideService extends BaseService
      * @return array
      */
     public function getTotalCommissionOverPeriod(
-        int $adminId,
         DateTimeInterface $start,
-        DateTimeInterface $end
+        DateTimeInterface $end,
+        int $adminId
     ): array {
 
         // Récupération de l'admin
@@ -954,6 +949,7 @@ class RideService extends BaseService
             throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
+        // Vérification de la permission
         $this->ensureAdmin($adminId);
 
         return $this->rideRepository->countCommissionByPeriod($start, $end);

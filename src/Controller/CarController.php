@@ -14,8 +14,10 @@ class CarController extends BaseController
 
 
     // POST
-    public function createCar(string $jwtToken): void
-    {
+    // Permet de créer une voiture.
+    public function createCar(
+        string $jwtToken
+    ): void {
         // Récupération des données
         $data = $this->getJsonBody();
 
@@ -58,8 +60,11 @@ class CarController extends BaseController
 
 
     // DELETE
-    public function deleteCar(string $jwtToken, int $carId): void
-    {
+    // Permet de supprimer une voiture.
+    public function deleteCar(
+        int $carId,
+        string $jwtToken
+    ): void {
         try {
             // Récupération de l'id de l'utilisateur dans le token avec vérification
             $userId = $this->getUserIdFromToken($jwtToken);
@@ -69,9 +74,9 @@ class CarController extends BaseController
 
             // Vérification de l'existence de la voiture
             if ($removed) {
-                $this->successResponse(["message" => "Voiture supprimée"]);
+                $this->successResponse(["message" => "Voiture supprimée."]);
             } else {
-                $this->errorResponse("Voiture introuvable", 404);
+                $this->errorResponse("Voiture introuvable.", 404);
             }
         } catch (InvalidArgumentException $e) {
             // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
@@ -84,8 +89,11 @@ class CarController extends BaseController
 
 
     // GET
-    public function listCarsbyDriver(string $jwtToken, string $driverId): void
-    {
+    // Permet de récupèrer la liste des voitures d'un CONDUCTEUR.
+    public function listCarsbyDriver(
+        string $driverId,
+        string $jwtToken
+    ): void {
         try {
             // Récupération de l'id de l'utilisateur dans le token avec vérification
             $userId = $this->getUserIdFromToken($jwtToken);

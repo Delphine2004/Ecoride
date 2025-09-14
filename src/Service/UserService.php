@@ -18,9 +18,7 @@ class UserService extends BaseService
     public function __construct(
         private UserRepository $userRepository,
         private CarRepository $carRepository
-    ) {
-        parent::__construct();
-    }
+    ) {}
 
 
     //----------Action VISITEUR----------------------------

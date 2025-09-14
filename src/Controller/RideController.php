@@ -46,6 +46,7 @@ class RideController extends BaseController
             } elseif (is_array($ride)) {
                 $rideId = $ride['id'] ?? $ride['ride_id'] ?? null;
             }
+
             // Envoi de la réponse positive
             $this->successResponse($ride, 201, "/users/{$userId}/rides/{$rideId}");
         } catch (InvalidArgumentException $e) {
@@ -101,7 +102,7 @@ class RideController extends BaseController
 
             // Vérification de l'existence du trajet
             if ($rideToStart) {
-                $this->successResponse(["message" => "Trajet annulé"], 200);
+                $this->successResponse(["message" => "Trajet démarré"], 200);
             } else {
                 $this->errorResponse("Trajet introuvable", 404);
             }
@@ -128,7 +129,7 @@ class RideController extends BaseController
 
             // Vérification de l'existence du trajet
             if ($rideToStart) {
-                $this->successResponse(["message" => "Trajet annulé"], 200);
+                $this->successResponse(["message" => "Trajet finalisé"], 200);
             } else {
                 $this->errorResponse("Trajet introuvable", 404);
             }
