@@ -84,14 +84,14 @@ class CarController extends BaseController
 
 
     // GET
-    public function listUserCars(string $jwtToken): void
+    public function listCarsbyDriver(string $jwtToken, string $driverId): void
     {
         try {
             // Récupération de l'id de l'utilisateur dans le token avec vérification
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération de la liste de voiture
-            $cars = $this->carService->getCarsByUser($userId);
+            $cars = $this->carService->listCarsByDriver($userId, $driverId);
 
             // Envoi de la réponse positive
             $this->successResponse($cars);

@@ -134,8 +134,9 @@ class CarService extends BaseService
      * @param integer $userId
      * @return array
      */
-    public function getCarsByUser(
-        int $userId
+    public function listCarsByDriver(
+        int $userId,
+        int $driverId
     ): array {
         // Récupération de l'utilisateur
         $user = $this->userRepository->findUserById($userId);
@@ -148,6 +149,7 @@ class CarService extends BaseService
         // Vérification des permissions.
         $this->ensureDriver($userId);
 
-        return $this->carRepository->findAllCarsByOwner($userId);
+
+        return $this->carRepository->findAllCarsByOwner($driverId);
     }
 }
