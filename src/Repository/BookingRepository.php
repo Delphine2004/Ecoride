@@ -62,7 +62,7 @@ class BookingRepository extends BaseRepository
     }
 
 
-    // ------ Récupérations ------ 
+    // ------ Récupérations Simples------ 
 
     /**
      * Récupére un objet Booking par son id.
@@ -448,6 +448,62 @@ class BookingRepository extends BaseRepository
     ): array {
         return $this->findAllBookingsByPassengerId($passengerId, BookingStatus::PASSEE, $orderBy, $orderDirection, $limit, $offset);
     }
+
+
+    /**
+     * Récupére la liste des objets Bookings avec la liste brute du trajet et des participants avec tri et pagination.
+     *
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
+    public function findAllBookingsWithRideAndUsers(
+        string $orderBy = 'user_id',
+        string $orderDirection = 'DESC',
+        int $limit = 20,
+        int $offset = 0
+    ): array {
+        // Récupération de la réservation
+        $bookings = $this->findAllBookingsByFields([], $orderBy, $orderDirection, $limit, $offset);
+
+        foreach ($bookings as $booking) {
+            // Récupération du trajet
+            $ride = $this->rideRepository->findRideWithUsersByRideId($booking->getRideId());
+            if ($ride) {
+                $booking->setBookingRide($ride);
+            }
+        }
+        return $bookings;
+    }
+
+    /**
+     * Récupére la liste brute des réservations avec la liste brute du trajet et des participants avec tri et pagination.
+     *
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
+    public function fetchAllBookingsWithRideAndUsers(
+        string $orderBy = 'user_id',
+        string $orderDirection = 'DESC',
+        int $limit = 20,
+        int $offset = 0
+    ): array {
+        // Récupération de la réservation
+        $bookings = $this->fetchAllBookingsRowsByFields([], $orderBy, $orderDirection, $limit, $offset);
+
+        foreach ($bookings as $i => $booking) {
+            // Récupération du trajet et des utilisateurs
+            $ride = $this->rideRepository->findRideById($booking['ride_id']);
+            $bookings[$i]['ride'] = $ride;
+        }
+        return $bookings;
+    }
+
 
 
     //------------------------------------------
