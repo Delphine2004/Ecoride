@@ -4,7 +4,6 @@
   "type": "project",
   "require": {
     "php": ">=8.1",
-    "nikic/fast-route": "^1.3",
     "vlucas/phpdotenv": "^5.5",
     "phpmailer/phpmailer": "^6.10",
     "firebase/php-jwt": "^6.11"
@@ -12,9 +11,9 @@
   "require-dev": {
     "phpunit/phpunit": "^10.5"
   },
-  "autoLoad": {
+  "autoload": {
     "psr-4": {
-      "app\\": "src/"
+      "App\\": "src/"
     }
   },
   "autoload-dev": {
