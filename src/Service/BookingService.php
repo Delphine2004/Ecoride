@@ -27,9 +27,7 @@ class BookingService extends BaseService
         private UserRepository $userRepository,
         private NotificationService $notificationService
 
-    ) {
-        parent::__construct();
-    }
+    ) {}
 
 
     //--------------VERIFICATION-----------------
@@ -226,20 +224,142 @@ class BookingService extends BaseService
 
     //------------------RECUPERATIONS------------------------
 
+    public function getBooking(
+        int $bookingId,
+        int $userId
+    ): ?Booking {
+        // Récupération de l'utilisateur
+        $user = $this->userRepository->findUserById($userId);
+
+        // Vérification de l'existence de l'utilisateur
+        if (!$user) {
+            throw new InvalidArgumentException("Utilisateur introuvable.");
+        }
+
+        // Vérification des permissions.
+        if (!$this->roleService->hasAnyRole($userId, [
+            UserRoles::PASSAGER,
+            UserRoles::EMPLOYE,
+            UserRoles::ADMIN
+        ])) {
+            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
+        }
+
+        return $this->bookingRepository->findBookingById($bookingId);
+    }
 
 
-    /**
-     * Récupére la liste des réservations en fonction de la date de création pour les utilisateurs de l'entreprise.
-     *
-     * @param DateTimeInterface $creationDate
-     * @param integer $employeeId
-     * @return array
-     */
-    public function getBookingListByDate(
+    //------- Pour les passagers passagers uniquement ---------
+    public function listUpcomingBookingsBypassenger(
+        int $passengerId,
+        int $userId
+    ): array {
+        // Récupération de l'utilisateur
+        $user = $this->userRepository->findUserById($userId);
+
+        // Vérification de l'existence de l'utilisateur
+        if (!$user) {
+            throw new InvalidArgumentException("Membre du personnel introuvable.");
+        }
+
+        // Vérification des permissions.
+        if (!$this->roleService->hasAnyRole($userId, [
+            UserRoles::PASSAGER,
+            UserRoles::EMPLOYE,
+            UserRoles::ADMIN
+        ])) {
+            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
+        }
+
+
+        // Récupération du passager
+        $passenger = $this->userRepository->findUserById($passengerId);
+
+        // Vérification de l'existence du passeger
+        if (!$passenger) {
+            throw new InvalidArgumentException("Utilisateur introuvable.");
+        }
+
+        return $this->bookingRepository->findUpcomingBookingsByPassenger($passengerId);
+    }
+
+    public function listPastBookingsByPassenger(
+        int $passengerId,
+        int $userId
+    ): array {
+        // Récupération de l'utilisateur
+        $user = $this->userRepository->findUserById($userId);
+
+        // Vérification de l'existence de l'utilisateur
+        if (!$user) {
+            throw new InvalidArgumentException("Membre du personnel introuvable.");
+        }
+
+        // Vérification des permissions.
+        if (!$this->roleService->hasAnyRole($userId, [
+            UserRoles::PASSAGER,
+            UserRoles::EMPLOYE,
+            UserRoles::ADMIN
+        ])) {
+            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
+        }
+
+
+        // Récupération du passager
+        $passenger = $this->userRepository->findUserById($passengerId);
+
+        // Vérification de l'existence du passeger
+        if (!$passenger) {
+            throw new InvalidArgumentException("Utilisateur introuvable.");
+        }
+
+        return $this->bookingRepository->fetchPastBookingsByPassenger($passengerId);
+    }
+
+
+
+    //------- Pour le staff uniquement ---------
+
+    public function listBookingsByDepartureDate(
+        DateTimeImmutable $departureDate,
+        int $staffId
+    ): array {
+        // Récupération du membre du personnel
+        $staff = $this->userRepository->findUserById($staffId);
+
+        // Vérification de l'existence du membre du personnel
+        if (!$staff) {
+            throw new InvalidArgumentException("Membre du personnel introuvable.");
+        }
+
+        // Vérification de la permission
+        $this->ensureStaff($staffId);
+
+        return $this->bookingRepository->findAllBookingsByDepartureDate($departureDate);
+    }
+
+    public function listBookingsByStatus(
+        BookingStatus $bookingStatus,
+        int $staffId
+    ): array {
+        // Récupération du membre du personnel
+        $staffMember = $this->userRepository->findUserById($staffId);
+
+        // Vérification de l'existence du membre du personnel
+        if (!$staffMember) {
+            throw new InvalidArgumentException("Membre du personnel introuvable.");
+        }
+
+        // Vérification de la permission
+        $this->ensureStaff($staffId);
+
+        return $this->bookingRepository->fetchAllBookingsByStatus($bookingStatus);
+    }
+
+    public function listBookingsByCreatedAt(
         DateTimeInterface $creationDate,
         int $staffId
     ): array {
-
         // Récupération du membre du personnel
         $staffMember = $this->userRepository->findUserById($staffId);
 
