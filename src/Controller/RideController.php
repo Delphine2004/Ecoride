@@ -17,8 +17,9 @@ class RideController extends BaseController
 
 
     // ------------------------POST--------------------------------
-    public function createRide(string $jwtToken): void
-    {
+    public function createRide(
+        string $jwtToken
+    ): void {
         // Récupération des données
         $data = $this->getJsonBody();
 
@@ -36,7 +37,7 @@ class RideController extends BaseController
             $dto = new CreateRideDTO($data);
 
             // Ajout du trajet
-            $ride = $this->rideService->addRide($dto, $userId);
+            $ride = $this->rideService->createRide($dto, $userId);
 
             // Définir le header Location
             $rideId = null;
@@ -59,8 +60,10 @@ class RideController extends BaseController
 
     // ------------------------PUT--------------------------------
     // Annule un trajet.
-    public function cancelRide(int $rideId, string $jwtToken): void
-    {
+    public function cancelRide(
+        int $rideId,
+        string $jwtToken
+    ): void {
         try {
 
             // Récupération de l'id de l'utilisateur dans le token avec vérification
@@ -85,8 +88,10 @@ class RideController extends BaseController
     }
 
     // Démarre un trajet.
-    public function startRide(Ride $ride, string $jwtToken): void
-    {
+    public function startRide(
+        Ride $ride,
+        string $jwtToken
+    ): void {
         try {
             // Récupération de l'id de l'utilisateur dans le token avec vérification
             $userId = $this->getUserIdFromToken($jwtToken);
@@ -110,8 +115,10 @@ class RideController extends BaseController
     }
 
     // Finalise un trajet
-    public function finalizeRide(Ride $ride, string $jwtToken): void
-    {
+    public function finalizeRide(
+        Ride $ride,
+        string $jwtToken
+    ): void {
         try {
             // Récupération de l'id de l'utilisateur dans le token avec vérification
             $userId = $this->getUserIdFromToken($jwtToken);
@@ -141,34 +148,11 @@ class RideController extends BaseController
 
     // --------------------------GET----------------------------------
 
-    // Affiche les trajets disponibles en fonction de la date de départ et les ville de départ et d'arrivée
-    public function listAllRidesByDateAndPlace(
-        DateTimeInterface $date,
-        string $departurePlace,
-        string $arrivalPlace
-    ): void {
-        try {
-            // Récupération de la liste des trajets avec vérification des droits incluse
-            $rides = $this->rideService->SearchRidesByDateAndPlaces($date, $departurePlace, $arrivalPlace);
-
-            // Envoi de la réponse positive
-            $this->successResponse($rides);
-        } catch (InvalidArgumentException $e) {
-            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
-            $this->errorResponse($e->getMessage(), 400);
-        } catch (\Exception $e) {
-            // Attrappe les erreurs "Internal Server Error"
-            $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
-        }
-    }
-
-
     // Affiche un trajet avec les utilisateurs associés.
-    public function getRideWithUsers(
+    public function getRideWithPassengers(
         int $rideId,
         string $jwtToken
     ): void {
-        // utilisatation de getRideWithPassengers
         try {
             // Récupération de l'id de l'utilisateur dans le token avec vérification
             $userId = $this->getUserIdFromToken($jwtToken);
@@ -187,20 +171,40 @@ class RideController extends BaseController
         }
     }
 
+    // Affiche les trajets disponibles en fonction de la date de départ et les ville de départ et d'arrivée
+    public function listRidesByDateAndPlace(
+        DateTimeInterface $date,
+        string $departurePlace,
+        string $arrivalPlace
+    ): void {
+        try {
+            // Récupération de la liste des trajets avec vérification des droits incluse
+            $rides = $this->rideService->listRidesByDateAndPlaces($date, $departurePlace, $arrivalPlace);
 
-    // ----- Historique pour les utilisateurs PASSAGER et CONDUCTEUR--------
+            // Envoi de la réponse positive
+            $this->successResponse($rides);
+        } catch (InvalidArgumentException $e) {
+            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
+            $this->errorResponse($e->getMessage(), 400);
+        } catch (\Exception $e) {
+            // Attrappe les erreurs "Internal Server Error"
+            $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
+        }
+    }
 
+
+    //-------------Pour les conducteurs------------------
     // Affiche tous les trajets d'un conducteur.
-    public function listAllRidesByDriver(
+    public function listRidesByDriver(
+        int $driverId,
         string $jwtToken,
-        int $driverId
     ): void {
         try {
             // Récupération de l'id de l'utilisateur dans le token avec vérification
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération des infos
-            $rides = $this->rideService->getAllRidesByDriver($userId, $driverId);
+            $rides = $this->rideService->listRidesByDriver($userId, $driverId);
 
             // Envoi de la réponse positive
             $this->successResponse($rides);
@@ -214,16 +218,16 @@ class RideController extends BaseController
     }
 
     // Affiche tous les trajets à venir d'un conducteur.
-    public function listAllUpcomingRidesByDriver(
-        string $jwtToken,
-        int $driverId
+    public function listUpcomingRidesByDriver(
+        int $driverId,
+        string $jwtToken
     ): void {
         try {
             // Récupération de l'id de l'utilisateur dans le token avec vérification
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération des infos
-            $rides = $this->rideService->getUpcomingRidesByDriver($userId, $driverId);
+            $rides = $this->rideService->listUpcomingRidesByDriver($userId, $driverId);
 
             // Envoi de la réponse positive
             $this->successResponse($rides);
@@ -237,16 +241,16 @@ class RideController extends BaseController
     }
 
     // Affiche tous les trajets passés d'un conducteur.
-    public function listAllPastRidesByDriver(
-        string $jwtToken,
-        int $driverId
+    public function listPastRidesByDriver(
+        int $driverId,
+        string $jwtToken
     ): void {
         try {
             // Récupération de l'id de l'utilisateur dans le token avec vérification
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération des infos
-            $rides = $this->rideService->getPastRidesByDriver($userId, $driverId);
+            $rides = $this->rideService->listPastRidesByDriver($userId, $driverId);
 
             // Envoi de la réponse positive
             $this->successResponse($rides);
@@ -259,17 +263,19 @@ class RideController extends BaseController
         }
     }
 
+
+    //-------------Pour les Passagers------------------
     // Affiche tous les trajets d'un passager.
-    public function listAllRidesByPassenger(
-        string $jwtToken,
-        int $passengerId
+    public function listRidesByPassenger(
+        int $passengerId,
+        string $jwtToken
     ): void {
         try {
             // Récupération de l'id de l'utilisateur dans le token avec vérification
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération des infos
-            $rides = $this->rideService->getAllRidesByPassenger($userId, $passengerId);
+            $rides = $this->rideService->listRidesByPassenger($userId, $passengerId);
 
             // Envoi de la réponse positive
             $this->successResponse($rides);
@@ -283,16 +289,16 @@ class RideController extends BaseController
     }
 
     // Affiche tous les trajets à venir d'un passager.
-    public function listAllUpcomingRidesByPassenger(
-        string $jwtToken,
-        int $passengerId
+    public function listUpcomingRidesByPassenger(
+        int $passengerId,
+        string $jwtToken
     ): void {
         try {
             // Récupération de l'id de l'utilisateur dans le token avec vérification
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération des infos
-            $rides = $this->rideService->getAllRidesByPassenger($userId, $passengerId);
+            $rides = $this->rideService->listRidesByPassenger($userId, $passengerId);
 
             // Envoi de la réponse positive
             $this->successResponse($rides);
@@ -306,137 +312,19 @@ class RideController extends BaseController
     }
 
     // Affiche tous les trajets passé d'un passager.
-    public function listAllPastRidesByPassenger(
-        string $jwtToken,
-        int $passengerId
+    public function listPastRidesByPassenger(
+        int $passengerId,
+        string $jwtToken
     ): void {
         try {
             // Récupération de l'id de l'utilisateur dans le token avec vérification
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération des infos
-            $rides = $this->rideService->getPastRidesByPassenger($userId, $passengerId);
+            $rides = $this->rideService->listRidesByPassenger($userId, $passengerId);
 
             // Envoi de la réponse positive
             $this->successResponse($rides);
-        } catch (InvalidArgumentException $e) {
-            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
-            $this->errorResponse($e->getMessage(), 400);
-        } catch (\Exception $e) {
-            // Attrappe les erreurs "Internal Server Error"
-            $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
-        }
-    }
-
-    // --------------------Pour le staff-----------------------
-
-    public function listAllRidesByCreationDate(
-        string $jwtToken,
-        DateTimeInterface $creationDate
-    ): void {
-        try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
-            $userId = $this->getUserIdFromToken($jwtToken);
-
-            // Récupération
-            $numberOfRides = $this->rideService->getAllRidesByCreationDate($userId, $creationDate);
-
-            // Envoi de la réponse positive
-            $this->successResponse($numberOfRides);
-        } catch (InvalidArgumentException $e) {
-            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
-            $this->errorResponse($e->getMessage(), 400);
-        } catch (\Exception $e) {
-            // Attrappe les erreurs "Internal Server Error"
-            $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
-        }
-    }
-
-    // ------------------Pour les admins-----------------------
-
-    // Affiche le total de trajet pour le jour J.
-    public function getNumberOfRidesFromToday(
-        string $jwtToken
-    ): void {
-        try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
-            $userId = $this->getUserIdFromToken($jwtToken);
-
-            // Récupération
-            $numberOfRides = $this->rideService->getNumberOfRidesFromToday($userId);
-
-            // Envoi de la réponse positive
-            $this->successResponse($numberOfRides);
-        } catch (InvalidArgumentException $e) {
-            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
-            $this->errorResponse($e->getMessage(), 400);
-        } catch (\Exception $e) {
-            // Attrappe les erreurs "Internal Server Error"
-            $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
-        }
-    }
-
-    // Affiche le total de trajet sur une période.
-    public function getNumberOfRidesOverPeriod(
-        string $jwtToken,
-        DateTimeInterface $start,
-        DateTimeInterface $end
-    ): void {
-        try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
-            $userId = $this->getUserIdFromToken($jwtToken);
-
-            // Récupération
-            $numberOfRides = $this->rideService->getNumberOfRidesOverPeriod($userId, $start, $end);
-
-            // Envoi de la réponse positive
-            $this->successResponse($numberOfRides);
-        } catch (InvalidArgumentException $e) {
-            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
-            $this->errorResponse($e->getMessage(), 400);
-        } catch (\Exception $e) {
-            // Attrappe les erreurs "Internal Server Error"
-            $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
-        }
-    }
-
-    // Affiche le total des commissions reçues pour le jour J.
-    public function getTotalCommissionFromToday(
-        string $jwtToken
-    ): void {
-        try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
-            $userId = $this->getUserIdFromToken($jwtToken);
-
-            // Récupération
-            $commissionOfTheDay = $this->rideService->getTotalCommissionFromToday($userId);
-
-            // Envoi de la réponse positive
-            $this->successResponse($commissionOfTheDay);
-        } catch (InvalidArgumentException $e) {
-            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
-            $this->errorResponse($e->getMessage(), 400);
-        } catch (\Exception $e) {
-            // Attrappe les erreurs "Internal Server Error"
-            $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
-        }
-    }
-
-    // Affiche le total des commissions reçues sur une période.
-    public function getTotalCommissionOverPeriod(
-        string $jwtToken,
-        DateTimeInterface $start,
-        DateTimeInterface $end
-    ): void {
-        try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
-            $userId = $this->getUserIdFromToken($jwtToken);
-
-            // Récupération 
-            $totalCommission = $this->rideService->getTotalCommissionOverPeriod($userId, $start, $end);
-
-            // Envoi de la réponse positive
-            $this->successResponse($totalCommission);
         } catch (InvalidArgumentException $e) {
             // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
             $this->errorResponse($e->getMessage(), 400);

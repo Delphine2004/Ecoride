@@ -42,7 +42,7 @@ class RideService extends BaseService
      * @param integer $userId
      * @return Ride|null
      */
-    public function addRide(
+    public function createRide(
         CreateRideDTO $dto,
         int $userId,
     ): ?Ride {
@@ -268,6 +268,8 @@ class RideService extends BaseService
         return $ride;
     }
 
+
+
     /**
      * Permet à un utilisateur CONDUCTEUR de démarrer un trajet.
      *
@@ -348,8 +350,6 @@ class RideService extends BaseService
         // Notification du conducteur
         $this->notificationService->sendRideStart($driver, $ride);
     }
-
-
 
     /**
      * Permet à un utilisateur CONDUCTEUR d'arrêter un trajet.
@@ -553,24 +553,6 @@ class RideService extends BaseService
 
     //------------------RECUPERATIONS------------------------
 
-
-    /**
-     * Récupére les trajets disponibles en fonction de la date, la ville de départ et la ville d'arrivée.
-     *
-     * @param DateTimeInterface $date
-     * @param string $departurePlace
-     * @param string $arrivalPlace
-     * @return void
-     */
-    public function SearchRidesByDateAndPlaces(
-        DateTimeInterface $date,
-        string $departurePlace,
-        string $arrivalPlace
-    ) {
-        return $this->rideRepository->findAllRidesByDateAndPlace($date, $departurePlace, $arrivalPlace);
-    }
-
-
     /**
      * Récupére un trajet avec les passagers.
      *
@@ -595,6 +577,22 @@ class RideService extends BaseService
         return $this->rideRepository->findRideWithUsersByRideId($rideId);
     }
 
+    /**
+     * Récupére les trajets disponibles en fonction de la date, la ville de départ et la ville d'arrivée.
+     *
+     * @param DateTimeInterface $date
+     * @param string $departurePlace
+     * @param string $arrivalPlace
+     * @return void
+     */
+    public function listRidesByDateAndPlaces(
+        DateTimeInterface $date,
+        string $departurePlace,
+        string $arrivalPlace
+    ) {
+        return $this->rideRepository->findAllRidesByDateAndPlace($date, $departurePlace, $arrivalPlace);
+    }
+
 
     //-------------Pour les conducteurs------------------
     /**
@@ -604,7 +602,7 @@ class RideService extends BaseService
      * @param integer $driverId
      * @return array
      */
-    public function getAllRidesByDriver(
+    public function listRidesByDriver(
         int $userId,
         int $driverId
     ): array {
@@ -642,7 +640,7 @@ class RideService extends BaseService
      * @param integer $driverId
      * @return array
      */
-    public function getUpcomingRidesByDriver(
+    public function listUpcomingRidesByDriver(
         int $userId,
         int $driverId
     ): array {
@@ -682,7 +680,7 @@ class RideService extends BaseService
      * @param integer $driverId
      * @return array
      */
-    public function getPastRidesByDriver(
+    public function listPastRidesByDriver(
         int $userId,
         int $driverId
     ): array {
@@ -725,7 +723,7 @@ class RideService extends BaseService
      * @param integer $passengerId
      * @return array
      */
-    public function getAllRidesByPassenger(
+    public function listRidesByPassenger(
         int $userId,
         int $passengerId
     ): array {
@@ -767,7 +765,7 @@ class RideService extends BaseService
      * @param integer $passengerId
      * @return array
      */
-    public function getUpcomingRidesByPassenger(
+    public function listUpcomingRidesByPassenger(
         int $userId,
         int $passengerId
     ): array {
@@ -807,7 +805,7 @@ class RideService extends BaseService
      * @param integer $passengerId
      * @return array
      */
-    public function getPastRidesByPassenger(
+    public function listPastRidesByPassenger(
         int $userId,
         int $passengerId
     ): array {
@@ -841,7 +839,7 @@ class RideService extends BaseService
     }
 
     // -------------Pour le staff------------------
-    public function getAllRidesByCreationDate(
+    public function listRidesByCreationDate(
         int $staffId,
         DateTimeInterface $creationDate
     ): array {
