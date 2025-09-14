@@ -3,7 +3,7 @@
 namespace App\Services;
 
 
-use App\Repositories\UserRelationsRepository;
+use App\Repositories\UserRepository;
 use App\Repositories\CarRepository;
 use App\Models\User;
 use App\DTO\CreateUserDTO;
@@ -16,7 +16,7 @@ class UserService extends BaseService
 
 
     public function __construct(
-        private UserRelationsRepository $userRelationsRepository,
+        private UserRepository $userRepository,
         private CarRepository $carRepository
     ) {
         parent::__construct();
@@ -35,7 +35,7 @@ class UserService extends BaseService
         CreateUserDTO $dto
     ): ?User {
         // Vérifier que l'email n'est pas déjà utilisé
-        $existingUser = $this->userRelationsRepository->findUserByEmail($dto->email);
+        $existingUser = $this->userRepository->findUserByEmail($dto->email);
 
         if ($existingUser) {
             throw new InvalidArgumentException("Cet email est déjà utilisé.");
@@ -55,7 +55,7 @@ class UserService extends BaseService
         $user->setUserRoles([UserRoles::PASSAGER]);
 
         // Enregistrement dans la BD
-        $this->userRelationsRepository->insertUser($user);
+        $this->userRepository->insertUser($user);
 
         return $user;
     }
@@ -74,7 +74,7 @@ class UserService extends BaseService
         int $passengerId
     ): ?User {
         // Récupération du passager
-        $passenger = $this->userRelationsRepository->findUserById($passengerId);
+        $passenger = $this->userRepository->findUserById($passengerId);
 
         // Vérification de l'existence du passeger
         if (!$passenger) {
@@ -84,7 +84,7 @@ class UserService extends BaseService
         // Vérification des permissions.
         $this->ensurePassenger($passengerId);
 
-        $user = $this->userRelationsRepository->findUserById($passengerId);
+        $user = $this->userRepository->findUserById($passengerId);
 
         // Ajout des champs relatifs au CONDUCTEUR
         $user->setUserLicenceNo($dto->licenceNo);
@@ -92,7 +92,7 @@ class UserService extends BaseService
 
 
         // Enregistrement dans dans BD.
-        $this->userRelationsRepository->updateUser($user);
+        $this->userRepository->updateUser($user);
 
         return $user;
     }
@@ -109,7 +109,7 @@ class UserService extends BaseService
         int $userId
     ): bool {
         // Récupération de l'utilisateur
-        $user = $this->userRelationsRepository->findUserById($userId);
+        $user = $this->userRepository->findUserById($userId);
 
         // Vérification de l'existence de l'utilisateur
         if (!$user) {
@@ -123,7 +123,7 @@ class UserService extends BaseService
 
 
         // Enregistrement en Bd
-        $this->userRelationsRepository->deleteUser($userId);
+        $this->userRepository->deleteUser($userId);
         return true;
     }
 
@@ -142,7 +142,7 @@ class UserService extends BaseService
     ): ?User {
 
         // Récupération de l'utilisateur
-        $user = $this->userRelationsRepository->findUserById($userId);
+        $user = $this->userRepository->findUserById($userId);
 
         // Vérification de l'existence de l'utilisateur
         if (!$user) {
@@ -164,7 +164,7 @@ class UserService extends BaseService
         }
         if (!empty($dto->email)) {
 
-            $existingUser = $this->userRelationsRepository->findUserByEmail($dto->email);
+            $existingUser = $this->userRepository->findUserByEmail($dto->email);
 
             if ($existingUser && $dto->email !== $user->getUserEmail()) {
                 throw new InvalidArgumentException("L'email est déjà utilisé.");
@@ -173,7 +173,7 @@ class UserService extends BaseService
             $user->setUserEmail($dto->email);
         }
         if (!empty($dto->login)) {
-            $existingUser = $this->userRelationsRepository->findUserByLogin($dto->login);
+            $existingUser = $this->userRepository->findUserByLogin($dto->login);
 
             if ($existingUser && $dto->login !== $user->getUserLogin()) {
                 throw new InvalidArgumentException("Le login est déjà utilisé.");
@@ -199,7 +199,7 @@ class UserService extends BaseService
             $user->setUserLicenceNo($dto->licenceNo);
         }
 
-        $this->userRelationsRepository->updateUser($user);
+        $this->userRepository->updateUser($user);
         return $user;
     }
 
@@ -218,7 +218,7 @@ class UserService extends BaseService
     ): bool {
 
         // Récupération de l'utilisateur
-        $user = $this->userRelationsRepository->findUserById($userId);
+        $user = $this->userRepository->findUserById($userId);
 
         // Vérification de l'existence de l'utilisateur
         if (!$user) {
@@ -244,7 +244,7 @@ class UserService extends BaseService
         $user->setUserPassword($newPassword);
 
         // Enregistrement dans la BD
-        $this->userRelationsRepository->updateUser($user);
+        $this->userRepository->updateUser($user);
 
         return true;
     }
@@ -263,7 +263,7 @@ class UserService extends BaseService
         int $adminId
     ): ?User {
         // Récupération de l'admin
-        $admin = $this->userRelationsRepository->findUserById($adminId);
+        $admin = $this->userRepository->findUserById($adminId);
 
         // Vérification de l'existence de l'admin
         if (!$admin) {
@@ -275,7 +275,7 @@ class UserService extends BaseService
 
 
         // Vérifier que l'email n'est pas déjà utilisé
-        $existingUser = $this->userRelationsRepository->findUserByEmail($dto->email);
+        $existingUser = $this->userRepository->findUserByEmail($dto->email);
 
         if ($existingUser) {
             throw new InvalidArgumentException("Cet email est déjà utilisé.");
@@ -295,7 +295,7 @@ class UserService extends BaseService
         $user->setUserRoles([UserRoles::EMPLOYE]);
 
         // Enregistrement dans la BD
-        $this->userRelationsRepository->insertUser($user);
+        $this->userRepository->insertUser($user);
 
         return $user;
     }
@@ -312,7 +312,7 @@ class UserService extends BaseService
         int $userId
     ): bool {
         // Récupération de l'utilisateur
-        $user = $this->userRelationsRepository->findUserById($userId);
+        $user = $this->userRepository->findUserById($userId);
 
         // Vérification de l'existence de l'utilisateur
         if (!$user) {
@@ -321,7 +321,7 @@ class UserService extends BaseService
 
 
         // Récupération de l'admin
-        $admin = $this->userRelationsRepository->findUserById($adminId);
+        $admin = $this->userRepository->findUserById($adminId);
 
         // Vérification de l'existence de l'admin
         if (!$admin) {
@@ -333,7 +333,7 @@ class UserService extends BaseService
 
 
         // Enregistrement en Bd
-        $this->userRelationsRepository->deleteUser($userId);
+        $this->userRepository->deleteUser($userId);
 
         return true;
     }

@@ -19,9 +19,9 @@ class Booking
         private ?int $passengerId = null, // pour l'hydratation brute dans bookingRepository
         private ?int $driverId = null, // pour l'hydratation brute dans bookingRepository
 
-        private ?Ride $ride = null, // Pour le mapping dans bookingRelationsRepository
-        private ?User $passenger = null, // Pour le mapping dans bookingRelationsRepository
-        private ?User $driver = null, // Pour mapping bookingRelationsRepository
+        private ?Ride $ride = null, // Pour le mapping dans bookingRepository
+        private ?User $passenger = null, // Pour le mapping dans bookingRepository
+        private ?User $driver = null, // Pour mapping bookingRepository
 
         private ?BookingStatus $bookingStatus = null,
         private array $passengers = [], // Pour charger plusieurs passagers

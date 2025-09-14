@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
-use App\Repositories\BookingRelationsRepository;
-use App\Repositories\RideWithUsersRepository;
-use App\Repositories\UserRelationsRepository;
+use App\Repositories\BookingRepository;
+use App\Repositories\RideRepository;
+use App\Repositories\UserRepository;
 use App\Services\NotificationService;
 use App\Models\Booking;
 use App\Models\Ride;
@@ -22,9 +22,9 @@ class BookingService extends BaseService
 {
 
     public function __construct(
-        private BookingRelationsRepository $bookingRelationsRepository,
-        private RideWithUsersRepository $rideWithUsersRepository,
-        private UserRelationsRepository $userRelationsRepository,
+        private BookingRepository $bookingRepository,
+        private RideRepository $rideRepository,
+        private UserRepository $userRepository,
         private NotificationService $notificationService
 
     ) {
@@ -45,7 +45,7 @@ class BookingService extends BaseService
         User $user,
         Ride $ride
     ): bool {
-        $booking = $this->bookingRelationsRepository->findBookingByFields([
+        $booking = $this->bookingRepository->findBookingByFields([
             'user_id' => $user->getUserId(),
             'ride_id' => $ride->getRideId()
         ]);
@@ -72,7 +72,7 @@ class BookingService extends BaseService
     ): ?Booking {
 
         // Récupération de l'utilisateur
-        $user = $this->userRelationsRepository->findUserById($userId);
+        $user = $this->userRepository->findUserById($userId);
 
         // Vérification de l'existence de l'utilisateur
         if (!$user) {
@@ -115,7 +115,7 @@ class BookingService extends BaseService
 
 
         //Enregistrement en BD
-        $this->bookingRelationsRepository->insertBooking($booking);
+        $this->bookingRepository->insertBooking($booking);
 
 
         // Décrémentation du nombre de place disponible
@@ -143,7 +143,7 @@ class BookingService extends BaseService
     ): ?Booking {
 
         // Récupération de l'entité Booking
-        $booking = $this->bookingRelationsRepository->findBookingById($bookingId);
+        $booking = $this->bookingRepository->findBookingById($bookingId);
 
         // Vérification de l'existence de la réservation
         if (!$booking) {
@@ -151,7 +151,7 @@ class BookingService extends BaseService
         }
 
         // Récupération de l'utilisateur
-        $user = $this->userRelationsRepository->findUserById($userId);
+        $user = $this->userRepository->findUserById($userId);
 
         // Vérification de l'existence de l'utilisateur
         if (!$user) {
@@ -186,15 +186,15 @@ class BookingService extends BaseService
         $ride->incrementAvailableSeats();
 
         // Enregistrement des modifications de trajet en BD
-        $this->rideWithUsersRepository->updateRide($ride); // permet de conserver l'historique
+        $this->rideRepository->updateRide($ride); // permet de conserver l'historique
 
         // Enregistrement des modifications de réservation en BD
-        $this->bookingRelationsRepository->updateBooking($booking);
+        $this->bookingRepository->updateBooking($booking);
 
         // Récupération des utilisateurs
-        $passenger = $this->userRelationsRepository->findUserById($passengerId);
+        $passenger = $this->userRepository->findUserById($passengerId);
         $driverId = $booking->getBookingDriver()->getUserId();
-        $driver = $this->userRelationsRepository->findUserById($driverId);
+        $driver = $this->userRepository->findUserById($driverId);
 
         // Préparation des variables
         $today = (new DateTimeImmutable());
@@ -212,7 +212,7 @@ class BookingService extends BaseService
             $this->notificationService->sendBookingCancelationToDriver($driver, $booking);
 
             // Enregistrement des modifications de l'utilisateur en BD
-            $this->userRelationsRepository->updateUser($passenger);
+            $this->userRepository->updateUser($passenger);
         } else {
 
             // Envoi des confirmations avec frais
@@ -226,41 +226,7 @@ class BookingService extends BaseService
 
     //------------------RECUPERATIONS------------------------
 
-    /**
-     * Récupére la réservation avec l'objet Ride et les objets User liés à la réservation pour les utilisateurs de l'entreprise.
-     *
-     * @param integer $bookingId
-     * @param integer $employeeId
-     * @return Booking|null
-     */
-    public function getBookingWithRideAndUsers(
-        int $bookingId,
-        int $staffId
-    ): ?Booking {
 
-        // Récupération de la réservation
-        $booking = $this->bookingRelationsRepository->findBookingById($bookingId);
-
-        // Vérification de l'existence de la réservation
-        if (!$booking) {
-            throw new InvalidArgumentException("Réservation introuvable.");
-        }
-
-
-        // Récupération du membre du personnel
-        $staffMember = $this->userRelationsRepository->findUserById($staffId);
-
-        // Vérification de l'existence du membre du personnel
-        if (!$staffMember) {
-            throw new InvalidArgumentException("Membre du personnel introuvable.");
-        }
-
-        // Vérification de la permission
-        $this->ensureStaff($staffId);
-
-
-        return $this->bookingRelationsRepository->findBookingWithRideAndUsersByBookingId($bookingId);
-    }
 
     /**
      * Récupére la liste des réservations en fonction de la date de création pour les utilisateurs de l'entreprise.
@@ -275,7 +241,7 @@ class BookingService extends BaseService
     ): array {
 
         // Récupération du membre du personnel
-        $staffMember = $this->userRelationsRepository->findUserById($staffId);
+        $staffMember = $this->userRepository->findUserById($staffId);
 
         // Vérification de l'existence du membre du personnel
         if (!$staffMember) {
@@ -285,6 +251,6 @@ class BookingService extends BaseService
         // Vérification de la permission
         $this->ensureStaff($staffId);
 
-        return $this->bookingRelationsRepository->fetchAllBookingsByCreatedAt($creationDate);
+        return $this->bookingRepository->fetchAllBookingsByCreatedAt($creationDate);
     }
 }

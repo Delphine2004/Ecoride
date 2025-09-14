@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Repositories\RideWithUsersRepository;
-use App\Repositories\BookingRelationsRepository;
+use App\Repositories\RideRepository;
+use App\Repositories\BookingRepository;
 use App\Repositories\UserRepository;
 use App\Services\BookingService;
 use App\Services\CarService;
@@ -21,8 +21,8 @@ class RideService extends BaseService
 {
 
     public function __construct(
-        private RideWithUsersRepository $rideWithUsersRepository, // simplifier pour rideRepo
-        private BookingRelationsRepository $bookingRelationsRepository, // simplifier pour bookingRepo
+        private RideRepository $rideRepository,
+        private BookingRepository $bookingRepository, // simplifier pour bookingRepo
         private UserRepository $userRepository,
         private BookingService $bookingService,
         private CarService $carService,
@@ -78,7 +78,7 @@ class RideService extends BaseService
         $ride->setRideStatus($dto->rideStatus);
 
         // Enregistrement du trajet dans la BD.
-        $this->rideWithUsersRepository->insertRide($ride);
+        $this->rideRepository->insertRide($ride);
 
 
         // Déduction de la commission au conducteur
@@ -109,7 +109,7 @@ class RideService extends BaseService
     ): ?Booking {
 
         // Récupération du trajet
-        $ride = $this->rideWithUsersRepository->findRideById($rideId);
+        $ride = $this->rideRepository->findRideById($rideId);
 
         // Vérification de l'existence du trajet
         if (!$ride) {
@@ -179,7 +179,7 @@ class RideService extends BaseService
     ): ?Ride {
 
         // Récupération de l'entité Ride
-        $ride = $this->rideWithUsersRepository->findRideById($rideId);
+        $ride = $this->rideRepository->findRideById($rideId);
 
         // Vérification de l'existence du trajet
         if (!$ride) {
@@ -230,7 +230,7 @@ class RideService extends BaseService
 
 
         // Récupération des réservations, mise à jour des réservations et remboursement
-        $bookings = $this->bookingRelationsRepository->findBookingByRideId($rideId);
+        $bookings = $this->bookingRepository->findBookingByRideId($rideId);
 
         foreach ($bookings as $booking) {
 
@@ -238,7 +238,7 @@ class RideService extends BaseService
             $booking->setBookingStatus(BookingStatus::ANNULEE);
 
             // Enregistrement du statut en BD
-            $this->bookingRelationsRepository->updateBooking($booking->getBookingId(), [
+            $this->bookingRepository->updateBooking($booking->getBookingId(), [
                 'booking_status' => $booking->getBookingStatus()
             ]);
 
@@ -256,7 +256,7 @@ class RideService extends BaseService
         }
 
         // Enregistrement du statut du trajet en BD
-        $this->rideWithUsersRepository->updateRide($ride, [
+        $this->rideRepository->updateRide($ride, [
             'ride_status' => $ride->getRideStatus()
         ]);
 
@@ -330,7 +330,7 @@ class RideService extends BaseService
         $ride->setRideStatus(RideStatus::ENCOURS);
 
         // Enregistrement dans la BD
-        $this->rideWithUsersRepository->updateRide(
+        $this->rideRepository->updateRide(
             $ride,
             [
                 'ride_status' => $ride->getRideStatus()
@@ -339,7 +339,7 @@ class RideService extends BaseService
 
         // Notification des passagers
         $rideId = $ride->getRideId();
-        $bookings = $this->bookingRelationsRepository->findBookingByRideId($rideId);
+        $bookings = $this->bookingRepository->findBookingByRideId($rideId);
         foreach ($bookings as $booking) {
             $passenger = $this->userRepository->findUserById($booking->getPassengerId());
             $this->notificationService->sendRideStart($passenger, $ride);
@@ -404,7 +404,7 @@ class RideService extends BaseService
         $ride->setRideStatus(RideStatus::ENATTENTE);
 
         // Enregistrement dans la BD
-        $this->rideWithUsersRepository->updateRide(
+        $this->rideRepository->updateRide(
             $ride,
             [
                 'ride_status' => $ride->getRideStatus()
@@ -483,7 +483,7 @@ class RideService extends BaseService
             }
 
             // Récupération de sa réservation
-            $booking = $this->bookingRelationsRepository->findBookingByPassengerAndRide($passengerId, $ride->getRideId());
+            $booking = $this->bookingRepository->findBookingByPassengerAndRide($passengerId, $ride->getRideId());
 
 
             // Vérification du statut de la réservation
@@ -498,7 +498,7 @@ class RideService extends BaseService
             $booking->setBookingStatus(BookingStatus::PASSEE);
 
             // Enregistrement dans la bd.
-            $this->bookingRelationsRepository->updateBooking(
+            $this->bookingRepository->updateBooking(
                 $booking,
                 [
                     'booking_status' => $booking->getBookingStatus()
@@ -533,7 +533,7 @@ class RideService extends BaseService
         $ride->setRideStatus(RideStatus::TERMINE);
 
         // Enregistrements dans la bd.
-        $this->rideWithUsersRepository->updateRide(
+        $this->rideRepository->updateRide(
             $ride,
             [
                 'ride_status' => $ride->getRideStatus()
@@ -567,7 +567,7 @@ class RideService extends BaseService
         string $departurePlace,
         string $arrivalPlace
     ) {
-        return $this->rideWithUsersRepository->findAllRidesByDateAndPlace($date, $departurePlace, $arrivalPlace);
+        return $this->rideRepository->findAllRidesByDateAndPlace($date, $departurePlace, $arrivalPlace);
     }
 
 
@@ -592,7 +592,7 @@ class RideService extends BaseService
         // Vérification des permissions.
         $this->ensureStaff($userId);
 
-        return $this->rideWithUsersRepository->findRideWithUsersByRideId($rideId);
+        return $this->rideRepository->findRideWithUsersByRideId($rideId);
     }
 
 
@@ -632,7 +632,7 @@ class RideService extends BaseService
             throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
-        return $this->rideWithUsersRepository->fetchAllRidesByDriver($driverId);
+        return $this->rideRepository->fetchAllRidesByDriver($driverId);
     }
 
     /**
@@ -672,7 +672,7 @@ class RideService extends BaseService
             throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
-        return $this->rideWithUsersRepository->findUpcomingRidesByDriver($driverId);
+        return $this->rideRepository->findUpcomingRidesByDriver($driverId);
     }
 
     /**
@@ -713,7 +713,7 @@ class RideService extends BaseService
 
 
 
-        return $this->rideWithUsersRepository->fetchPastRidesByDriver($driverId);
+        return $this->rideRepository->fetchPastRidesByDriver($driverId);
     }
 
 
@@ -757,7 +757,7 @@ class RideService extends BaseService
 
 
 
-        return $this->rideWithUsersRepository->fetchAllRidesByPassenger($passengerId);
+        return $this->rideRepository->fetchAllRidesByPassenger($passengerId);
     }
 
     /**
@@ -797,7 +797,7 @@ class RideService extends BaseService
             throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
-        return $this->rideWithUsersRepository->findUpcomingRidesByPassenger($passengerId);
+        return $this->rideRepository->findUpcomingRidesByPassenger($passengerId);
     }
 
     /**
@@ -837,7 +837,7 @@ class RideService extends BaseService
             throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
-        return $this->rideWithUsersRepository->fetchPastRidesByPassenger($passengerId);
+        return $this->rideRepository->fetchPastRidesByPassenger($passengerId);
     }
 
     // -------------Pour le staff------------------
@@ -856,7 +856,7 @@ class RideService extends BaseService
 
         $this->ensureStaff($staffId);
 
-        return $this->rideWithUsersRepository->fetchAllRidesRowsByCreationDate($creationDate);
+        return $this->rideRepository->fetchAllRidesRowsByCreationDate($creationDate);
     }
 
 
@@ -881,7 +881,7 @@ class RideService extends BaseService
 
         $this->ensureAdmin($adminId);
 
-        return $this->rideWithUsersRepository->countRidesByToday();
+        return $this->rideRepository->countRidesByToday();
     }
 
     /**
@@ -908,7 +908,7 @@ class RideService extends BaseService
 
         $this->ensureAdmin($adminId);
 
-        return $this->rideWithUsersRepository->countRidesByPeriod($start, $end);
+        return $this->rideRepository->countRidesByPeriod($start, $end);
     }
 
     /**
@@ -931,7 +931,7 @@ class RideService extends BaseService
 
         $this->ensureAdmin($adminId);
 
-        return $this->rideWithUsersRepository->countCommissionByToday();
+        return $this->rideRepository->countCommissionByToday();
     }
 
     /**
@@ -958,6 +958,6 @@ class RideService extends BaseService
 
         $this->ensureAdmin($adminId);
 
-        return $this->rideWithUsersRepository->countCommissionByPeriod($start, $end);
+        return $this->rideRepository->countCommissionByPeriod($start, $end);
     }
 }
