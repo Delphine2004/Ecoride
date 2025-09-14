@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Repositories\CarRepository;
-use App\Repositories\UserRelationsRepository;
+use App\Repositories\UserRepository;
 use App\Models\Car;
 use App\Enum\UserRoles;
 use App\DTO\CreateCarDTO;
@@ -14,7 +14,7 @@ class CarService extends BaseService
 {
     public function __construct(
         private CarRepository $carRepository,
-        private UserRelationsRepository $userRelationsRepository
+        private UserRepository $userRepository
     ) {
         parent::__construct();
     }
@@ -31,7 +31,7 @@ class CarService extends BaseService
     public function userHasCars(int $userId): bool
     {
         // Récupération de l'utilisateur
-        $user = $this->userRelationsRepository->findUserById($userId);
+        $user = $this->userRepository->findUserById($userId);
 
         // Vérification de l'existence de l'utilisateur
         if (!$user) {
@@ -57,7 +57,7 @@ class CarService extends BaseService
         CreateCarDTO $dto
     ): ?Car {
         // Récupération de l'utilisateur.
-        $user = $this->userRelationsRepository->findUserById($userId);
+        $user = $this->userRepository->findUserById($userId);
 
         // Vérification de l'existence de l'utilisateur.
         if (!$user) {
@@ -100,7 +100,7 @@ class CarService extends BaseService
         int $carId
     ): void {
         // Récupération de l'utilisateur.
-        $user = $this->userRelationsRepository->findUserById($userId);
+        $user = $this->userRepository->findUserById($userId);
 
         // Vérification de l'existence de l'utilisateur.
         if (!$user) {
@@ -138,7 +138,7 @@ class CarService extends BaseService
         int $userId
     ): array {
         // Récupération de l'utilisateur
-        $user = $this->userRelationsRepository->findUserById($userId);
+        $user = $this->userRepository->findUserById($userId);
 
         // Vérification de l'existence de l'utilisateur
         if (!$user) {
