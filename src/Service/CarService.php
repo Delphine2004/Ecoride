@@ -90,7 +90,7 @@ class CarService extends BaseService
     }
 
     /**
-     * Permet à un utilisateur CONDUCTEUR de supprimer une voiture.
+     * Permet à un utilisateur CONDUCTEUR OU EMPLOYE OU ADMIN de supprimer une voiture.
      *
      * @param integer $carId
      * @param integer $userId
@@ -130,7 +130,7 @@ class CarService extends BaseService
     //------------------RECUPERATIONS------------------------
 
     /**
-     * Permet à un utilisateur de récupèrer les voitures d'un utilisateur CONDUCTEUR.
+     * Permet à un utilisateur CONDUCTEUR OU EMPLOYE OU ADMIN de récupèrer les voitures d'un utilisateur CONDUCTEUR.
      *
      * @param integer $driverId
      * @param integer $userId
