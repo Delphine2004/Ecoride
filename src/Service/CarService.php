@@ -157,6 +157,15 @@ class CarService extends BaseService
             throw new InvalidArgumentException("Seulement les utilisateurs CONDUCTEUR, EMPLOYEE ou ADMIN peuvent effectuer cette action.");
         }
 
+        // Récupération du conducteur
+        $driver = $this->userRepository->findUserById($driverId);
+
+        // Vérification de l'existence du conducteur
+        if (!$driver) {
+            throw new InvalidArgumentException("Utilisateur introuvable.");
+        }
+
+        // Vérification qu'il s'agit bien du conducteur
         if ($this->roleService->isDriver($userId)) {
             if ($userId !== $driverId) {
                 throw new InvalidArgumentException("Accés interdit.");

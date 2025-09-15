@@ -178,6 +178,13 @@ class BookingService extends BaseService
             throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à annuler cette réservation.");
         }
 
+        // Vérification qu'il s'agit bien du passager
+        if ($this->roleService->isPassenger($userId)) {
+            if ($booking->getBookingPassengerId() !== $userId) {
+                throw new InvalidArgumentException("Le conducteur ne correspond pas à ce trajet.");
+            }
+        }
+
         // Vérification que la réservation appartient au passager
         $passengerId = $booking->getBookingPassenger()->getUserId();
         if ($booking->getBookingPassengerId() !== $userId) {
@@ -267,7 +274,20 @@ class BookingService extends BaseService
         }
 
         // Vérification des permissions.
-        $this->ensurePassenger($userId);
+        if (!$this->roleService->hasAnyRole($userId, [
+            UserRoles::PASSAGER,
+            UserRoles::EMPLOYE,
+            UserRoles::ADMIN
+        ])) {
+            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à finaliser cette réservation.");
+        }
+
+        // Vérification qu'il s'agit bien du passager
+        if ($this->roleService->isPassenger($userId)) {
+            if ($booking->getBookingPassengerId() !== $userId) {
+                throw new InvalidArgumentException("Le conducteur ne correspond pas à ce trajet.");
+            }
+        }
 
         // Modification du statut de la réservation
         $booking->setBookingStatus(BookingStatus::PASSEE);
@@ -354,6 +374,13 @@ class BookingService extends BaseService
             throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
+        // Vérification qu'il s'agit bien du passager
+        if ($this->roleService->isPassenger($userId)) {
+            if ($userId !== $passengerId) {
+                throw new InvalidArgumentException("Accés interdit.");
+            }
+        }
+
         return $this->bookingRepository->findUpcomingBookingsByPassenger($passengerId);
     }
 
@@ -392,6 +419,13 @@ class BookingService extends BaseService
         // Vérification de l'existence du passeger
         if (!$passenger) {
             throw new InvalidArgumentException("Utilisateur introuvable.");
+        }
+
+        // Vérification qu'il s'agit bien du passager
+        if ($this->roleService->isPassenger($userId)) {
+            if ($userId !== $passengerId) {
+                throw new InvalidArgumentException("Accés interdit.");
+            }
         }
 
         return $this->bookingRepository->fetchPastBookingsByPassenger($passengerId);

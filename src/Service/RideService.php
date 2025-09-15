@@ -577,18 +577,19 @@ class RideService extends BaseService
             throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
         }
 
-        if ($this->roleService->isDriver($userId)) {
-            if ($userId !== $driverId) {
-                throw new InvalidArgumentException("Accés interdit.");
-            }
-        }
-
         // Récupération du conducteur
         $driver = $this->userRepository->findUserById($driverId);
 
         // Vérification de l'existence du conducteur
         if (!$driver) {
             throw new InvalidArgumentException("Utilisateur introuvable.");
+        }
+
+        // Vérification qu'il s'agit bien du conducteur
+        if ($this->roleService->isDriver($userId)) {
+            if ($userId !== $driverId) {
+                throw new InvalidArgumentException("Accés interdit.");
+            }
         }
 
         return $this->rideRepository->findUpcomingRidesByDriver($driverId);
@@ -622,12 +623,6 @@ class RideService extends BaseService
             throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
         }
 
-        if ($this->roleService->isDriver($userId)) {
-            if ($userId !== $driverId) {
-                throw new InvalidArgumentException("Accés interdit.");
-            }
-        }
-
         // Récupération du conducteur
         $driver = $this->userRepository->findUserById($driverId);
 
@@ -636,7 +631,12 @@ class RideService extends BaseService
             throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
-
+        // Vérification qu'il s'agit bien du conducteur
+        if ($this->roleService->isDriver($userId)) {
+            if ($userId !== $driverId) {
+                throw new InvalidArgumentException("Accés interdit.");
+            }
+        }
 
         return $this->rideRepository->fetchPastRidesByDriver($driverId);
     }
@@ -673,18 +673,19 @@ class RideService extends BaseService
             throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
         }
 
+        // Récupération du passager
+        $passenger = $this->userRepository->findUserById($passengerId);
+
+        // Vérification de l'existence du passager
+        if (!$passenger) {
+            throw new InvalidArgumentException("Utilisateur introuvable.");
+        }
+
+        // Vérification qu'il s'agit bien du passager
         if ($this->roleService->isPassenger($userId)) {
             if ($userId !== $passengerId) {
                 throw new InvalidArgumentException("Accés interdit.");
             }
-        }
-
-        // Récupération du passager
-        $passenger = $this->userRepository->findUserById($passengerId);
-
-        // Vérification de l'existence du passeger
-        if (!$passenger) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
         return $this->rideRepository->findUpcomingRidesByPassenger($passengerId);
@@ -718,18 +719,19 @@ class RideService extends BaseService
             throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
         }
 
+        // Récupération du passager
+        $passenger = $this->userRepository->findUserById($passengerId);
+
+        // Vérification de l'existence du passager
+        if (!$passenger) {
+            throw new InvalidArgumentException("Utilisateur introuvable.");
+        }
+
+        // Vérification qu'il s'agit bien du passager
         if ($this->roleService->isPassenger($userId)) {
             if ($userId !== $passengerId) {
                 throw new InvalidArgumentException("Accés interdit.");
             }
-        }
-
-        // Récupération du passager
-        $passenger = $this->userRepository->findUserById($passengerId);
-
-        // Vérification de l'existence du passeger
-        if (!$passenger) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
         }
 
         return $this->rideRepository->fetchPastRidesByPassenger($passengerId);
