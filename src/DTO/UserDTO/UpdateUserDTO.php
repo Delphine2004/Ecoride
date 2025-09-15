@@ -16,6 +16,8 @@ class UpdateUserDTO
     public ?string $zipCode = null;
     public ?string $uriPicture = null;
     public ?string $licenceNo = null;
+    public ?float $credits = null;
+    public ?string $preferences = null;
 
     public function __construct(array $data)
     {
@@ -63,6 +65,14 @@ class UpdateUserDTO
 
         if (isset($data['licence_no'])) {
             $this->licenceNo =  trim($data['licence_no']);
+        }
+
+        if (isset($data['credits'])) {
+            $this->credits =  (int)($data['credits']);
+        }
+
+        if (isset($data['preferences'])) {
+            $this->preferences =  trim($data['preferences']);
         }
     }
 }

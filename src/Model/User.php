@@ -38,7 +38,7 @@ class User
         private ?string $uriPicture = null,
         private ?string $licenceNo = null,
         private ?int $credits = null,
-        private ?string $apiToken = null, // n'a pas de valeur au moment de l'instanciation
+        private ?string $preferences = null,
 
         private array $roles = [], // pour pouvoir stoker plusieurs rôles pour un utilisateur
         private array $cars = [], // pour stocker les voitures d'un conducteur
@@ -63,7 +63,7 @@ class User
             ->setUserUriPicture($uriPicture)
             ->setUserLicenceNo($licenceNo)
             ->setUserCredits($credits)
-            ->setUserApiToken($apiToken)
+            ->setUserPreference($preferences)
             ->setUserRoles($roles)
             ->setUserCars($cars)
             ->setUserRides($rides)
@@ -142,9 +142,9 @@ class User
         return $this->credits;
     }
 
-    public function getUserApiToken(): ?string
+    public function getUserPreference(): ?string
     {
-        return $this->apiToken;
+        return $this->preferences;
     }
 
     public function getUserRoles(): array
@@ -358,9 +358,16 @@ class User
         return $this;
     }
 
-    public function setUserApiToken(?string $apiToken): self
+    public function setUserPreference(?string $preferences): self
     {
-        $this->apiToken = $apiToken;
+        if ($preferences !== null) {
+            $preferences = trim($preferences);
+
+            if (!preg_match(RegexPatterns::COMMENT_REGEX, $preferences)) {
+                throw new InvalidArgumentException("Les préférences peuvent contenir entre 2 et 255 caractères autorisés.");
+            }
+        }
+        $this->preferences = $preferences;
         $this->updateTimestamp();
         return $this;
     }

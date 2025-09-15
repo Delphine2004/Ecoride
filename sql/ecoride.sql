@@ -30,7 +30,7 @@ CREATE TABLE users(
         picture VARCHAR (200) NULL,
         licence_no VARCHAR (50) NULL,
         credits INT UNSIGNED NULL DEFAULT 0,
-        api_token CHAR(64) NOT NULL UNIQUE,
+        preferences VARCHAR (255) NULL,
         created_at TIMESTAMP NOT NULL,
         updated_at TIMESTAMP NOT NULL
 );

@@ -16,7 +16,6 @@ class CreateUserDTO
     public string $city;
     public string $zipCode;
     public ?string $uriPicture = null;
-    public ?string $licenceNo = null;
 
 
     public function __construct(array $data)
@@ -67,7 +66,5 @@ class CreateUserDTO
         }
 
         $this->uriPicture = isset($data['picture']) ? trim($data['picture']) : null;
-
-        $this->licenceNo = isset($data['licence_no']) ? trim($data['licence_no']) : null;
     }
 }

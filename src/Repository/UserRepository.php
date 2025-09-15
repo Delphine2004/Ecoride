@@ -29,7 +29,7 @@ class UserRepository extends BaseRepository
         'picture',
         'licence_no',
         'credits',
-        'api_token'
+        'preferences'
     ];
 
 
@@ -69,7 +69,7 @@ class UserRepository extends BaseRepository
             uriPicture: $data['picture'] ?? null,
             licenceNo: $data['licence_no'] ?? null,
             credits: isset($data['credits']) ? (int)$data['credits'] : null,
-            apiToken: $data['api_token'] ?? null,
+            preferences: $data['preferences'] ?? null,
             roles: $roles,
             createdAt: !empty($data['created_at']) ? new \DateTimeImmutable($data['created_at']) : null,
             updatedAt: !empty($data['updated_at']) ? new \DateTimeImmutable($data['updated_at']) : null
@@ -97,7 +97,7 @@ class UserRepository extends BaseRepository
             'picture' => $user->getUserUriPicture(),
             'licence_no' => $user->getUserLicenceNo(),
             'credits' => $user->getUserCredits(),
-            'api_token' => $user->getUserApiToken()
+            'preference' => $user->getUserPreference()
         ];
     }
 
@@ -273,16 +273,6 @@ class UserRepository extends BaseRepository
         return $this->findUserByFields(['login' => $login]);
     }
 
-    /**
-     * Récupère un objet User par son token.
-     *
-     * @param string $token
-     * @return User|null
-     */
-    public function findUserByApiToken(string $token): ?User
-    {
-        return $this->findUserByFields(['api_token' => $token]);
-    }
 
     // ------ Récupérations spécifiques de liste d'objet ---------
     /**
