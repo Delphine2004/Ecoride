@@ -819,6 +819,30 @@ class RideService extends BaseService
     }
 
     /**
+     * Permet à un admin de récupèrer le total des commissions gagnées.
+     *
+     * @param integer $adminId
+     * @return array
+     */
+    public function getTotalCommission(
+        int $adminId
+    ): array {
+
+        // Récupération de l'admin
+        $admin = $this->userRepository->findUserById($adminId);
+
+        // Vérification de l'existence de l'admin
+        if (!$admin) {
+            throw new InvalidArgumentException("Utilisateur introuvable.");
+        }
+
+        // Vérification de la permission
+        $this->ensureAdmin($adminId);
+
+        return $this->rideRepository->countCommissionByFields([]);
+    }
+
+    /**
      * Permet à un admin de récupèrer le total des commissions gagnées pour le jour J.
      *
      * @param integer $adminId
