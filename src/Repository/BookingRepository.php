@@ -8,7 +8,7 @@ use DateTimeInterface;
 use PDO;
 
 /**
- * Cette classe gère la correspondance entre un trajet et des utilisateurs et la BDD.
+ * Cette classe gère la correspondance entre une réservation, un trajet et des utilisateurs et la BDD.
  */
 
 class BookingRepository extends BaseRepository
@@ -260,7 +260,7 @@ class BookingRepository extends BaseRepository
      * @return array
      */
     public function fetchAllBookingsByPassenger(
-        array $passengerId,
+        int $passengerId,
         ?BookingStatus $bookingStatus = null,
         ?string $orderBy = null,
         string $orderDirection = 'DESC',
@@ -295,7 +295,7 @@ class BookingRepository extends BaseRepository
     }
 
     /**
-     * Récupère la liste des objets Booking passés pour un passager avec tri et pagination.
+     * Récupère la liste brute des réservations passés pour un passager avec tri et pagination.
      *
      * @param integer $passengerId
      * @param string|null $orderBy
@@ -311,7 +311,7 @@ class BookingRepository extends BaseRepository
         int $limit = 50,
         int $offset = 0
     ): array {
-        return $this->findAllBookingsByPassenger($passengerId, BookingStatus::PASSEE, $orderBy, $orderDirection, $limit, $offset);
+        return $this->fetchAllBookingsByPassenger($passengerId, BookingStatus::PASSEE, $orderBy, $orderDirection, $limit, $offset);
     }
 
 
@@ -330,7 +330,7 @@ class BookingRepository extends BaseRepository
 
     public function findBookingByPassengerAndRide(int $userId, int $rideId): ?Booking
     {
-        return $this->findBookingByFields(['user_id' => $userId, 'ride_id' => $rideId]);
+        return $this->findBookingByFields(['passenger_id' => $userId, 'ride_id' => $rideId]);
     }
 
 
