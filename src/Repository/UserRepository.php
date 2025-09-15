@@ -237,7 +237,6 @@ class UserRepository extends BaseRepository
         int $offset = 0
     ): array {
 
-        // Pas nécessaire de vérifier les champs car table pivot.
         // Vérifier si l'ordre et la direction sont définis et valides.
         [$orderBy, $orderDirection] = $this->sanitizeOrder(
             $orderBy,
