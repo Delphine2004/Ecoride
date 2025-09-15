@@ -13,8 +13,13 @@ class CarController extends BaseController
     ) {}
 
 
-    // POST
-    // Permet de créer une voiture.
+    // ------------------------POST--------------------------------
+    /**
+     * Autorise un utilisateur à créer une voiture.
+     *
+     * @param string $jwtToken
+     * @return void
+     */
     public function createCar(
         string $jwtToken
     ): void {
@@ -35,7 +40,7 @@ class CarController extends BaseController
             $dto = new CreateCarDTO($data);
 
             // Ajout de la voiture
-            $car = $this->carService->addCar($userId, $dto);
+            $car = $this->carService->createCar($dto, $userId);
 
             // Définir le header Location
             $carId = null;
@@ -56,11 +61,18 @@ class CarController extends BaseController
     }
 
 
-    // PUT - pas de modification de voiture possible
+    // // ------------------------PUT--------------------------------
+    // pas de modification de voiture possible
 
 
-    // DELETE
-    // Permet de supprimer une voiture.
+    // --------------------------DELETE------------------------------
+    /**
+     * Autorise un utilisateur à supprimer une voiture.
+     *
+     * @param integer $carId
+     * @param string $jwtToken
+     * @return void
+     */
     public function deleteCar(
         int $carId,
         string $jwtToken
@@ -70,7 +82,7 @@ class CarController extends BaseController
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Suppression de la voiture
-            $removed = $this->carService->removeCar($userId, $carId);
+            $removed = $this->carService->removeCar($carId, $userId);
 
             // Vérification de l'existence de la voiture
             if ($removed) {
@@ -88,10 +100,16 @@ class CarController extends BaseController
     }
 
 
-    // GET
-    // Permet de récupèrer la liste des voitures d'un CONDUCTEUR.
+    // --------------------------GET----------------------------------
+    /**
+     * Autorise un utilisateur à récupèrer la liste des voitures d'un CONDUCTEUR.
+     *
+     * @param int $driverId
+     * @param string $jwtToken
+     * @return void
+     */
     public function listCarsbyDriver(
-        string $driverId,
+        int $driverId,
         string $jwtToken
     ): void {
         try {
@@ -99,7 +117,7 @@ class CarController extends BaseController
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération de la liste de voiture
-            $cars = $this->carService->listCarsByDriver($userId, $driverId);
+            $cars = $this->carService->listCarsByDriver($driverId, $userId);
 
             // Envoi de la réponse positive
             $this->successResponse($cars);

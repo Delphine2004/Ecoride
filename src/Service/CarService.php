@@ -2,11 +2,13 @@
 
 namespace App\Services;
 
-use App\Repositories\CarRepository;
-use App\Repositories\UserRepository;
 use App\Models\Car;
 use App\Enum\UserRoles;
 use App\DTO\CreateCarDTO;
+use App\Repositories\CarRepository;
+use App\Repositories\UserRepository;
+use App\Services\RoleService;
+
 use InvalidArgumentException;
 
 
@@ -14,10 +16,9 @@ class CarService extends BaseService
 {
     public function __construct(
         private CarRepository $carRepository,
-        private UserRepository $userRepository
-    ) {
-        parent::__construct();
-    }
+        private UserRepository $userRepository,
+        private RoleService $roleService
+    ) {}
 
 
     //--------------VERIFICATION-----------------
@@ -46,15 +47,15 @@ class CarService extends BaseService
     //-----------------ACTIONS------------------------------
 
     /**
-     *  Permet à un utilisateur CONDUCTEUR d'ajouter une voiture.
+     * Permet à un utilisateur CONDUCTEUR d'ajouter une voiture.
      *
-     * @param integer $userId
      * @param CreateCarDTO $dto
+     * @param integer $userId
      * @return Car|null
      */
-    public function addCar(
-        int $userId,
-        CreateCarDTO $dto
+    public function createCar(
+        CreateCarDTO $dto,
+        int $userId
     ): ?Car {
         // Récupération de l'utilisateur.
         $user = $this->userRepository->findUserById($userId);
@@ -91,13 +92,13 @@ class CarService extends BaseService
     /**
      * Permet à un utilisateur CONDUCTEUR de supprimer une voiture.
      *
-     * @param integer $userId
      * @param integer $carId
+     * @param integer $userId
      * @return void
      */
     public function removeCar(
-        int $userId,
-        int $carId
+        int $carId,
+        int $userId
     ): void {
         // Récupération de l'utilisateur.
         $user = $this->userRepository->findUserById($userId);
@@ -113,7 +114,7 @@ class CarService extends BaseService
             UserRoles::EMPLOYE,
             UserRoles::ADMIN
         ])) {
-            throw new InvalidArgumentException("Seulement les utilisateurs CONDUCTEUR, EMPLOYEE ou ADMIN peuvent effectuer cette action.");
+            throw new InvalidArgumentException("Seulement les utilisateurs CONDUCTEUR, EMPLOYE ou ADMIN peuvent effectuer cette action.");
         }
 
         // Vérification si l'utilisateur CONDUCTEUR est le propriétaire.
@@ -129,14 +130,15 @@ class CarService extends BaseService
     //------------------RECUPERATIONS------------------------
 
     /**
-     * Récupère les voitures d'un utilisateur CONDUCTEUR.
+     * Permet à un utilisateur de récupèrer les voitures d'un utilisateur CONDUCTEUR.
      *
+     * @param integer $driverId
      * @param integer $userId
      * @return array
      */
     public function listCarsByDriver(
-        int $userId,
-        int $driverId
+        int $driverId,
+        int $userId
     ): array {
         // Récupération de l'utilisateur
         $user = $this->userRepository->findUserById($userId);
@@ -147,7 +149,13 @@ class CarService extends BaseService
         }
 
         // Vérification des permissions.
-        $this->ensureDriver($userId);
+        if (!$this->roleService->hasAnyRole($userId, [
+            UserRoles::CONDUCTEUR,
+            UserRoles::EMPLOYE,
+            UserRoles::ADMIN
+        ])) {
+            throw new InvalidArgumentException("Seulement les utilisateurs CONDUCTEUR, EMPLOYEE ou ADMIN peuvent effectuer cette action.");
+        }
 
 
         return $this->carRepository->findAllCarsByOwner($driverId);

@@ -109,8 +109,8 @@ class CarRepository extends BaseRepository
 
         // Préparation de la requête
         $stmt = $this->db->prepare($sql);
-        $stmt->bindValue('carId', $carId, PDO::PARAM_INT);
-        $stmt->bindValue('ownerId', $userId, PDO::PARAM_INT);
+        $stmt->bindValue(':carId', $carId, PDO::PARAM_INT);
+        $stmt->bindValue(':ownerId', $userId, PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetchColumn() > 0;
