@@ -282,7 +282,7 @@ class User
             $address = trim($address);
 
             if (!preg_match(RegexPatterns::ADDRESS, $address)) {
-                throw new InvalidArgumentException("L'adresse doit contenir entre 5 et 40 caractères autorisés.");
+                throw new InvalidArgumentException("L'adresse doit contenir entre 11 et 40 caractères autorisés.");
             }
         }
 

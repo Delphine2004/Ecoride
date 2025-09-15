@@ -5,6 +5,7 @@ namespace App\Utils;
 class RegexPatterns
 {
 
+    public const COMMENT_REGEX = '/^[a-zA-ZÀ-ÿ0-9\s\'".,;:!?()@$%&-]{2,255}$/u';
     public const ONLY_TEXTE_REGEX = '/^[a-zA-ZÀ-ÿ\s\'-]{4,20}$/u';
     public const OLD_REGISTRATION_NUMBER = '/^[1-9]\d{0,3}\s?[A-Z]{1,3}\s?(?:0[1-9]|[1-8]\d|9[0-5]|2[AB])$/';
     public const NEW_REGISTRATION_NUMBER = '/^[A-Z]{2}-\d{3}-[A-Z]{2}$/';

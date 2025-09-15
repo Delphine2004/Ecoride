@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enum\ReviewStatus;
+use App\Utils\RegexPatterns;
 use InvalidArgumentException;
 use DateTimeImmutable;
 
@@ -117,8 +118,8 @@ class Review
         if ($comment !== null) {
             $comment = trim($comment);
 
-            $commentRegex = '/^[a-zA-ZÀ-ÿ0-9\s\'".,;:!?()@$%&-]{2,255}$/u';
-            if (!preg_match($commentRegex, $comment)) {
+
+            if (!preg_match(RegexPatterns::COMMENT_REGEX, $comment)) {
                 throw new InvalidArgumentException("Le commentaire peut contenir entre 2 et 255 caractères autorisés.");
             }
         }
