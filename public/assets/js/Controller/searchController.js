@@ -18,7 +18,6 @@ export function searchRide() {
     ville_Depart: document.getElementById("departure-place"),
     ville_arrivee: document.getElementById("arrival-place"),
     date_depart: document.getElementById("departure-date"),
-    nombre_personne: document.getElementById("number-person"),
   };
 
   // Boucle de validation en temps réel sur les éléments du formulaire -(Il faut que les champs aient un attribut type)

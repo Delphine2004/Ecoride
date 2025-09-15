@@ -12,6 +12,11 @@ export const allRoutes = [
   // Routes accessibles à tous
   new Route("/", "Accueil", "./assets/view/home.html", []),
   new Route(
+    "/mentions-legales",
+    "Mentions Legales",
+    "./assets/view/legalNotices.html"
+  ),
+  new Route(
     "/rechercher",
     "Rechercher un trajet",
     "./assets/view/home.html",
