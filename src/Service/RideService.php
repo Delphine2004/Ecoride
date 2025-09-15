@@ -552,7 +552,7 @@ class RideService extends BaseService
     //------------------RECUPERATIONS------------------------
 
     /**
-     * Récupére un trajet avec les passagers.
+     * Récupère un trajet avec les passagers.
      *
      * @param integer $rideId
      * @return Ride|null
@@ -575,7 +575,7 @@ class RideService extends BaseService
         return $this->rideRepository->findRideWithUsersByRideId($rideId);
     }
 
-    // Récupére les trajets disponibles en fonction de la date, la ville de départ et la ville d'arrivée.
+    // Récupère les trajets disponibles en fonction de la date, la ville de départ et la ville d'arrivée.
     public function listRidesByDateAndPlaces(
         DateTimeInterface $date,
         string $departurePlace,
@@ -587,7 +587,7 @@ class RideService extends BaseService
 
     //-------------Pour les conducteurs------------------
     /**
-     * Récupére la liste brute des trajets d'un utilisateur CONDUCTEUR.
+     * Récupère la liste brute des trajets d'un utilisateur CONDUCTEUR.
      *
      * @param integer $userId
      * @param integer $driverId
@@ -625,7 +625,7 @@ class RideService extends BaseService
     }
 
     /**
-     * Récupére la liste d'objet Ride à venir d'un utilisateur CONDUCTEUR.
+     * Récupère la liste d'objet Ride à venir d'un utilisateur CONDUCTEUR.
      *
      * @param integer $userId
      * @param integer $driverId
@@ -665,7 +665,7 @@ class RideService extends BaseService
     }
 
     /**
-     * Récupére la liste brute des trajets passés d'un utilisateur CONDUCTEUR.
+     * Récupère la liste brute des trajets passés d'un utilisateur CONDUCTEUR.
      *
      * @param integer $userId
      * @param integer $driverId
@@ -708,7 +708,7 @@ class RideService extends BaseService
 
     //-------------Pour les Passagers------------------
     /**
-     * Récupére la liste brute des trajets d'un utilisateur PASSAGER.
+     * Récupère la liste brute des trajets d'un utilisateur PASSAGER.
      *
      * @param integer $userId
      * @param integer $passengerId
@@ -750,7 +750,7 @@ class RideService extends BaseService
     }
 
     /**
-     * Récupére la liste d'objet Ride à venir d'un utilisateur PASSAGER.
+     * Récupère la liste d'objet Ride à venir d'un utilisateur PASSAGER.
      *
      * @param integer $userId
      * @param integer $passengerId
@@ -790,7 +790,7 @@ class RideService extends BaseService
     }
 
     /**
-     * Récupére la liste brute des trajets passés d'un utilisateur PASSAGER.
+     * Récupère la liste brute des trajets passés d'un utilisateur PASSAGER.
      *
      * @param integer $userId
      * @param integer $passengerId
@@ -852,7 +852,7 @@ class RideService extends BaseService
 
     //-------------Pour les Admins------------------
     /**
-     * Récupére le nombre de trajets effectués pour le jour J.
+     * Récupère le nombre de trajets effectués pour le jour J.
      *
      * @param integer $adminId
      * @return array
@@ -876,7 +876,7 @@ class RideService extends BaseService
     }
 
     /**
-     * Récupére le nombre de trajets effectués sur une période donnée.
+     * Récupère le nombre de trajets effectués sur une période donnée.
      *
      * @param integer $adminId
      * @param DateTimeInterface $start
@@ -904,7 +904,7 @@ class RideService extends BaseService
     }
 
     /**
-     * Récupére le nombre de commission gagné pour le jour J.
+     * Récupère le nombre de commission gagné pour le jour J.
      *
      * @param integer $adminId
      * @return array
@@ -928,7 +928,7 @@ class RideService extends BaseService
     }
 
     /**
-     * Récupére le nombre de commission gagné sur une période donnée.
+     * Récupère le nombre de commission gagné sur une période donnée.
      *
      * @param integer $adminId
      * @param DateTimeInterface $start

@@ -8,7 +8,7 @@ use PDO;
 
 
 /**
- * Cette classe gére la correspondance entre un utilisateur et la BDD.
+ * Cette classe gère la correspondance entre un utilisateur et la BDD.
  */
 
 class UserRepository extends BaseRepository
@@ -150,7 +150,7 @@ class UserRepository extends BaseRepository
     // ------ Récupérations ------ 
 
     /**
-     * Récupére un objet User par son id.
+     * Récupère un objet User par son id.
      *
      * @param integer $userId
      * @return User|null
@@ -163,7 +163,7 @@ class UserRepository extends BaseRepository
     }
 
     /**
-     * Récupére un objet User selon un ou plusieurs champs spécifiques.
+     * Récupère un objet User selon un ou plusieurs champs spécifiques.
      *
      * @param array $criteria
      * @return User|null
@@ -184,7 +184,7 @@ class UserRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste des objets User selon un ou plusieurs champs spécifiques avec tri et pargination.
+     * Récupère la liste des objets User selon un ou plusieurs champs spécifiques avec tri et pagination.
      *
      * @param array $criteria
      * @param string|null $orderBy
@@ -220,7 +220,7 @@ class UserRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste brute des utilisateurs selon un champ spécifique avec tri et pargination.
+     * Récupère la liste brute des utilisateurs selon un champ spécifique avec tri et pagination.
      *
      * @param array $criteria
      * @param string|null $orderBy
@@ -253,7 +253,7 @@ class UserRepository extends BaseRepository
     //  ------ Récupérations d'objet ---------
 
     /**
-     * Récupére un objet User par son email.
+     * Récupère un objet User par son email.
      *
      * @param string $email
      * @return User|null
@@ -264,7 +264,7 @@ class UserRepository extends BaseRepository
     }
 
     /**
-     * Récupére un objet User par son login.
+     * Récupère un objet User par son login.
      *
      * @param string $login
      * @return User|null
@@ -275,7 +275,7 @@ class UserRepository extends BaseRepository
     }
 
     /**
-     * Récupére un objet User par son token.
+     * Récupère un objet User par son token.
      *
      * @param string $token
      * @return User|null
@@ -287,7 +287,7 @@ class UserRepository extends BaseRepository
 
     // ------ Récupérations spécifiques de liste d'objet ---------
     /**
-     * Récupére la liste des objets User selon un rôle avec tri et pagination.
+     * Récupère la liste des objets User selon un rôle avec tri et pagination.
      *
      * @param string $role
      * @param string $orderBy
@@ -347,7 +347,7 @@ class UserRepository extends BaseRepository
 
     // ------ Insertion ------ 
     /**
-     * Insert un utilisateur dans la BD.
+     * Insère un utilisateur dans la BD.
      *
      * @param User $user
      * @return integer

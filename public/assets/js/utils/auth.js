@@ -3,7 +3,7 @@ export function setToken(token) {
   localStorage.setItem("authToken", token);
 }
 
-// Récupérer le token depuis localStorage
+// Récupèrer le token depuis localStorage
 export function getToken() {
   return localStorage.getItem("authToken");
 }

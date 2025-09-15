@@ -8,7 +8,7 @@ use DateTimeInterface;
 use PDO;
 
 /**
- * Cette classe gére la correspondance entre un trajet et des utilisateurs et la BDD.
+ * Cette classe gère la correspondance entre un trajet et des utilisateurs et la BDD.
  */
 
 class BookingRepository extends BaseRepository
@@ -65,7 +65,7 @@ class BookingRepository extends BaseRepository
     // ------ Récupérations Simples------ 
 
     /**
-     * Récupére un objet Booking par son id.
+     * Récupère un objet Booking par son id.
      *
      * @param integer $bookingId
      * @return Booking|null
@@ -78,7 +78,7 @@ class BookingRepository extends BaseRepository
     }
 
     /**
-     * Récupére un objet Booking selon un ou plusieurs champs spécifiques.
+     * Récupère un objet Booking selon un ou plusieurs champs spécifiques.
      *
      * @param array $criteria
      * @return Booking|null
@@ -94,7 +94,7 @@ class BookingRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste des objets Booking selon un champ spécifique avec tri et pargination.
+     * Récupère la liste des objets Booking selon un champ spécifique avec tri et pagination.
      *
      * @param array $criteria
      * @param string|null $orderBy
@@ -126,7 +126,7 @@ class BookingRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste brute des réservations selon un champ spécifique avec tri et pargination.
+     * Récupère la liste brute des réservations selon un champ spécifique avec tri et pagination.
      *
      * @param array $criteria
      * @param string|null $orderBy
@@ -159,7 +159,7 @@ class BookingRepository extends BaseRepository
     //----------------------------------------------------------
 
     /**
-     * Récupére la liste des objets Booking par date de départ avec tri et pargination.
+     * Récupère la liste des objets Booking par date de départ avec tri et pagination.
      *
      * @param DateTimeInterface $departureDate
      * @param string|null $orderBy
@@ -179,7 +179,7 @@ class BookingRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste brute des réservations par le statut de réservation avec tri et pargination.
+     * Récupère la liste brute des réservations par le statut de réservation avec tri et pagination.
      *
      * @param BookingStatus $bookingStatus
      * @param string|null $orderBy
@@ -199,7 +199,7 @@ class BookingRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste brute des réservations par la date de création avec tri et pargination.
+     * Récupère la liste brute des réservations par la date de création avec tri et pagination.
      *
      * @param DateTimeInterface $createdAt
      * @param string|null $orderBy
@@ -223,7 +223,7 @@ class BookingRepository extends BaseRepository
 
 
     /**
-     * Récupére la liste des objets Booking par l'id passager avec tri et pargination.
+     * Récupère la liste des objets Booking par l'id passager avec tri et pagination.
      *
      * @param integer $passengerId
      * @param BookingStatus|null $bookingStatus
@@ -249,7 +249,7 @@ class BookingRepository extends BaseRepository
     }
 
     /**
-     * Récupére une liste brute de réservation d'un conducteur avec tri et pargination.
+     * Récupère une liste brute de réservation d'un conducteur avec tri et pagination.
      *
      * @param array $passengerId
      * @param BookingStatus|null $bookingStatus
@@ -275,7 +275,7 @@ class BookingRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste des objets Booking à venir pour un passager avec tri et pargination.
+     * Récupère la liste des objets Booking à venir pour un passager avec tri et pagination.
      *
      * @param integer $passengerId
      * @param string|null $orderBy
@@ -295,7 +295,7 @@ class BookingRepository extends BaseRepository
     }
 
     /**
-     * Récupére la liste des objets Booking passés pour un passager avec tri et pargination.
+     * Récupère la liste des objets Booking passés pour un passager avec tri et pagination.
      *
      * @param integer $passengerId
      * @param string|null $orderBy
@@ -318,7 +318,7 @@ class BookingRepository extends BaseRepository
     // ------ Récupérations utilisées dans RideService ---------
 
     /**
-     * Récupére un objet Booking par l'id du trajet.
+     * Récupère un objet Booking par l'id du trajet.
      *
      * @param integer $rideId
      * @return Booking|null

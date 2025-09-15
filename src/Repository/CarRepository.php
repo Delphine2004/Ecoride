@@ -280,7 +280,7 @@ class CarRepository extends BaseRepository
 
     // ------ Insertion ------ 
     /**
-     * Insert une voiture dans la BD.
+     * Insère une voiture dans la BD.
      *
      * @param Car $car
      * @return integer

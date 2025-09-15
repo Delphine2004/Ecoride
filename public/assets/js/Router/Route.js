@@ -9,7 +9,7 @@ export default class Route {
     this.url = url;
     this.title = title;
     this.pathHtml = pathHtml;
-    this.authorize = authorize; // gére les rôles
+    this.authorize = authorize; // gère les rôles
   }
 
   isAuthorized() {

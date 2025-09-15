@@ -57,7 +57,7 @@ export function getInfosUser() {
       if (response.ok) {
         return response.json();
       } else {
-        console.log("Impossible de récupérer les informations utilisateur");
+        console.log("Impossible de récupèrer les informations utilisateur");
       }
     })
     .then((result) => {

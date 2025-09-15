@@ -10,7 +10,7 @@ export function addRide() {
 
   const results = document.getElementById("feedback-form");
 
-  // Création du gestionnaire de formulaire qui gére les validation
+  // Création du gestionnaire de formulaire qui gère les validations
   const formManager = new FormManager(addForm);
 
   // Stockage des éléments dans un objet

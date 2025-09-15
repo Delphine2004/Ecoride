@@ -14,7 +14,7 @@ use DateTime;
 use DateTimeImmutable;
 
 /**
- * Cette classe gére la correspondance entre un trajet et la BDD.
+ * Cette classe gère la correspondance entre un trajet et la BDD.
  */
 
 class RideRepository extends BaseRepository
@@ -355,7 +355,7 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupère la liste des objets Ride avec les participants en liste brute selon un ou plusieurs critéres avec tri et pargination.
+     * Récupère la liste des objets Ride avec les participants en liste brute selon un ou plusieurs critéres avec tri et pagination.
      *
      * @param array $criteria
      * @param string $orderBy
@@ -856,7 +856,7 @@ class RideRepository extends BaseRepository
 
     // ------ Insertion ------ 
     /**
-     * Insert un trajet dans la BD.
+     * Insère un trajet dans la BD.
      *
      * @param Ride $ride
      * @return integer

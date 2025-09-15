@@ -15,7 +15,7 @@ export class FormManager {
     this.errors = {};
   }
 
-  //Fonctions qui gérent l'affichage des div errors
+  //Fonctions qui gèrent l'affichage des div errors
   showError(message, fields) {
     fields.forEach((field) => {
       this.errors[field] = message;

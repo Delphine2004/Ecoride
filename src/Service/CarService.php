@@ -129,7 +129,7 @@ class CarService extends BaseService
     //------------------RECUPERATIONS------------------------
 
     /**
-     * Récupére les voitures d'un utilisateur CONDUCTEUR.
+     * Récupère les voitures d'un utilisateur CONDUCTEUR.
      *
      * @param integer $userId
      * @return array

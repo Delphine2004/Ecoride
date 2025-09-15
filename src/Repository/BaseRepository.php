@@ -24,7 +24,7 @@ abstract class BaseRepository
 
 
     /**
-     * Récupére un enregistrement par son id.
+     * Récupère un enregistrement par son id.
      *
      * @param integer $id
      * @return object|null
@@ -38,7 +38,7 @@ abstract class BaseRepository
 
 
     /**
-     * Récupére tous les enregistrements avec 1 ou plusieurs champs avec tri et pargination.
+     * Récupère tous les enregistrements avec 1 ou plusieurs champs avec tri et pagination.
      *
      * @param array $criteria
      * @param string|null $orderBy
@@ -96,7 +96,7 @@ abstract class BaseRepository
     //----------------------------------------------
 
     /**
-     * Modifier un enregistrement par son id
+     * Modifie un enregistrement par son id
      *
      * @param integer $id
      * @param array $data
@@ -149,7 +149,7 @@ abstract class BaseRepository
 
 
     /**
-     * Inserer un enregistrement dans une table
+     * Insère un enregistrement dans une table
      *
      * @param array $data
      * @return integer
@@ -198,7 +198,7 @@ abstract class BaseRepository
 
 
     /**
-     * Supprimer un enregistrement par son id
+     * Supprime un enregistrement par son id
      *
      * @param integer $id
      * @return boolean
