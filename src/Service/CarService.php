@@ -157,6 +157,11 @@ class CarService extends BaseService
             throw new InvalidArgumentException("Seulement les utilisateurs CONDUCTEUR, EMPLOYEE ou ADMIN peuvent effectuer cette action.");
         }
 
+        if ($this->roleService->isDriver($userId)) {
+            if ($userId !== $driverId) {
+                throw new InvalidArgumentException("Accés interdit.");
+            }
+        }
 
         return $this->carRepository->findAllCarsByOwner($driverId);
     }
