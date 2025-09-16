@@ -15,9 +15,9 @@ export function searchRide() {
 
   // Stockage des éléments dans un objet
   const inputs = {
-    ville_Depart: document.getElementById("departure-place"),
+    ville_depart: document.getElementById("departure-place"),
     ville_arrivee: document.getElementById("arrival-place"),
-    date_depart: document.getElementById("departure-date"),
+    date_depart: document.getElementById("departure-date-time"),
   };
 
   // Boucle de validation en temps réel sur les éléments du formulaire -(Il faut que les champs aient un attribut type)

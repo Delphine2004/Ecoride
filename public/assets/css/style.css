@@ -92,7 +92,7 @@ a,
   color: #000000;
 }
 
-#departure-date,
+#departure-date-time,
 .input-form::placeholder,
 select:invalid {
   color: #8491a3;
