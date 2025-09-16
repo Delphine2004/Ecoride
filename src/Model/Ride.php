@@ -157,7 +157,7 @@ class Ride
 
     public function setRideDepartureDateTime(?DateTimeImmutable $departureDateTime): self
     {
-        $today = new \DateTimeImmutable();
+        $today = new DateTimeImmutable();
         $nextYear = (clone $today)->modify('+1 year');
         if ($departureDateTime <= $today || $departureDateTime >= $nextYear) {
             throw new InvalidArgumentException("La date de départ doit être supérieure à la date du jour et ne pas être supérieure à un an.");

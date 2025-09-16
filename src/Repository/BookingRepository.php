@@ -22,8 +22,11 @@ class BookingRepository extends BaseRepository
 
     public function __construct(
         private UserRepository $userRepository,
-        private RideRepository $rideRepository
-    ) {}
+        private RideRepository $rideRepository,
+        ?PDO $db = null
+    ) {
+        parent::__construct($db);
+    }
 
     /**
      * Remplit un objet Booking avec les données brute de la table bookings.
