@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Models;
+namespace App\Model;
 
 
-use App\Models\Ride;
-use App\Models\User;
+use App\Model\Ride;
+use App\Model\User;
 use App\Enum\BookingStatus;
 use InvalidArgumentException;
 use DateTimeImmutable;

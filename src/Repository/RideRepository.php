@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Repositories;
+namespace App\Repository;
 
-use App\Repositories\UserRepository;
-use App\Models\Ride;
-use App\Models\User;
+use App\Repository\UserRepository;
+use App\Model\Ride;
+use App\Model\User;
 use App\Enum\RideStatus;
 use App\Enum\UserRoles;
 use DateTimeInterface;

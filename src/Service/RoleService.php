@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Services;
+namespace App\Service;
 
-use App\Repositories\UserRepository;
+use App\Repository\UserRepository;
 use App\Enum\UserRoles;
 
 class RoleService

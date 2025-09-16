@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repositories;
+namespace App\Repository;
 
-use App\Models\Booking;
+use App\Model\Booking;
 use App\Enum\BookingStatus;
 use DateTimeInterface;
 use PDO;

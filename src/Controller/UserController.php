@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Controllers;
+namespace App\Controller;
 
-use App\Models\User;
+use App\Model\User;
 use App\DTO\CreateUserDTO;
-use App\Services\RideService;
-use App\Services\UserService;
+use App\Service\RideService;
+use App\Service\UserService;
 use InvalidArgumentException;
 
 class UserController extends BaseController

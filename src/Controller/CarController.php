@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Controllers;
+namespace App\Controller;
 
 use App\DTO\CreateCarDTO;
-use App\Services\CarService;
+use App\Service\CarService;
 use InvalidArgumentException;
 
 class CarController extends BaseController

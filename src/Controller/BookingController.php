@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Controllers;
+namespace App\Controller;
 
 use App\Enum\BookingStatus;
-use App\Models\Ride;
-use App\Models\User;
-use App\Models\Booking;
-use App\Services\BookingService;
+use App\Model\Ride;
+use App\Model\User;
+use App\Model\Booking;
+use App\Service\BookingService;
 use DateTimeImmutable;
 use InvalidArgumentException;
 
@@ -18,6 +18,7 @@ class BookingController extends BaseController
 
 
     // ------------------------POST--------------------------------
+
     public function createBooking(
         Ride $ride,
         User $driver,

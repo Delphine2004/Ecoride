@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repositories;
+namespace App\Repository;
 
-use App\Models\User;
+use App\Model\User;
 use App\Enum\UserRoles;
 use PDO;
 

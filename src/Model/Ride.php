@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Models;
+namespace App\Model;
 
-use App\Models\User;
+use App\Model\User;
 use App\Enum\RideStatus;
 use App\Utils\RegexPatterns;
 use InvalidArgumentException;

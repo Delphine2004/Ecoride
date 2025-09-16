@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Services;
+namespace App\Service;
 
-use App\Repositories\UserRepository;
-use App\Repositories\RideRepository;
-use App\Repositories\ReviewRepository;
-use App\Models\Ride;
-use App\Models\Review;
+use App\Repository\UserRepository;
+use App\Repository\RideRepository;
+use App\Repository\ReviewRepository;
+use App\Model\Ride;
+use App\Model\Review;
 use App\Enum\ReviewStatus;
 use InvalidArgumentException;
 

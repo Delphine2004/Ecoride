@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Services;
+namespace App\Service;
 
-use App\Services\RoleService;
+use App\Service\RoleService;
 use InvalidArgumentException;
 
 abstract class BaseService

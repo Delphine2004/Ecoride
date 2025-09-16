@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Services;
+namespace App\Service;
 
-use App\Models\Car;
+use App\Model\Car;
 use App\Enum\UserRoles;
 use App\DTO\CreateCarDTO;
-use App\Repositories\CarRepository;
-use App\Repositories\UserRepository;
-use App\Services\RoleService;
+use App\Repository\CarRepository;
+use App\Repository\UserRepository;
+use App\Service\RoleService;
 
 use InvalidArgumentException;
 

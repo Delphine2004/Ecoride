@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Services;
+namespace App\Service;
 
 
-use App\Repositories\UserRepository;
-use App\Repositories\CarRepository;
-use App\Models\User;
+use App\Repository\UserRepository;
+use App\Repository\CarRepository;
+use App\Model\User;
 use App\DTO\CreateUserDTO;
 use App\DTO\UpdateUserDTO;
 use App\Enum\UserRoles;
@@ -196,6 +196,7 @@ class UserService extends BaseService
         if (!empty($dto->licenceNo) && $this->ensureDriver($userId)) {
             $user->setUserLicenceNo($dto->licenceNo);
         }
+
 
         $this->userRepository->updateUser($user);
         return $user;

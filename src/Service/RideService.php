@@ -1,17 +1,17 @@
 <?php
 
-namespace App\Services;
+namespace App\Service;
 
-use App\Models\Ride;
+use App\Model\Ride;
 use App\Enum\RideStatus;
 use App\Enum\BookingStatus;
 use App\Enum\UserRoles;
 use App\DTO\CreateRideDTO;
-use App\Repositories\RideRepository;
-use App\Repositories\BookingRepository;
-use App\Repositories\UserRepository;
-use App\Services\CarService;
-use App\Services\NotificationService;
+use App\Repository\RideRepository;
+use App\Repository\BookingRepository;
+use App\Repository\UserRepository;
+use App\Service\CarService;
+use App\Service\NotificationService;
 use InvalidArgumentException;
 use DateTimeInterface;
 

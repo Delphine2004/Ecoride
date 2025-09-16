@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Services;
+namespace App\Service;
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
-use App\Models\User;
-use App\Models\Ride;
-use App\Models\Booking;
+use App\Model\User;
+use App\Model\Ride;
+use App\Model\Booking;
 
 
 class NotificationService

@@ -1,9 +1,9 @@
 <?php
 
 use App\Enum\BookingStatus;
-use App\Controllers\BaseController;
-use App\Services\BookingService;
-use App\Services\RideService;
+use App\Controller\BaseController;
+use App\Service\BookingService;
+use App\Service\RideService;
 
 class StaffController extends BaseController
 {

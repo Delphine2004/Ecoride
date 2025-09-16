@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repositories;
+namespace App\Repository;
 
-use App\Models\Car;
+use App\Model\Car;
 use App\Enum\CarBrand;
 use App\Enum\CarColor;
 use App\Enum\CarPower;

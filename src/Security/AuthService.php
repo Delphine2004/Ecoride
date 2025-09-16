@@ -2,9 +2,9 @@
 
 namespace App\Security;
 
-use App\Repositories\UserRelationsRepository;
-use App\Models\User;
-use App\Services\BaseService;
+use App\Repository\UserRepository;
+use App\Model\User;
+use App\Service\BaseService;
 use Firebase\JWT\JWT; // sert à encoder/décoder
 use Firebase\JWT\Key; // sert à vérifier un JWT avec une clé spécifique et un algorithme
 use InvalidArgumentException;
@@ -17,7 +17,7 @@ class AuthService extends BaseService
 
 
     public function __construct(
-        private UserRelationsRepository $userRelationsRepository
+        private UserRepository $userRepository
     ) {
         parent::__construct();
     }
@@ -26,7 +26,7 @@ class AuthService extends BaseService
     public function login(string $email, string $password): array
     {
         // Récupération de l'utilisateur
-        $user = $this->userRelationsRepository->findUserByEmail($email);
+        $user = $this->userRepository->findUserByEmail($email);
 
         // Vérification de l'existence de l'utilisateur et vérification du mot de passe
         if (!$user || !password_verify($password, $user['password'])) {

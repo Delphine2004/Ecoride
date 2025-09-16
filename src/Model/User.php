@@ -2,7 +2,7 @@
 
 // Rajouter les méthodes liées à userRepository
 
-namespace App\Models;
+namespace App\Model;
 
 
 use App\Enum\UserRoles;

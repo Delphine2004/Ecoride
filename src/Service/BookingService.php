@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Services;
+namespace App\Service;
 
-use App\Repositories\BookingRepository;
-use App\Repositories\RideRepository;
-use App\Repositories\UserRepository;
-use App\Services\NotificationService;
-use App\Models\Booking;
-use App\Models\Ride;
-use App\Models\User;
+use App\Repository\BookingRepository;
+use App\Repository\RideRepository;
+use App\Repository\UserRepository;
+use App\Service\NotificationService;
+use App\Model\Booking;
+use App\Model\Ride;
+use App\Model\User;
 use App\Enum\BookingStatus;
 use App\Enum\RideStatus;
 use App\Enum\UserRoles;
