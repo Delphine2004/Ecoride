@@ -85,6 +85,12 @@ class Review
 
     // ---------Les Setters ---------
 
+    public function setReviewId(string $reviewId): self
+    {
+        $this->reviewId = $reviewId;
+        return $this;
+    }
+
     public function setReviewRideId(?int $rideId): self
     {
         $this->rideId = $rideId;
