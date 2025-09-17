@@ -13,25 +13,23 @@
 }
 
 .hero-title {
-  margin: 4rem auto 2rem auto;
+  margin: 5rem auto auto auto;
 }
 
 .hero-title h2 {
-  width: 80%;
   margin-bottom: 0;
 }
 
 @media (min-width: 768px) {
-  #hero {
-    background-image: url("../img/photo/landing-page-desktop.webp");
-  }
-
   .hero-title h2 {
     margin-bottom: 2rem;
   }
 }
 
 @media (min-width: 992px) {
+  #hero {
+    background-image: url("../img/photo/landing-page-desktop.webp");
+  }
   #hero.search {
     min-height: 60vh;
   }

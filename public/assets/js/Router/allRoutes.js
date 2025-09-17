@@ -25,7 +25,7 @@ export const allRoutes = [
   new Route("/publier", "Publier un trajet", "./assets/view/addRide.html"),
   new Route("/connexion", "Connexion", "./assets/view/auth/login.html", []),
   new Route(
-    "/registration",
+    "/inscription",
     "Inscription",
     "./assets/view/auth/registration.html",
     ["disconnected"]

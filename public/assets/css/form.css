@@ -35,8 +35,6 @@
   display: none;
   justify-content: center;
   align-items: center;
-  min-height: 9rem; /* Pour garder l'espace même vide sur les petits écrans*/
-  height: 9rem;
   width: 100%;
   color: rgba(222, 21, 21, 0.92);
   font-size: 0.8em;
@@ -69,12 +67,10 @@
 /* ----Formulaires de connexion et d'inscription -----*/
 #login-form {
   width: 100%;
-  height: 20rem;
 }
 
 #registration-form {
   width: 100%;
-  height: 27rem;
 }
 
 #registration-form .small-screen #feedback-form {
@@ -96,7 +92,7 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   width: 100%;
-  margin-top: 3rem;
+  margin-top: 4rem;
 }
 
 .card-header {
@@ -116,10 +112,6 @@
 }
 
 @media (min-width: 768px) {
-  .search-form {
-    margin: 1rem auto;
-  }
-
   .card {
     width: 70%;
   }

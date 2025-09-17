@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (path.includes("connexion") && loginForm) {
       login();
     }
-    if (path.includes("registration") && registerForm) {
+    if (path.includes("inscription") && registerForm) {
       registration();
     }
 
