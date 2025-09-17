@@ -4,16 +4,18 @@ namespace App\Controller;
 
 use App\Model\User;
 use App\DTO\CreateUserDTO;
-use App\Service\RideService;
 use App\Service\UserService;
+use App\Security\AuthService;
 use InvalidArgumentException;
 
 class UserController extends BaseController
 {
     public function __construct(
         private UserService $userService,
-        private RideService $rideService
-    ) {}
+        private AuthService $authService
+    ) {
+        parent::__construct($authService);
+    }
 
     // POST
     public function createUser(): void

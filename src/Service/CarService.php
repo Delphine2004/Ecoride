@@ -5,44 +5,13 @@ namespace App\Service;
 use App\Model\Car;
 use App\Enum\UserRoles;
 use App\DTO\CreateCarDTO;
-use App\Repository\CarRepository;
-use App\Repository\UserRepository;
-use App\Service\RoleService;
+
 
 use InvalidArgumentException;
 
 
 class CarService extends BaseService
 {
-    public function __construct(
-        private CarRepository $carRepository,
-        private UserRepository $userRepository,
-        private RoleService $roleService
-    ) {}
-
-
-    //--------------VERIFICATION-----------------
-
-    /**
-     * Vérifie si l'utilisateur a des voitures.
-     *
-     * @param integer $userId
-     * @return boolean
-     */
-    public function userHasCars(int $userId): bool
-    {
-        // Récupération de l'utilisateur
-        $user = $this->userRepository->findUserById($userId);
-
-        // Vérification de l'existence de l'utilisateur
-        if (!$user) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
-
-        $this->ensureDriver($userId);
-        return count($this->carRepository->findAllCarsByOwner($userId)) > 0;
-    }
-
 
     //-----------------ACTIONS------------------------------
 
@@ -109,7 +78,7 @@ class CarService extends BaseService
         }
 
         // Vérification des permissions.
-        if (!$this->roleService->hasAnyRole($userId, [
+        if (!$this->hasAnyRole($userId, [
             UserRoles::CONDUCTEUR,
             UserRoles::EMPLOYE,
             UserRoles::ADMIN
@@ -118,7 +87,7 @@ class CarService extends BaseService
         }
 
         // Vérification si l'utilisateur CONDUCTEUR est le propriétaire.
-        if ($this->roleService->isDriver($userId) && !$this->carRepository->isOwner($userId, $carId)) {
+        if ($this->isDriver($userId) && !$this->carRepository->isOwner($userId, $carId)) {
             throw new InvalidArgumentException("Vous ne pouvez pas supprimer cette voiture.");
         }
 
@@ -149,7 +118,7 @@ class CarService extends BaseService
         }
 
         // Vérification des permissions.
-        if (!$this->roleService->hasAnyRole($userId, [
+        if (!$this->hasAnyRole($userId, [
             UserRoles::CONDUCTEUR,
             UserRoles::EMPLOYE,
             UserRoles::ADMIN
@@ -166,7 +135,7 @@ class CarService extends BaseService
         }
 
         // Vérification qu'il s'agit bien du conducteur
-        if ($this->roleService->isDriver($userId)) {
+        if ($this->isDriver($userId)) {
             if ($userId !== $driverId) {
                 throw new InvalidArgumentException("Accés interdit.");
             }

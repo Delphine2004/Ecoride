@@ -21,8 +21,6 @@ class BookingRepository extends BaseRepository
     protected string $primaryKey = 'booking_id';
 
     public function __construct(
-        private UserRepository $userRepository,
-        private RideRepository $rideRepository,
         ?PDO $db = null
     ) {
         parent::__construct($db);

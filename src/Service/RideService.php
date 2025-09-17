@@ -7,27 +7,13 @@ use App\Enum\RideStatus;
 use App\Enum\BookingStatus;
 use App\Enum\UserRoles;
 use App\DTO\CreateRideDTO;
-use App\Repository\RideRepository;
-use App\Repository\BookingRepository;
-use App\Repository\UserRepository;
-use App\Service\CarService;
-use App\Service\NotificationService;
+use DateTimeImmutable;
 use InvalidArgumentException;
 use DateTimeInterface;
 
 
 class RideService extends BaseService
 {
-
-    public function __construct(
-        private RideRepository $rideRepository,
-        private BookingRepository $bookingRepository,
-        private UserRepository $userRepository,
-        private CarService $carService,
-        private NotificationService $notificationService
-
-    ) {}
-
 
     //-----------------ACTIONS------------------------------
 
@@ -56,7 +42,7 @@ class RideService extends BaseService
 
 
         // Vérification que le chauffeur a une voiture
-        if (!$this->carService->userHasCars($userId)) {
+        if (!$this->userHasCars($userId)) {
             throw new InvalidArgumentException("Le conducteur doit avoir au moins une voiture.");
         }
 
@@ -124,7 +110,7 @@ class RideService extends BaseService
         }
 
         // Vérification des permissions.
-        if (!$this->roleService->hasAnyRole($userId, [
+        if (!$this->hasAnyRole($userId, [
             UserRoles::CONDUCTEUR,
             UserRoles::EMPLOYE,
             UserRoles::ADMIN
@@ -144,7 +130,7 @@ class RideService extends BaseService
 
 
         // Vérification qu'il s'agit bien du conducteur
-        if ($this->roleService->isDriver($userId)) {
+        if ($this->isDriver($userId)) {
             if ($ride->getRideDriverId() !== $userId) {
                 throw new InvalidArgumentException("Le conducteur ne correspond pas à ce trajet.");
             }
@@ -182,7 +168,7 @@ class RideService extends BaseService
             ]);
 
             // Envoi l'annulation
-            $this->notificationService->sendRideCancelationToPassenger($passenger, $ride);
+            $this->sendRideCancelationToPassenger($passenger, $ride);
         }
 
         // Enregistrement du statut du trajet en BD
@@ -193,7 +179,7 @@ class RideService extends BaseService
 
         // Envoi de confirmation
         $driver = $ride->getRideDriver();
-        $this->notificationService->sendRideCancelationToDriver($driver, $ride);
+        $this->sendRideCancelationToDriver($driver, $ride);
 
         return $ride;
     }
@@ -232,7 +218,7 @@ class RideService extends BaseService
         }
 
         // Vérification des permissions.
-        if (!$this->roleService->hasAnyRole($userId, [
+        if (!$this->hasAnyRole($userId, [
             UserRoles::CONDUCTEUR,
             UserRoles::EMPLOYE,
             UserRoles::ADMIN
@@ -241,7 +227,7 @@ class RideService extends BaseService
         }
 
         // Vérification qu'il s'agit bien du conducteur
-        if ($this->roleService->isDriver($userId)) {
+        if ($this->isDriver($userId)) {
             if ($ride->getRideDriverId() !== $userId) {
                 throw new InvalidArgumentException("Le conducteur ne correspond pas à ce trajet.");
             }
@@ -273,12 +259,12 @@ class RideService extends BaseService
                 ]
             );
 
-            $this->notificationService->sendRideStart($passenger, $ride);
+            $this->sendRideStart($passenger, $ride);
         }
 
         // Notification du conducteur
         $driver = $ride->getRideDriver();
-        $this->notificationService->sendRideStart($driver, $ride);
+        $this->sendRideStart($driver, $ride);
     }
 
     /**
@@ -308,7 +294,7 @@ class RideService extends BaseService
         }
 
         // Vérification des permissions.
-        if (!$this->roleService->hasAnyRole($userId, [
+        if (!$this->hasAnyRole($userId, [
             UserRoles::CONDUCTEUR,
             UserRoles::EMPLOYE,
             UserRoles::ADMIN
@@ -317,7 +303,7 @@ class RideService extends BaseService
         }
 
         // Vérification qu'il s'agit bien du conducteur
-        if ($this->roleService->isDriver($userId)) {
+        if ($this->isDriver($userId)) {
             if ($ride->getRideDriverId() !== $userId) {
                 throw new InvalidArgumentException("Le conducteur ne correspond pas à ce trajet.");
             }
@@ -364,11 +350,11 @@ class RideService extends BaseService
             }
 
             // Envoi de la demande de confirmation de fin de trajet
-            $this->notificationService->sendRideFinalizationRequestToPassenger($passenger, $ride);
+            $this->sendRideFinalizationRequestToPassenger($passenger, $ride);
         }
 
         // Notification du conducteur
-        $this->notificationService->sendRideConfirmationStopToDriver($driver, $ride);
+        $this->sendRideConfirmationStopToDriver($driver, $ride);
     }
 
 
@@ -398,7 +384,7 @@ class RideService extends BaseService
         }
 
         // Vérification des permissions.
-        if (!$this->roleService->hasAnyRole($userId, [
+        if (!$this->hasAnyRole($userId, [
             UserRoles::PASSAGER,
             UserRoles::EMPLOYE,
             UserRoles::ADMIN
@@ -407,7 +393,7 @@ class RideService extends BaseService
         }
 
         // Vérification qu'il s'agit bien du conducteur
-        if ($this->roleService->isDriver($userId)) {
+        if ($this->isDriver($userId)) {
             if ($ride->getRideDriverId() !== $userId) {
                 throw new InvalidArgumentException("Le conducteur ne correspond pas à ce trajet.");
             }
@@ -443,7 +429,7 @@ class RideService extends BaseService
         );
 
         // Envoi de la confirmation de finalisation
-        $this->notificationService->sendRideFinalizationToPassenger($user, $ride);
+        $this->sendRideFinalizationToPassenger($user, $ride);
 
 
         //-----Récupération des crédits / modification des statuts de réservation / notification des passagers-----
@@ -499,7 +485,7 @@ class RideService extends BaseService
         );
 
         // Notification du conducteur
-        $this->notificationService->sendRideFinalizationToDriver($driver, $ride);
+        $this->sendRideFinalizationToDriver($driver, $ride);
     }
 
     //------------------RECUPERATIONS------------------------
@@ -532,13 +518,13 @@ class RideService extends BaseService
     /**
      * Permet de récupèrer les trajets disponibles en fonction de la date, la ville de départ et la ville d'arrivée.
      *
-     * @param DateTimeInterface $date
+     * @param DateTimeImmutable $date
      * @param string $departurePlace
      * @param string $arrivalPlace
      * @return array
      */
     public function listRidesByDateAndPlaces(
-        DateTimeInterface $date,
+        DateTimeImmutable $date,
         string $departurePlace,
         string $arrivalPlace
     ): array {
@@ -569,7 +555,7 @@ class RideService extends BaseService
         }
 
         // Vérification des permissions.
-        if (!$this->roleService->hasAnyRole($userId, [
+        if (!$this->hasAnyRole($userId, [
             UserRoles::CONDUCTEUR,
             UserRoles::EMPLOYE,
             UserRoles::ADMIN
@@ -586,7 +572,7 @@ class RideService extends BaseService
         }
 
         // Vérification qu'il s'agit bien du conducteur
-        if ($this->roleService->isDriver($userId)) {
+        if ($this->isDriver($userId)) {
             if ($userId !== $driverId) {
                 throw new InvalidArgumentException("Accés interdit.");
             }
@@ -615,7 +601,7 @@ class RideService extends BaseService
         }
 
 
-        if (!$this->roleService->hasAnyRole($userId, [
+        if (!$this->hasAnyRole($userId, [
             UserRoles::CONDUCTEUR,
             UserRoles::EMPLOYE,
             UserRoles::ADMIN
@@ -632,7 +618,7 @@ class RideService extends BaseService
         }
 
         // Vérification qu'il s'agit bien du conducteur
-        if ($this->roleService->isDriver($userId)) {
+        if ($this->isDriver($userId)) {
             if ($userId !== $driverId) {
                 throw new InvalidArgumentException("Accés interdit.");
             }
@@ -665,7 +651,7 @@ class RideService extends BaseService
         }
 
         // Vérification des permissions.
-        if (!$this->roleService->hasAnyRole($userId, [
+        if (!$this->hasAnyRole($userId, [
             UserRoles::PASSAGER,
             UserRoles::EMPLOYE,
             UserRoles::ADMIN
@@ -682,7 +668,7 @@ class RideService extends BaseService
         }
 
         // Vérification qu'il s'agit bien du passager
-        if ($this->roleService->isPassenger($userId)) {
+        if ($this->isPassenger($userId)) {
             if ($userId !== $passengerId) {
                 throw new InvalidArgumentException("Accés interdit.");
             }
@@ -711,7 +697,7 @@ class RideService extends BaseService
         }
 
         // Vérification des permissions.
-        if (!$this->roleService->hasAnyRole($userId, [
+        if (!$this->hasAnyRole($userId, [
             UserRoles::PASSAGER,
             UserRoles::EMPLOYE,
             UserRoles::ADMIN
@@ -728,7 +714,7 @@ class RideService extends BaseService
         }
 
         // Vérification qu'il s'agit bien du passager
-        if ($this->roleService->isPassenger($userId)) {
+        if ($this->isPassenger($userId)) {
             if ($userId !== $passengerId) {
                 throw new InvalidArgumentException("Accés interdit.");
             }
@@ -739,7 +725,7 @@ class RideService extends BaseService
 
     //------- Pour le staff uniquement ---------
     /**
-     * Permet à un membre du personnel de récupèrer la liste brute des réservations par date de création.
+     * Permet à un membre du personnel de récupèrer la liste des objets Booking par date de création.
      *
      * @param DateTimeInterface $creationDate
      * @param integer $staffId
@@ -761,7 +747,7 @@ class RideService extends BaseService
         // Vérification de la permission
         $this->ensureStaff($staffId);
 
-        return $this->rideRepository->fetchAllRidesRowsByCreationDate($creationDate);
+        return $this->rideRepository->findAllRidesByCreationDate($creationDate);
     }
 
 

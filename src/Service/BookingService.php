@@ -2,10 +2,6 @@
 
 namespace App\Service;
 
-use App\Repository\BookingRepository;
-use App\Repository\RideRepository;
-use App\Repository\UserRepository;
-use App\Service\NotificationService;
 use App\Model\Booking;
 use App\Model\Ride;
 use App\Model\User;
@@ -19,14 +15,6 @@ use InvalidArgumentException;
 
 class BookingService extends BaseService
 {
-
-    public function __construct(
-        private BookingRepository $bookingRepository,
-        private RideRepository $rideRepository,
-        private UserRepository $userRepository,
-        private NotificationService $notificationService
-
-    ) {}
 
 
     //--------------VERIFICATION-----------------
@@ -134,7 +122,7 @@ class BookingService extends BaseService
 
 
         // Notification
-        $this->notificationService->sendRideConfirmationToPassenger($passenger, $ride);
+        $this->sendRideConfirmationToPassenger($passenger, $ride);
 
 
         return $booking;
@@ -170,7 +158,7 @@ class BookingService extends BaseService
         }
 
         // Vérification des permissions.
-        if (!$this->roleService->hasAnyRole($userId, [
+        if (!$this->hasAnyRole($userId, [
             UserRoles::PASSAGER,
             UserRoles::EMPLOYE,
             UserRoles::ADMIN
@@ -179,7 +167,7 @@ class BookingService extends BaseService
         }
 
         // Vérification qu'il s'agit bien du passager
-        if ($this->roleService->isPassenger($userId)) {
+        if ($this->isPassenger($userId)) {
             if ($booking->getBookingPassengerId() !== $userId) {
                 throw new InvalidArgumentException("Le conducteur ne correspond pas à ce trajet.");
             }
@@ -226,16 +214,16 @@ class BookingService extends BaseService
             $passenger->setUserCredits($passenger->getUserCredits() + $ride->getRidePrice());
 
             // Envoi des confirmations sans frais
-            $this->notificationService->sendBookingCancelationToPassenger($passenger, $booking);
-            $this->notificationService->sendBookingCancelationToDriver($driver, $booking);
+            $this->sendBookingCancelationToPassenger($passenger, $booking);
+            $this->sendBookingCancelationToDriver($driver, $booking);
 
             // Enregistrement des modifications de l'utilisateur en BD
             $this->userRepository->updateUser($passenger);
         } else {
 
             // Envoi des confirmations avec frais
-            $this->notificationService->sendBookingLateCancelationToPassenger($passenger, $booking);
-            $this->notificationService->sendBookingLateCancelationToDriver($driver, $booking);
+            $this->sendBookingLateCancelationToPassenger($passenger, $booking);
+            $this->sendBookingLateCancelationToDriver($driver, $booking);
         }
         return $booking;
     }
@@ -274,7 +262,7 @@ class BookingService extends BaseService
         }
 
         // Vérification des permissions.
-        if (!$this->roleService->hasAnyRole($userId, [
+        if (!$this->hasAnyRole($userId, [
             UserRoles::PASSAGER,
             UserRoles::EMPLOYE,
             UserRoles::ADMIN
@@ -283,7 +271,7 @@ class BookingService extends BaseService
         }
 
         // Vérification qu'il s'agit bien du passager
-        if ($this->roleService->isPassenger($userId)) {
+        if ($this->isPassenger($userId)) {
             if ($booking->getBookingPassengerId() !== $userId) {
                 throw new InvalidArgumentException("Le conducteur ne correspond pas à ce trajet.");
             }
@@ -323,7 +311,7 @@ class BookingService extends BaseService
         }
 
         // Vérification des permissions.
-        if (!$this->roleService->hasAnyRole($userId, [
+        if (!$this->hasAnyRole($userId, [
             UserRoles::PASSAGER,
             UserRoles::EMPLOYE,
             UserRoles::ADMIN
@@ -357,7 +345,7 @@ class BookingService extends BaseService
         }
 
         // Vérification des permissions.
-        if (!$this->roleService->hasAnyRole($userId, [
+        if (!$this->hasAnyRole($userId, [
             UserRoles::PASSAGER,
             UserRoles::EMPLOYE,
             UserRoles::ADMIN
@@ -375,7 +363,7 @@ class BookingService extends BaseService
         }
 
         // Vérification qu'il s'agit bien du passager
-        if ($this->roleService->isPassenger($userId)) {
+        if ($this->isPassenger($userId)) {
             if ($userId !== $passengerId) {
                 throw new InvalidArgumentException("Accés interdit.");
             }
@@ -404,7 +392,7 @@ class BookingService extends BaseService
         }
 
         // Vérification des permissions.
-        if (!$this->roleService->hasAnyRole($userId, [
+        if (!$this->hasAnyRole($userId, [
             UserRoles::PASSAGER,
             UserRoles::EMPLOYE,
             UserRoles::ADMIN
@@ -422,7 +410,7 @@ class BookingService extends BaseService
         }
 
         // Vérification qu'il s'agit bien du passager
-        if ($this->roleService->isPassenger($userId)) {
+        if ($this->isPassenger($userId)) {
             if ($userId !== $passengerId) {
                 throw new InvalidArgumentException("Accés interdit.");
             }

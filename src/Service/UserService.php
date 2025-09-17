@@ -3,8 +3,6 @@
 namespace App\Service;
 
 
-use App\Repository\UserRepository;
-use App\Repository\CarRepository;
 use App\Model\User;
 use App\DTO\CreateUserDTO;
 use App\DTO\UpdateUserDTO;
@@ -13,13 +11,6 @@ use InvalidArgumentException;
 
 class UserService extends BaseService
 {
-
-
-    public function __construct(
-        private UserRepository $userRepository,
-        private CarRepository $carRepository
-    ) {}
-
 
     //----------Action VISITEUR----------------------------
 

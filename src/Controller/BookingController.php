@@ -2,19 +2,18 @@
 
 namespace App\Controller;
 
-use App\Enum\BookingStatus;
 use App\Model\Ride;
 use App\Model\User;
-use App\Model\Booking;
 use App\Service\BookingService;
-use DateTimeImmutable;
 use InvalidArgumentException;
 
 class BookingController extends BaseController
 {
     public function __construct(
         private BookingService $bookingService
-    ) {}
+    ) {
+        parent::__construct();
+    }
 
 
     // ------------------------POST--------------------------------

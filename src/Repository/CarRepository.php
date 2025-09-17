@@ -31,6 +31,11 @@ class CarRepository extends BaseRepository
         'created_at'
     ];
 
+    public function __construct(
+        ?PDO $db = null
+    ) {
+        parent::__construct($db);
+    }
 
     /**
      * Remplit un objet Car avec les données de la table cars.

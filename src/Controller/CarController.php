@@ -4,13 +4,17 @@ namespace App\Controller;
 
 use App\DTO\CreateCarDTO;
 use App\Service\CarService;
+use App\Security\AuthService;
 use InvalidArgumentException;
 
 class CarController extends BaseController
 {
     public function __construct(
-        private CarService $carService
-    ) {}
+        private CarService $carService,
+        private AuthService $authService
+    ) {
+        parent::__construct($authService);
+    }
 
 
     // ------------------------POST--------------------------------
