@@ -35,11 +35,12 @@ class NotificationService
 
     // Actions
     // envoi une confirmation de démarrage du trajet
-    public function sendRideStart() {}
+    public function sendRideStartToDriver(User $driver, Ride $ride) {}
+    public function sendRideStartToPassenger(User $passenger, Ride $ride) {}
 
-    public function sendRideConfirmationStopToDriver() {}
+    public function sendRideConfirmationStopToDriver(User $driver, Ride $ride) {}
 
-    public function sendRideFinalizationRequestToPassenger() {}
+    public function sendRideFinalizationRequestToPassenger(User $passenger, Ride $ride) {}
 
     // Envoi une confirmation de finalisation de trajet par email au passager. - Doit demander au participant de valider 
     //- voir comment faire pour non validé
