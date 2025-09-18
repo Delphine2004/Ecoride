@@ -85,18 +85,27 @@ class RideService
         $this->rideRepository->insertRide($ride);
 
         // Récupération de l'utilisateur
-        $user = $ride->getRideDriver($userId);
+        $driver = $this->userService->getUserById($userId);
 
 
         // Déduction de la commission au conducteur
         $commission = $ride->getRideCommission();
-        $creditsToDeduct = $user->getUserCredits() - $commission;
 
-        $userDto = new UpdateUserDTO([$creditsToDeduct]);
+        // Vérifier que le conducteur a assez de crédit pour payer la commission
+        if ($driver->getUserCredits() < $commission) {
+            throw new InvalidArgumentException("Crédits insuffisants pour créer ce trajet.");
+        }
+
+        $newCreditsBalance = $driver->getUserCredits() - $commission;
+
+        $userDto = new UpdateUserDTO(['credits' => $newCreditsBalance]);
 
 
         // Enregistrement de la modification des crédits
         $this->userService->updateProfile($userDto, $userId);
+
+        // Enregistrement dans la bd
+        $this->rideRepository->insertRide($ride);
 
         return $ride;
     }
@@ -118,7 +127,7 @@ class RideService
         $this->checkIfRideExists($rideId);
 
         $this->userService->checkIfUserExists($userId);
-        $this->userService->ensurePassengerAndStaff($userId);
+        $this->userService->ensureDriverAndStaff($userId);
 
         $ride = $this->rideRepository->findRideById($rideId);
 
@@ -155,9 +164,9 @@ class RideService
 
 
             // Défini le remboursement au passager
-            $passenger->setUserCredits($passenger->getUserCredits() + $ride->getRidePrice());
+            $newCreditsBalance = $passenger->getUserCredits() + $ride->getRidePrice();
 
-            $passengerDto = new UpdateUserDTO([$passenger]);
+            $passengerDto = new UpdateUserDTO(['credits' => $newCreditsBalance]);
 
             // Enregistrement des crédits du passager en BD
             $this->userService->updateProfile($passengerDto, $userId);
@@ -173,7 +182,7 @@ class RideService
 
 
         // Envoi de confirmation
-        $driver = $ride->getRideDriver();
+        $driver = $this->userService->getUserById($userId);
         $this->notificationService->sendRideCancelationToDriver($driver, $ride);
 
         return $ride;
@@ -197,7 +206,7 @@ class RideService
         $this->checkIfRideExists($rideId);
 
         $this->userService->checkIfUserExists($userId);
-        $this->userService->ensurePassengerAndStaff($userId);
+        $this->userService->ensureDriverAndStaff($userId);
 
         // Récupération de l'objet Ride
         $ride = $this->rideRepository->findRideById($rideId);
@@ -239,7 +248,7 @@ class RideService
         }
 
         // Notification du conducteur
-        $driver = $ride->getRideDriver();
+        $driver = $this->userService->getUserById($userId);
         $this->notificationService->sendRideStartToDriver($driver, $ride);
     }
 
@@ -258,7 +267,7 @@ class RideService
         $this->checkIfRideExists($rideId);
 
         $this->userService->checkIfUserExists($userId);
-        $this->userService->ensurePassengerAndStaff($userId);
+        $this->userService->ensureDriverAndStaff($userId);
 
         // Récupération de l'objet Ride
         $ride = $this->rideRepository->findRideById($rideId);
@@ -276,8 +285,8 @@ class RideService
             throw new InvalidArgumentException("Le trajet n'a pas le statut ENCOURS.");
         }
 
-        // Récupération du chauffeur
-        $driver = $ride->getRideDriver();
+        // Récupération de l'utilisateur
+        $driver = $this->userService->getUserById($userId);
 
         // Vérification de l'existence du conducteur
         if (!$driver) {
@@ -326,7 +335,7 @@ class RideService
         $this->checkIfRideExists($rideId);
         $this->userService->checkIfUserExists($userId);
 
-        $this->userService->ensurePassengerAndStaff($userId);
+        $this->userService->ensureDriverAndStaff($userId);
 
         // Récupération de l'objet Ride
         $ride = $this->rideRepository->findRideById($rideId);
@@ -361,33 +370,36 @@ class RideService
 
         // -------Créditer le conducteur avec le total des passagers si tous ont confirmé
 
-        if ($allConfirmed) {
-            // Récupération du conducteur
-            $driver = $ride->getRideDriver();
+        if (!$allConfirmed) {
+            return;
+        } else {
+            // Récupération de l'utilisateur
+            $driver = $this->userService->getUserById($userId);
 
             $this->userService->checkIfUserExists($driver->getUserId());
+
+
+            // Ajout des crédits au conducteur
+            $newCreditsBalance = $driver->setUserCredits($driver->getUserCredits() + $totalCredits);
+
+            $userDto = new UpdateUserDTO(['credits' => $newCreditsBalance]);
+
+            $this->userService->updateProfile($userDto, $driver->getUserId());
+
+            // Modification du statut du trajet
+            $ride->setRideStatus(RideStatus::TERMINE);
+
+            // Enregistrements dans la bd.
+            $this->rideRepository->updateRide(
+                $ride,
+                [
+                    'ride_status' => $ride->getRideStatus()
+                ]
+            );
+
+            // Notification du conducteur
+            $this->notificationService->sendRideFinalizationToDriver($driver, $ride);
         }
-
-        // Ajout des crédits au conducteur
-        $creditToAdd = $driver->setUserCredits($driver->getUserCredits() + $totalCredits);
-
-        $userDto = new UpdateUserDTO([$creditToAdd]);
-
-        $this->userService->updateProfile($userDto, $driver->getUserId());
-
-        // Modification du statut du trajet
-        $ride->setRideStatus(RideStatus::TERMINE);
-
-        // Enregistrements dans la bd.
-        $this->rideRepository->updateRide(
-            $ride,
-            [
-                'ride_status' => $ride->getRideStatus()
-            ]
-        );
-
-        // Notification du conducteur
-        $this->notificationService->sendRideFinalizationToDriver($driver, $ride);
     }
 
     //------------------RECUPERATIONS------------------------
