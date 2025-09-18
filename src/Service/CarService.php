@@ -2,6 +2,8 @@
 
 namespace App\Service;
 
+use App\Repository\CarRepository;
+use App\Service\UserService;
 use App\Model\Car;
 use App\Enum\UserRoles;
 use App\DTO\CreateCarDTO;
@@ -10,8 +12,26 @@ use App\DTO\CreateCarDTO;
 use InvalidArgumentException;
 
 
-class CarService extends BaseService
+class CarService
 {
+
+    public function __construct(
+        protected CarRepository $carRepository,
+        protected UserService $userService
+    ) {}
+
+    /**
+     * Vérifie si l'utilisateur a des voitures.
+     *
+     * @param integer $userId
+     * @return boolean
+     */
+    public function userHasCars(int $userId): bool
+    {
+        $this->userService->checkIfUserExists($userId);
+        $this->userService->ensureDriver($userId);
+        return count($this->carRepository->findAllCarsByOwner($userId)) > 0;
+    }
 
     //-----------------ACTIONS------------------------------
 
@@ -25,18 +45,9 @@ class CarService extends BaseService
     public function createCar(
         CreateCarDTO $dto,
         int $userId
-    ): ?Car {
-        // Récupération de l'utilisateur.
-        $user = $this->userRepository->findUserById($userId);
-
-        // Vérification de l'existence de l'utilisateur.
-        if (!$user) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
-
-        // Vérification des permissions.
-        $this->ensureDriver($userId);
-
+    ): Car {
+        $this->userService->checkIfUserExists($userId);
+        $this->userService->ensureDriver($userId);
 
         // Création de l'objet Car
         $car = new Car();
@@ -69,16 +80,10 @@ class CarService extends BaseService
         int $carId,
         int $userId
     ): void {
-        // Récupération de l'utilisateur.
-        $user = $this->userRepository->findUserById($userId);
-
-        // Vérification de l'existence de l'utilisateur.
-        if (!$user) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
+        $this->userService->checkIfUserExists($userId);
 
         // Vérification des permissions.
-        if (!$this->hasAnyRole($userId, [
+        if (!$this->userService->hasAnyRole($userId, [
             UserRoles::CONDUCTEUR,
             UserRoles::EMPLOYE,
             UserRoles::ADMIN
@@ -87,7 +92,7 @@ class CarService extends BaseService
         }
 
         // Vérification si l'utilisateur CONDUCTEUR est le propriétaire.
-        if ($this->isDriver($userId) && !$this->carRepository->isOwner($userId, $carId)) {
+        if ($this->userService->isDriver($userId) && !$this->carRepository->isOwner($userId, $carId)) {
             throw new InvalidArgumentException("Vous ne pouvez pas supprimer cette voiture.");
         }
 
@@ -109,33 +114,24 @@ class CarService extends BaseService
         int $driverId,
         int $userId
     ): array {
-        // Récupération de l'utilisateur
-        $user = $this->userRepository->findUserById($userId);
 
-        // Vérification de l'existence de l'utilisateur
-        if (!$user) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
+        $this->userService->checkIfUserExists($userId);
 
         // Vérification des permissions.
-        if (!$this->hasAnyRole($userId, [
+        if (!$this->userService->hasAnyRole($userId, [
             UserRoles::CONDUCTEUR,
             UserRoles::EMPLOYE,
             UserRoles::ADMIN
         ])) {
-            throw new InvalidArgumentException("Seulement les utilisateurs CONDUCTEUR, EMPLOYEE ou ADMIN peuvent effectuer cette action.");
+            throw new InvalidArgumentException("Seulement les utilisateurs CONDUCTEUR,  ou ADMIN peuvent effectuer cette action.");
         }
 
         // Récupération du conducteur
-        $driver = $this->userRepository->findUserById($driverId);
+        $this->userService->checkIfUserExists($driverId);
 
-        // Vérification de l'existence du conducteur
-        if (!$driver) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
 
         // Vérification qu'il s'agit bien du conducteur
-        if ($this->isDriver($userId)) {
+        if ($this->userService->isDriver($driverId)) {
             if ($userId !== $driverId) {
                 throw new InvalidArgumentException("Accés interdit.");
             }
