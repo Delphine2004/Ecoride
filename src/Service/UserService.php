@@ -152,7 +152,13 @@ class UserService
         }
     }
 
+    //---------------------Récupération simple---------------
 
+    public function getUserById(int $userId): User
+    {
+        $this->checkIfUserExists($userId);
+        return $this->userRepository->findUserById($userId);
+    }
     //-------------------Action VISITEUR----------------------
 
     /**
