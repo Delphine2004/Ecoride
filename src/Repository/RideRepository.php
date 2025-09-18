@@ -2,16 +2,14 @@
 
 namespace App\Repository;
 
-use App\Repository\UserRepository;
 use App\Model\Ride;
-use App\Model\User;
 use App\Enum\RideStatus;
 use App\Enum\UserRoles;
 use DateTimeInterface;
+use DateTimeImmutable;
 use PDO;
 use InvalidArgumentException;
-use DateTime;
-use DateTimeImmutable;
+
 
 /**
  * Cette classe gère la correspondance entre un trajet et la BDD.
@@ -38,8 +36,10 @@ class RideRepository extends BaseRepository
     ];
 
     public function __construct(
-        private UserRepository $userRepository,
-    ) {}
+        ?PDO $db = null
+    ) {
+        parent::__construct($db);
+    }
 
 
 
@@ -90,23 +90,6 @@ class RideRepository extends BaseRepository
         ];
     }
 
-    /**
-     * Transforme les lignes SQL en Objet User
-     *
-     * @param array $row
-     * @param string $prefix
-     * @return User
-     */
-    private function mapUser(array $row, string $prefix = ''): User
-    {
-        //$prefix -> permet de distinguer les alias dans les jointures sql
-        return $this->userRepository->hydrateUser([
-            'user_id' => $row[$prefix . 'id'],
-            'first_name' => $row[$prefix . 'first_name'],
-            'last_name' => $row[$prefix . 'last_name'],
-            'login' => $row[$prefix . 'login']
-        ]);
-    }
 
     /**
      * Surcharge la fonction isAllowedField de BaseRepository
@@ -210,36 +193,35 @@ class RideRepository extends BaseRepository
     }
 
 
-    /**
-     * Récupère la liste des objets Ride selon la date, le lieu de depart et le lieu d'arrivée avec tri et pagination.
-     *
-     * @param \DateTimeInterface $date
-     * @param string $departurePlace
-     * @param string|null $arrivalPlace
-     * @param string $orderBy
-     * @param string $orderDirection
-     * @param integer $limit
-     * @param integer $offset
-     * @return array
-     */
+    // Récupère la liste des objets Ride selon la date, le lieu de depart et le lieu d'arrivée avec tri et pagination.
+
     public function findAllRidesByDateAndPlace(
-        \DateTimeInterface $date,
+        DateTimeImmutable $date,
         string $departurePlace,
-        ?string $arrivalPlace = null,
+        string $arrivalPlace,
         string $orderBy = 'departure_date_time',
         string $orderDirection = 'DESC',
         int $limit = 20,
         int $offset = 0
     ): array {
-        return $this->findAllRidesByFields([
-            'departure_date_time' => $date,
+        // Faire une fonction manuelle
+        $startOfDay = (clone $date)->setTime(0, 0, 0);
+        $endOfDay   = (clone $date)->setTime(23, 59, 59);
+
+        $criteria = [
+            'departure_date_time' => [
+                'between' => [$startOfDay, $endOfDay]
+            ],
             'departure_place' => $departurePlace,
-            'arrival_place' => $arrivalPlace,
-        ], $orderBy, $orderDirection, $limit, $offset);
+            'arrival_place' => $arrivalPlace
+        ];
+
+
+        return $this->findAllRidesByFields($criteria, $orderBy, $orderDirection, $limit, $offset);
     }
 
     /**
-     * Récupère la liste brute des trajets selon la date de création avec tri et pagination.
+     * Récupère la liste d'objet Ride selon la date de création avec tri et pagination.
      *
      * @param integer $creationDate
      * @param string $orderBy
@@ -248,27 +230,27 @@ class RideRepository extends BaseRepository
      * @param integer $offset
      * @return array
      */
-    public function fetchAllRidesRowsByCreationDate(
+    public function findAllRidesByCreationDate(
         DateTimeImmutable $creationDate,
         string $orderBy = 'created_at',
         string $orderDirection = 'DESC',
         int $limit = 20,
         int $offset = 0
     ): array {
-        return $this->fetchAllRidesRowsByFields(['created_at' => $creationDate], $orderBy, $orderDirection, $limit, $offset);
+        return $this->findAllRidesByFields(['created_at' => $creationDate], $orderBy, $orderDirection, $limit, $offset);
     }
 
 
     //  ------ Récupèrations des trajets et des utilisateurs ---------
 
     /**
-     * Base SQL pour récupèrer un Ride avec ses utilisateurs.
-     *
-     * @return string
+     * Récupère un objet Ride avec le liste brute du conducteur et des passagers.
      */
-    private function baseQueryRideUser(): string
-    {
-        return "SELECT r.*,
+    public function findRideWithUsersByFields(
+        array $criteria = []
+    ): ?Ride {
+        // Construction du sql
+        $sql = "SELECT r.*,
                     d.user_id AS driver_id, 
                     d.first_name AS driver_first_name,
                     d.last_name AS driver_last_name,
@@ -284,16 +266,6 @@ class RideRepository extends BaseRepository
                 LEFT JOIN users p ON b.passenger_id = p.user_id
                 WHERE 1 = 1
         ";
-    }
-
-    /**
-     * Récupère un objet Ride avec le liste d'objets User conducteur et User passagers.
-     */
-    public function findRideWithUsersByFields(
-        array $criteria = []
-    ): ?Ride {
-        // Construction du sql
-        $sql = $this->baseQueryRideUser();
 
         // Ajout des critéres
         foreach ($criteria as $field => $value) {
@@ -327,15 +299,12 @@ class RideRepository extends BaseRepository
         // Hydratation du trajet avec la premiére ligne.
         $ride = $this->hydrateRide($rows[0]);
 
-        // Hydratation du conducteur.
-        $driver = $this->mapUser($rows[0], 'driver_');
-        $ride->setRideDriver($driver);
+        $usersRide = [];
 
-        // Ajouter les passagers en les hydratant.
+        // Ajouter les utilisateurs liés au trajet.
         foreach ($rows as $row) {
-            if (!empty($row['passenger_id'])) {
-                $passenger = $this->mapUser($row, 'passenger_');
-                $ride->addRidePassenger($passenger);
+            if (!empty($row['driver_id']) || !empty($row['passenger_id'])) {
+                $usersRide[] = $row;
             }
         }
 
@@ -343,7 +312,7 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupère un objet Ride avec le liste d'objets User conducteur et User passagers avec l'id du ride.
+     * Récupère un objet Ride avec le liste brute des utilisateur conducteur et passagers avec l'id du ride.
      *
      * @param [type] $rideId
      * @return Ride|null
@@ -354,90 +323,6 @@ class RideRepository extends BaseRepository
         return $ride;
     }
 
-    /**
-     * Récupère la liste des objets Ride avec les participants en liste brute selon un ou plusieurs critéres avec tri et pagination.
-     *
-     * @param array $criteria
-     * @param string $orderBy
-     * @param string $orderDirection
-     * @param integer $limit
-     * @param integer $offset
-     * @return array
-     */
-    public function findAllRidesWithUsersByFields(
-        array $criteria = [],
-        string $orderBy = 'ride_id',
-        string $orderDirection = 'DESC',
-        int $limit = 20,
-        int $offset = 0
-    ): array {
-        // Vérifier si l'ordre et la direction sont définis et valides.
-        [$orderBy, $orderDirection] = $this->sanitizeOrder(
-            $orderBy,
-            $orderDirection,
-            'ride_id'
-        );
-
-        // Construction du SQL 
-        $sql = $this->baseQueryRideUser();
-
-        // Ajout des critéres
-        foreach ($criteria as $field => $value) {
-            if (!$this->isAllowedField($field)) {
-                continue;
-            }
-            if ($value === null) {
-                $sql .= " AND r.$field IS NULL";
-            } else {
-                $sql .= " AND r.$field = :$field";
-            }
-        }
-
-        // Tri et limite
-        $sql .= " ORDER BY r.$orderBy $orderDirection
-        LIMIT " . (int)$limit . " OFFSET " . (int)$offset;
-
-        // Préparation de la requête
-        $stmt = $this->db->prepare($sql);
-
-        foreach ($criteria as $field => $value) {
-            if ($value === null || !$this->isAllowedField($field)) {
-                continue;
-            }
-
-            $type = is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR;
-            $stmt->bindValue(":$field", $value, $type);
-        }
-
-        $stmt->execute();
-
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC); // FetchAll car plusieurs lignes d'utilisateur (conducteur et passager)
-        if (!$rows) return [];
-
-        // Hydratation du trajet
-        $rideMap = [];
-        foreach ($rows as $row) {
-            $rideId = $row['ride_id'];
-
-            // Création du ride seulement 1 fois car plusieurs ligne à cause des utilisateurs
-            if (!isset($rideMap[$rideId])) {
-                $ride = $this->hydrateRide($row);
-
-                // Puis ajout du conducteur
-                $driver = $this->mapUser($row, 'driver_');
-                $ride->setRideDriver($driver);
-
-                $rideMap[$rideId] = $ride;
-            }
-
-            // Ajouter les passagers si présents
-            if (!empty($row['passenger_id'])) {
-                $passenger = $this->mapUser($row, 'passenger_');
-                $rideMap[$rideId]->addRidePassenger($passenger);
-            }
-        }
-        return array_values($rideMap);
-    }
 
 
     //------ Récupèrations en fonction du rôle ------
@@ -790,7 +675,7 @@ class RideRepository extends BaseRepository
      */
     public function countRidesByToday(): ?array
     {
-        $today = (new DateTime())->format('Y-m-d');
+        $today = (new DateTimeImmutable())->format('Y-m-d');
         return $this->countRidesByFields(['DATE(created_at)' => $today]);
     }
 
@@ -801,7 +686,7 @@ class RideRepository extends BaseRepository
      */
     public function countCommissionByToday(): ?array
     {
-        $today = (new DateTime())->format('Y-m-d');
+        $today = (new DateTimeImmutable())->format('Y-m-d');
         return $this->countCommissionByFields(['DATE(created_at)' => $today]);
     }
 

@@ -318,15 +318,10 @@ class BookingRepository extends BaseRepository
 
     // ------ Récupérations utilisées dans RideService ---------
 
-    /**
-     * Récupère un objet Booking par l'id du trajet.
-     *
-     * @param integer $rideId
-     * @return Booking|null
-     */
-    public function findBookingByRideId(int $rideId): ?Booking
+
+    public function findAllBookingByRideId(int $rideId): array
     {
-        return $this->findBookingByFields(['ride_id' => $rideId]);
+        return $this->findAllBookingsByFields(['ride_id' => $rideId]);
     }
 
     public function findBookingByPassengerAndRide(int $userId, int $rideId): ?Booking

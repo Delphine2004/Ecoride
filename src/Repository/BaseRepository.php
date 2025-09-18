@@ -56,6 +56,7 @@ abstract class BaseRepository
     ): array {
         // Construction dy SQL
         $sql = "SELECT * FROM {$this->table} WHERE 1=1";
+        $params = [];
 
 
         // Construction dynamique des conditions
@@ -63,10 +64,32 @@ abstract class BaseRepository
             if (!$this->isAllowedField($field)) {
                 throw new InvalidArgumentException("Champ non autorisé : $field");
             }
-            if ($value === null) {
+
+            // Vérifie si between est dans le tableau de critére
+            if (is_array($value) && isset($value['between']) && count($value['between']) === 2) {
+                [$start, $end] = $value['between'];
+
+                if ($start instanceof \DateTimeImmutable) {
+                    $start = $start->format('Y-m-d H:i:s');
+                }
+                if ($end instanceof \DateTimeImmutable) {
+                    $end = $end->format('Y-m-d H:i:s');
+                }
+
+                $sql .= " AND $field BETWEEN :{$field}_start AND :{$field}_end";
+                $params[":{$field}_start"] = $start;
+                $params[":{$field}_end"]   = $end;
+            }
+            // Vérifie si le champ est vide
+            elseif ($value === null) {
                 $sql .= " AND $field IS NULL";
-            } else {
+            }
+            // Vérifie si il y a d'autre champs
+            else {
                 $sql .= " AND $field = :$field";
+                $params[":$field"] = $value instanceof \DateTimeInterface
+                    ? $value->format('Y-m-d H:i:s')
+                    : $value;
             }
         }
 
@@ -81,10 +104,12 @@ abstract class BaseRepository
 
         // Préparation de la requête
         $stmt = $this->db->prepare($sql);
-        foreach ($criteria as $field => $value) {
-            if ($value !== null) {
-                $type = is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR;
-                $stmt->bindValue(":$field", $value, $type);
+
+        foreach ($params as $field => $value) {
+            if (is_int($value)) {
+                $stmt->bindValue($field, $value, PDO::PARAM_INT);
+            } else {
+                $stmt->bindValue($field, $value, PDO::PARAM_STR);
             }
         }
         $stmt->execute();
