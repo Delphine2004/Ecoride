@@ -124,6 +124,27 @@ class UserService
         }
     }
 
+    public function ensureStaff(int $userId)
+    {
+        if (!$this->isStaff($userId)) {
+            throw new InvalidArgumentException("L'utilisateur n'a pas le rôle EMPLOYE ou ADMIN.");
+        }
+    }
+
+    public function ensurePassengerAndStaff(int $userId)
+    {
+        if (!$this->isPassenger($userId) && !$this->isStaff($userId)) {
+            throw new InvalidArgumentException("L'utilisateur n'a pas le rôle PASSAGER ou EMPLOYE ou ADMIN.");
+        }
+    }
+
+    public function ensureDriverAndStaff(int $userId)
+    {
+        if (!$this->isDriver($userId) && !$this->isStaff($userId)) {
+            throw new InvalidArgumentException("L'utilisateur n'a pas le rôle CONDUCTEUR ou EMPLOYE ou ADMIN.");
+        }
+    }
+
     public function ensureUser(int $userId)
     {
         if (!$this->isUser($userId)) {
@@ -283,8 +304,15 @@ class UserService
         if (!empty($dto->licenceNo) && $this->isDriver($userId)) {
             $user->setUserLicenceNo($dto->licenceNo);
         }
+        if (!empty($dto->credits)) {
+            $user->setUserCredits($dto->credits);
+        }
+        if (!empty($dto->preferences)) {
+            $user->setUserPreference($dto->preferences);
+        }
 
-        // Enregistrement dans dans BD.
+
+        // Enregistrement dans la BD.
         $this->userRepository->updateUser($user);
 
         return $user;
