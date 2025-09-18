@@ -188,8 +188,10 @@ class RideService
         return $ride;
     }
 
-    public function updateRideStatus(int $rideId, RideStatus $rideStatus): Ride
-    {
+    public function updateRideStatus(
+        int $rideId,
+        RideStatus $rideStatus
+    ): Ride {
         // récupération de l'Objet Ride
         $ride = $this->rideRepository->findRideById($rideId);
 
@@ -198,8 +200,10 @@ class RideService
         return $ride;
     }
 
-    public function updateRideAvailableSeats(int $rideId, int $seat): Ride
-    {
+    public function updateRideAvailableSeats(
+        int $rideId,
+        int $seat
+    ): Ride {
         // récupération de l'Objet Ride
         $ride = $this->rideRepository->findRideById($rideId);
 
@@ -393,7 +397,7 @@ class RideService
         // -------Créditer le conducteur avec le total des passagers si tous ont confirmé
 
         if (!$allConfirmed) {
-            return $ride;;
+            return $ride;
         } else {
             // Récupération de l'utilisateur
             $driver = $this->userService->getUserById($userId);
