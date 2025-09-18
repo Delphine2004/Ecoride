@@ -123,7 +123,7 @@ class BookingService
 
         // Modification du statut si complet
         if ($seatsLeft === 0) {
-            $ride->setRideStatus(RideStatus::COMPLET);
+            $rideStatus = $ride->setRideStatus(RideStatus::COMPLET);
         }
 
         // Décrémentation les crédits du passager
@@ -135,7 +135,7 @@ class BookingService
         //Enregistrement des modifications
         $this->userService->updateProfile($userDto, $passenger->getUserId());
         $this->bookingRepository->insertBooking($booking);
-        $this->rideService->updateRide($ride->getRideId());
+        $this->rideService->updateRideStatus($ride->getRideId(), $rideStatus);
 
 
         // Notification
@@ -182,9 +182,10 @@ class BookingService
         // Mise à jour des places disponibles
         $ride = $booking->getBookingRide();
         $ride->incrementAvailableSeats();
+        $seat = $ride->getRideAvailableSeats();
 
         // Enregistrement des modifications de trajet en BD
-        $this->rideService->updateRide($ride->getRideId());
+        $this->rideService->updateRideAvailableSeats($ride->getRideId(), $seat);
 
         // Enregistrement des modifications de réservation en BD
         $this->bookingRepository->updateBooking($booking);
@@ -300,8 +301,10 @@ class BookingService
         return $this->bookingRepository->findBookingById($bookingId);
     }
 
-    public function getBookingByPassengerAndRide(int $passengerId, int $rideId)
-    {
+    public function getBookingByPassengerAndRide(
+        int $passengerId,
+        int $rideId
+    ): Booking {
         return $this->bookingRepository->findBookingByPassengerAndRide($passengerId, $rideId);
     }
 

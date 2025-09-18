@@ -188,7 +188,25 @@ class RideService
         return $ride;
     }
 
-    public function updateRide(int $rideId) {}
+    public function updateRideStatus(int $rideId, RideStatus $rideStatus): Ride
+    {
+        // récupération de l'Objet Ride
+        $ride = $this->rideRepository->findRideById($rideId);
+
+        $ride->setRideStatus($rideStatus);
+
+        return $ride;
+    }
+
+    public function updateRideAvailableSeats(int $rideId, int $seat): Ride
+    {
+        // récupération de l'Objet Ride
+        $ride = $this->rideRepository->findRideById($rideId);
+
+        $ride->setRideAvailableSeats($seat);
+
+        return $ride;
+    }
 
 
     /**
@@ -201,7 +219,7 @@ class RideService
     public function startRide(
         int $rideId,
         int $userId
-    ): void {
+    ): Ride {
 
         $this->checkIfRideExists($rideId);
 
@@ -250,6 +268,8 @@ class RideService
         // Notification du conducteur
         $driver = $this->userService->getUserById($userId);
         $this->notificationService->sendRideStartToDriver($driver, $ride);
+
+        return $ride;
     }
 
     /**
@@ -262,7 +282,7 @@ class RideService
     public function stopRide(
         int $rideId,
         int $userId
-    ): void {
+    ): Ride {
 
         $this->checkIfRideExists($rideId);
 
@@ -317,6 +337,8 @@ class RideService
 
         // Notification du conducteur
         $this->notificationService->sendRideConfirmationStopToDriver($driver, $ride);
+
+        return $ride;
     }
 
 
@@ -330,7 +352,7 @@ class RideService
     public function finalizeRide(
         int $rideId,
         int $userId
-    ): void {
+    ): Ride {
 
         $this->checkIfRideExists($rideId);
         $this->userService->checkIfUserExists($userId);
@@ -371,7 +393,7 @@ class RideService
         // -------Créditer le conducteur avec le total des passagers si tous ont confirmé
 
         if (!$allConfirmed) {
-            return;
+            return $ride;;
         } else {
             // Récupération de l'utilisateur
             $driver = $this->userService->getUserById($userId);
@@ -399,6 +421,8 @@ class RideService
 
             // Notification du conducteur
             $this->notificationService->sendRideFinalizationToDriver($driver, $ride);
+
+            return $ride;
         }
     }
 
