@@ -2,18 +2,47 @@
 
 namespace App\Service;
 
+use App\Repository\RideRepository;
+use App\Service\BookingService;
+use App\Service\UserService;
+use App\Service\NotificationService;
+use App\Service\CarService;
 use App\Model\Ride;
 use App\Enum\RideStatus;
 use App\Enum\BookingStatus;
-use App\Enum\UserRoles;
 use App\DTO\CreateRideDTO;
+use App\DTO\UpdateUserDTO;
 use DateTimeImmutable;
 use InvalidArgumentException;
 use DateTimeInterface;
 
 
-class RideService extends BaseService
+class RideService
 {
+    public function __construct(
+        protected RideRepository $rideRepository,
+        protected UserService $userService,
+        protected NotificationService $notificationService,
+        protected BookingService $bookingService,
+        protected CarService $carService
+    ) {}
+
+    /**
+     * Vérifie que le trajet existe.
+     *
+     * @param integer $rideId
+     * @return void
+     */
+    public function checkIfRideExists(int $rideId)
+    {
+        // Récupération de l'entité Ride
+        $ride = $this->rideRepository->findRideById($rideId);
+
+        // Vérification de l'existence du trajet
+        if (!$ride) {
+            throw new InvalidArgumentException("Trajet introuvable.");
+        }
+    }
 
     //-----------------ACTIONS------------------------------
 
@@ -28,21 +57,13 @@ class RideService extends BaseService
     public function createRide(
         CreateRideDTO $dto,
         int $userId,
-    ): ?Ride {
-        // Récupération de l'utilisateur
-        $user = $this->userRepository->findUserById($userId);
+    ): Ride {
 
-        // Vérification de l'existence de l'utilisateur
-        if (!$user) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
-
-        // Vérification des permissions.
-        $this->ensureDriver($userId);
-
+        $this->userService->checkIfUserExists($userId);
+        $this->userService->ensureDriver($userId);
 
         // Vérification que le chauffeur a une voiture
-        if (!$this->userHasCars($userId)) {
+        if (!$this->carService->userHasCars($userId)) {
             throw new InvalidArgumentException("Le conducteur doit avoir au moins une voiture.");
         }
 
@@ -63,18 +84,19 @@ class RideService extends BaseService
         // Enregistrement du trajet dans la BD.
         $this->rideRepository->insertRide($ride);
 
+        // Récupération de l'utilisateur
+        $user = $ride->getRideDriver($userId);
+
 
         // Déduction de la commission au conducteur
         $commission = $ride->getRideCommission();
-        $user->setUserCredits($user->getUserCredits() - $commission);
+        $creditsToDeduct = $user->getUserCredits() - $commission;
+
+        $userDto = new UpdateUserDTO([$creditsToDeduct]);
+
 
         // Enregistrement de la modification des crédits
-        $this->userRepository->updateUser(
-            $user,
-            [
-                'credits' => $user->getUserCredits()
-            ]
-        );
+        $this->userService->updateProfile($userDto, $userId);
 
         return $ride;
     }
@@ -91,46 +113,17 @@ class RideService extends BaseService
     public function cancelRide(
         int $rideId,
         int $userId
-    ): ?Ride {
+    ): Ride {
 
-        // Récupération de l'entité Ride
+        $this->checkIfRideExists($rideId);
+
+        $this->userService->checkIfUserExists($userId);
+        $this->userService->ensurePassengerAndStaff($userId);
+
         $ride = $this->rideRepository->findRideById($rideId);
 
-        // Vérification de l'existence du trajet
-        if (!$ride) {
-            throw new InvalidArgumentException("Trajet introuvable.");
-        }
-
-        // Récupération de l'utilisateur
-        $user = $this->userRepository->findUserById($userId);
-
-        // Vérification de l'existence de l'utilisateur
-        if (!$user) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
-
-        // Vérification des permissions.
-        if (!$this->hasAnyRole($userId, [
-            UserRoles::CONDUCTEUR,
-            UserRoles::EMPLOYE,
-            UserRoles::ADMIN
-        ])) {
-            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à annuler ce trajet.");
-        }
-
-
-
-        // Récupération du chauffeur
-        $driver = $ride->getRideDriver();
-
-        // Vérification de l'existence du conducteur
-        if (!$driver) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
-
-
         // Vérification qu'il s'agit bien du conducteur
-        if ($this->isDriver($userId)) {
+        if ($this->userService->isDriver($userId)) {
             if ($ride->getRideDriverId() !== $userId) {
                 throw new InvalidArgumentException("Le conducteur ne correspond pas à ce trajet.");
             }
@@ -146,29 +139,31 @@ class RideService extends BaseService
 
 
         // Récupération des réservations, mise à jour des réservations et remboursement
-        $bookings = $this->bookingRepository->findBookingByRideId($rideId);
+        $bookings = $this->bookingService->getAllBookingsByRideId($rideId, $userId);
 
         foreach ($bookings as $booking) {
+            // Récupérer le passager
+            $passengerId = $booking->getBookingPassengerId();
+            $passenger = $booking->getBookingPassenger();
+
 
             // Mise à jour du statut de la réservation 
-            $booking->setBookingStatus(BookingStatus::ANNULEE);
+            $bookingStatus = $booking->setBookingStatus(BookingStatus::ANNULEE);
 
-            // Enregistrement du statut en BD
-            $this->bookingRepository->updateBooking($booking->getBookingId(), [
-                'booking_status' => $booking->getBookingStatus()
-            ]);
+            // Enregistrement dans la bd
+            $this->bookingService->updateBookingStatus($booking->getBookingId(), $bookingStatus, $passengerId);
+
 
             // Défini le remboursement au passager
-            $passenger = $this->userRepository->findUserById($booking->getPassengerId());
             $passenger->setUserCredits($passenger->getUserCredits() + $ride->getRidePrice());
 
-            // Enregistrement des crédits du passager en BD
-            $this->userRepository->updateUser($passenger, [
-                'credits' => $passenger->getUserCredits()
-            ]);
+            $passengerDto = new UpdateUserDTO([$passenger]);
 
-            // Envoi l'annulation
-            $this->sendRideCancelationToPassenger($passenger, $ride);
+            // Enregistrement des crédits du passager en BD
+            $this->userService->updateProfile($passengerDto, $userId);
+
+            // Envoi de la notification
+            $this->notificationService->sendRideCancelationToPassenger($passenger, $ride);
         }
 
         // Enregistrement du statut du trajet en BD
@@ -179,11 +174,12 @@ class RideService extends BaseService
 
         // Envoi de confirmation
         $driver = $ride->getRideDriver();
-        $this->sendRideCancelationToDriver($driver, $ride);
+        $this->notificationService->sendRideCancelationToDriver($driver, $ride);
 
         return $ride;
     }
 
+    public function updateRide(int $rideId) {}
 
 
     /**
@@ -194,40 +190,25 @@ class RideService extends BaseService
      * @return void
      */
     public function startRide(
-        Ride $ride,
+        int $rideId,
         int $userId
     ): void {
 
-        // Vérification de l'existence du trajet
-        if (!$ride) {
-            throw new InvalidArgumentException("Trajet introuvable.");
-        }
+        $this->checkIfRideExists($rideId);
+
+        $this->userService->checkIfUserExists($userId);
+        $this->userService->ensurePassengerAndStaff($userId);
+
+        // Récupération de l'objet Ride
+        $ride = $this->rideRepository->findRideById($rideId);
 
         // Vérification du status du trajet.
         if ($ride->getRideStatus() !== RideStatus::DISPONIBLE && $ride->getRideStatus() !== RideStatus::COMPLET) {
             throw new InvalidArgumentException("Le trajet n'a pas le statut DISPONIBLE ou COMPLET.");
         }
 
-
-        // Récupération de l'utilisateur
-        $user = $this->userRepository->findUserById($userId);
-
-        // Vérification de l'existence de l'utilisateur
-        if (!$user) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
-
-        // Vérification des permissions.
-        if (!$this->hasAnyRole($userId, [
-            UserRoles::CONDUCTEUR,
-            UserRoles::EMPLOYE,
-            UserRoles::ADMIN
-        ])) {
-            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à démarrer ce trajet.");
-        }
-
         // Vérification qu'il s'agit bien du conducteur
-        if ($this->isDriver($userId)) {
+        if ($this->userService->isDriver($userId)) {
             if ($ride->getRideDriverId() !== $userId) {
                 throw new InvalidArgumentException("Le conducteur ne correspond pas à ce trajet.");
             }
@@ -244,27 +225,22 @@ class RideService extends BaseService
             ]
         );
 
-        // Notification des passagers et modification du statut de la réservation des passagers
-        $rideId = $ride->getRideId();
-        $bookings = $this->bookingRepository->findBookingByRideId($rideId);
-        foreach ($bookings as $booking) {
-            $passenger = $this->userRepository->findUserById($booking->getPassengerId());
-            $booking->setBookingStatus(BookingStatus::ENCOURS);
+
+        // Récupération des passagers
+        $passengers = $ride->getRidePassengers();
+
+        foreach ($passengers as $passenger) {
+            $booking = $this->bookingService->getBookingByPassengerAndRide($passenger, $rideId);
 
             // Enregistrement dans la BD
-            $this->bookingRepository->updateBooking(
-                $booking,
-                [
-                    'booking_status' => $booking->getBookingStatus()
-                ]
-            );
+            $this->bookingService->updateBookingStatus($booking->getBookingId(), BookingStatus::ENCOURS);
 
-            $this->sendRideStart($passenger, $ride);
+            $this->notificationService->sendRideStartToPassenger($passenger, $ride);
         }
 
         // Notification du conducteur
         $driver = $ride->getRideDriver();
-        $this->sendRideStart($driver, $ride);
+        $this->notificationService->sendRideStartToDriver($driver, $ride);
     }
 
     /**
@@ -275,35 +251,20 @@ class RideService extends BaseService
      * @return void
      */
     public function stopRide(
-        Ride $ride,
+        int $rideId,
         int $userId
     ): void {
 
-        // Vérification de l'existence du trajet
-        if (!$ride) {
-            throw new InvalidArgumentException("Trajet introuvable.");
-        }
+        $this->checkIfRideExists($rideId);
 
+        $this->userService->checkIfUserExists($userId);
+        $this->userService->ensurePassengerAndStaff($userId);
 
-        // Récupération de l'utilisateur
-        $user = $this->userRepository->findUserById($userId);
-
-        // Vérification de l'existence de l'utilisateur
-        if (!$user) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
-
-        // Vérification des permissions.
-        if (!$this->hasAnyRole($userId, [
-            UserRoles::CONDUCTEUR,
-            UserRoles::EMPLOYE,
-            UserRoles::ADMIN
-        ])) {
-            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à finaliser ce trajet.");
-        }
+        // Récupération de l'objet Ride
+        $ride = $this->rideRepository->findRideById($rideId);
 
         // Vérification qu'il s'agit bien du conducteur
-        if ($this->isDriver($userId)) {
+        if ($this->userService->isDriver($userId)) {
             if ($ride->getRideDriverId() !== $userId) {
                 throw new InvalidArgumentException("Le conducteur ne correspond pas à ce trajet.");
             }
@@ -338,23 +299,15 @@ class RideService extends BaseService
 
         // ------------- Envoi des mails aux utilisateur----------
         // Récupération des passagers
-        $passengersId = $ride->getRidePassengers();
+        $passengers = $ride->getRidePassengers();
 
-        foreach ($passengersId as $passengerId) {
-            // Récupération du passager
-            $passenger = $this->userRepository->findUserById($passengerId);
-
-            // Vérification de l'existence du passager
-            if (!$passenger) {
-                throw new InvalidArgumentException("Utilisateur introuvable.");
-            }
-
+        foreach ($passengers as $passenger) {
             // Envoi de la demande de confirmation de fin de trajet
-            $this->sendRideFinalizationRequestToPassenger($passenger, $ride);
+            $this->notificationService->sendRideFinalizationRequestToPassenger($passenger, $ride);
         }
 
         // Notification du conducteur
-        $this->sendRideConfirmationStopToDriver($driver, $ride);
+        $this->notificationService->sendRideConfirmationStopToDriver($driver, $ride);
     }
 
 
@@ -366,38 +319,18 @@ class RideService extends BaseService
      * @return void
      */
     public function finalizeRide(
-        Ride $ride,
+        int $rideId,
         int $userId
     ): void {
 
-        // Vérification de l'existence du trajet
-        if (!$ride) {
-            throw new InvalidArgumentException("Trajet introuvable.");
-        }
+        $this->checkIfRideExists($rideId);
+        $this->userService->checkIfUserExists($userId);
 
-        // Récupération de l'utilisateur
-        $user = $this->userRepository->findUserById($userId);
+        $this->userService->ensurePassengerAndStaff($userId);
 
-        // Vérification de l'existence de l'utilisateur
-        if (!$user) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
+        // Récupération de l'objet Ride
+        $ride = $this->rideRepository->findRideById($rideId);
 
-        // Vérification des permissions.
-        if (!$this->hasAnyRole($userId, [
-            UserRoles::PASSAGER,
-            UserRoles::EMPLOYE,
-            UserRoles::ADMIN
-        ])) {
-            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à finaliser ce trajet.");
-        }
-
-        // Vérification qu'il s'agit bien du conducteur
-        if ($this->isDriver($userId)) {
-            if ($ride->getRideDriverId() !== $userId) {
-                throw new InvalidArgumentException("Le conducteur ne correspond pas à ce trajet.");
-            }
-        }
 
         // Vérification du status du trajet
         if ($ride->getRideStatus() !== RideStatus::ENATTENTE) {
@@ -405,41 +338,16 @@ class RideService extends BaseService
         }
 
 
-        // Confirmation de la réservation du passager
-        // Récupération de sa réservation
-        $booking = $this->bookingRepository->findBookingByPassengerAndRide($user->getUserId(), $ride->getRideId());
-        if (!$booking) {
-            throw new InvalidArgumentException("Réservation introuvable pour cet utilisateur.");
-        }
-
-        // Vérification du statut de la réservation
-        if ($booking->getBookingStatus() === BookingStatus::PASSEE) {
-            throw new InvalidArgumentException("La réservation a déjà été validée.");
-        }
-
-        // Modification du statut de sa réservation
-        $booking->setBookingStatus(BookingStatus::PASSEE);
-
-        // Enregistrement dans la bd.
-        $this->bookingRepository->updateBooking(
-            $booking,
-            [
-                'booking_status' => $booking->getBookingStatus()
-            ]
-        );
-
-        // Envoi de la confirmation de finalisation
-        $this->sendRideFinalizationToPassenger($user, $ride);
-
-
         //-----Récupération des crédits / modification des statuts de réservation / notification des passagers-----
-        // Récupération des passagers
+
         $allConfirmed = true;
         $totalCredits = 0;
+        // Récupération des passagers
         $passengersId = $ride->getRidePassengers();
 
         foreach ($passengersId as $passengerId) {
-            $booking = $this->bookingRepository->findBookingByPassengerAndRide($passengerId, $ride->getRideId());
+            // Récupération de la réservation
+            $booking = $this->bookingService->getBookingByPassengerAndRide($passengerId, $ride->getRideId());
 
             if (!$booking || $booking->getBookingStatus() !== BookingStatus::PASSEE) {
                 $allConfirmed = false;
@@ -455,23 +363,17 @@ class RideService extends BaseService
 
         if ($allConfirmed) {
             // Récupération du conducteur
-            $driver = $this->userRepository->findUserById($ride->getRideDriverId());
+            $driver = $ride->getRideDriver();
 
-            // Vérification de l'existence du conducteur
-            if (!$driver) {
-                throw new InvalidArgumentException("Conducteur introuvable.");
-            }
+            $this->userService->checkIfUserExists($driver->getUserId());
         }
 
         // Ajout des crédits au conducteur
-        $driver->setUserCredits($driver->getUserCredits() + $totalCredits);
+        $creditToAdd = $driver->setUserCredits($driver->getUserCredits() + $totalCredits);
 
-        $this->userRepository->updateUser(
-            $driver,
-            [
-                'credits' => $driver->getUserCredits()
-            ]
-        );
+        $userDto = new UpdateUserDTO([$creditToAdd]);
+
+        $this->userService->updateProfile($userDto, $driver->getUserId());
 
         // Modification du statut du trajet
         $ride->setRideStatus(RideStatus::TERMINE);
@@ -485,7 +387,7 @@ class RideService extends BaseService
         );
 
         // Notification du conducteur
-        $this->sendRideFinalizationToDriver($driver, $ride);
+        $this->notificationService->sendRideFinalizationToDriver($driver, $ride);
     }
 
     //------------------RECUPERATIONS------------------------
@@ -500,17 +402,11 @@ class RideService extends BaseService
     public function getRideWithPassengers(
         int $rideId,
         int $userId
-    ): ?Ride {
-        // Récupération de l'utilisateur
-        $user = $this->userRepository->findUserById($userId);
+    ): Ride {
+        $this->userService->checkIfUserExists($userId);
+        $this->userService->ensureUser($userId);
+        $this->checkIfRideExists($rideId);
 
-        // Vérification de l'existence de l'utilisateur
-        if (!$user) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
-
-        // Vérification des permissions.
-        $this->ensureUser($userId);
 
         return $this->rideRepository->findRideWithUsersByRideId($rideId);
     }
@@ -546,33 +442,14 @@ class RideService extends BaseService
         int $driverId,
         int $userId
     ): array {
-        // Récupération de l'utilisateur
-        $user = $this->userRepository->findUserById($userId);
 
-        // Vérification de l'existence des utilisateurs
-        if (!$user) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
+        $this->userService->checkIfUserExists($userId);
+        $this->userService->ensureDriverAndStaff($userId);
 
-        // Vérification des permissions.
-        if (!$this->hasAnyRole($userId, [
-            UserRoles::CONDUCTEUR,
-            UserRoles::EMPLOYE,
-            UserRoles::ADMIN
-        ])) {
-            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
-        }
-
-        // Récupération du conducteur
-        $driver = $this->userRepository->findUserById($driverId);
-
-        // Vérification de l'existence du conducteur
-        if (!$driver) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
+        $this->userService->checkIfUserExists($driverId);
 
         // Vérification qu'il s'agit bien du conducteur
-        if ($this->isDriver($userId)) {
+        if ($this->userService->isDriver($userId)) {
             if ($userId !== $driverId) {
                 throw new InvalidArgumentException("Accés interdit.");
             }
@@ -592,33 +469,14 @@ class RideService extends BaseService
         int $driverId,
         int $userId
     ): array {
-        // Récupération de l'utilisateur
-        $user = $this->userRepository->findUserById($userId);
 
-        // Vérification de l'existence de l'utilisateur
-        if (!$user) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
+        $this->userService->checkIfUserExists($userId);
+        $this->userService->ensureDriverAndStaff($userId);
 
-
-        if (!$this->hasAnyRole($userId, [
-            UserRoles::CONDUCTEUR,
-            UserRoles::EMPLOYE,
-            UserRoles::ADMIN
-        ])) {
-            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
-        }
-
-        // Récupération du conducteur
-        $driver = $this->userRepository->findUserById($driverId);
-
-        // Vérification de l'existence du conducteur
-        if (!$driver) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
+        $this->userService->checkIfUserExists($driverId);
 
         // Vérification qu'il s'agit bien du conducteur
-        if ($this->isDriver($userId)) {
+        if ($this->userService->isDriver($userId)) {
             if ($userId !== $driverId) {
                 throw new InvalidArgumentException("Accés interdit.");
             }
@@ -642,33 +500,13 @@ class RideService extends BaseService
         int $passengerId,
         int $userId
     ): array {
-        // Récupération de l'utilisateur
-        $user = $this->userRepository->findUserById($userId);
+        $this->userService->checkIfUserExists($userId);
+        $this->userService->ensurePassengerAndStaff($userId);
 
-        // Vérification de l'existence de l'utilisateur
-        if (!$user) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
-
-        // Vérification des permissions.
-        if (!$this->hasAnyRole($userId, [
-            UserRoles::PASSAGER,
-            UserRoles::EMPLOYE,
-            UserRoles::ADMIN
-        ])) {
-            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
-        }
-
-        // Récupération du passager
-        $passenger = $this->userRepository->findUserById($passengerId);
-
-        // Vérification de l'existence du passager
-        if (!$passenger) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
+        $this->userService->checkIfUserExists($passengerId);
 
         // Vérification qu'il s'agit bien du passager
-        if ($this->isPassenger($userId)) {
+        if ($this->userService->isPassenger($userId)) {
             if ($userId !== $passengerId) {
                 throw new InvalidArgumentException("Accés interdit.");
             }
@@ -688,33 +526,13 @@ class RideService extends BaseService
         int $passengerId,
         int $userId
     ): array {
-        // Récupération de l'utilisateur
-        $user = $this->userRepository->findUserById($userId);
+        $this->userService->checkIfUserExists($userId);
+        $this->userService->ensurePassengerAndStaff($userId);
 
-        // Vérification de l'existence de l'utilisateur
-        if (!$user) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
-
-        // Vérification des permissions.
-        if (!$this->hasAnyRole($userId, [
-            UserRoles::PASSAGER,
-            UserRoles::EMPLOYE,
-            UserRoles::ADMIN
-        ])) {
-            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
-        }
-
-        // Récupération du passager
-        $passenger = $this->userRepository->findUserById($passengerId);
-
-        // Vérification de l'existence du passager
-        if (!$passenger) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
+        $this->userService->checkIfUserExists($passengerId);
 
         // Vérification qu'il s'agit bien du passager
-        if ($this->isPassenger($userId)) {
+        if ($this->userService->isPassenger($userId)) {
             if ($userId !== $passengerId) {
                 throw new InvalidArgumentException("Accés interdit.");
             }
@@ -736,16 +554,8 @@ class RideService extends BaseService
         int $staffId
     ): array {
 
-        // Récupération du membre du personnel
-        $staff = $this->userRepository->findUserById($staffId);
-
-        // Vérification de l'existence du membre du personnel
-        if (!$staff) {
-            throw new InvalidArgumentException("Membre du personnel introuvable..");
-        }
-
-        // Vérification de la permission
-        $this->ensureStaff($staffId);
+        $this->userService->checkIfUserExists($staffId);
+        $this->userService->ensureStaff($staffId);
 
         return $this->rideRepository->findAllRidesByCreationDate($creationDate);
     }
@@ -762,16 +572,8 @@ class RideService extends BaseService
         int $adminId
     ): array {
 
-        // Récupération de l'admin
-        $admin = $this->userRepository->findUserById($adminId);
-
-        // Vérification de l'existence de l'admin
-        if (!$admin) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
-
-        // Vérification de la permission
-        $this->ensureAdmin($adminId);
+        $this->userService->checkIfUserExists($adminId);
+        $this->userService->ensureAdmin($adminId);
 
         return $this->rideRepository->countRidesByToday();
     }
@@ -790,16 +592,8 @@ class RideService extends BaseService
         int $adminId
     ): array {
 
-        // Récupération de l'admin
-        $admin = $this->userRepository->findUserById($adminId);
-
-        // Vérification de l'existence de l'admin
-        if (!$admin) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
-
-        // Vérification de la permission
-        $this->ensureAdmin($adminId);
+        $this->userService->checkIfUserExists($adminId);
+        $this->userService->ensureAdmin($adminId);
 
         return $this->rideRepository->countRidesByPeriod($start, $end);
     }
@@ -814,16 +608,8 @@ class RideService extends BaseService
         int $adminId
     ): array {
 
-        // Récupération de l'admin
-        $admin = $this->userRepository->findUserById($adminId);
-
-        // Vérification de l'existence de l'admin
-        if (!$admin) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
-
-        // Vérification de la permission
-        $this->ensureAdmin($adminId);
+        $this->userService->checkIfUserExists($adminId);
+        $this->userService->ensureAdmin($adminId);
 
         return $this->rideRepository->countCommissionByFields([]);
     }
@@ -838,16 +624,8 @@ class RideService extends BaseService
         int $adminId
     ): array {
 
-        // Récupération de l'admin
-        $admin = $this->userRepository->findUserById($adminId);
-
-        // Vérification de l'existence de l'admin
-        if (!$admin) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
-
-        // Vérification de la permission
-        $this->ensureAdmin($adminId);
+        $this->userService->checkIfUserExists($adminId);
+        $this->userService->ensureAdmin($adminId);
 
         return $this->rideRepository->countCommissionByToday();
     }
@@ -866,16 +644,8 @@ class RideService extends BaseService
         int $adminId
     ): array {
 
-        // Récupération de l'admin
-        $admin = $this->userRepository->findUserById($adminId);
-
-        // Vérification de l'existence de l'admin
-        if (!$admin) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
-
-        // Vérification de la permission
-        $this->ensureAdmin($adminId);
+        $this->userService->checkIfUserExists($adminId);
+        $this->userService->ensureAdmin($adminId);
 
         return $this->rideRepository->countCommissionByPeriod($start, $end);
     }

@@ -2,21 +2,31 @@
 
 namespace App\Service;
 
+
+use App\Repository\BookingRepository;
+use App\Service\RideService;
+use App\Service\UserService;
+use App\Service\NotificationService;
 use App\Model\Booking;
 use App\Model\Ride;
 use App\Model\User;
+use App\DTO\UpdateUserDTO;
 use App\Enum\BookingStatus;
 use App\Enum\RideStatus;
-use App\Enum\UserRoles;
 use DateTimeImmutable;
 use DateTimeInterface;
 use InvalidArgumentException;
 
 
-class BookingService extends BaseService
+class BookingService
 {
 
-
+    public function __construct(
+        protected BookingRepository $bookingRepository,
+        protected RideService $rideService,
+        protected UserService $userService,
+        protected NotificationService $notificationService
+    ) {}
     //--------------VERIFICATION-----------------
 
     /**
@@ -37,6 +47,23 @@ class BookingService extends BaseService
         return $booking !== null;
     }
 
+    /**
+     * Vérifie que la réservation existe.
+     *
+     * @param integer $bookingId
+     * @return void
+     */
+    public function checkIfBookingExists(int $bookingId)
+    {
+        // Récupération de l'entité Booking
+        $booking = $this->bookingRepository->findBookingById($bookingId);
+
+        // Vérification de l'existence de la réservation
+        if (!$booking) {
+            throw new InvalidArgumentException("Réservation introuvable.");
+        }
+    }
+
 
     //-----------------ACTIONS------------------------------
 
@@ -54,18 +81,10 @@ class BookingService extends BaseService
         User $driver,
         User $passenger,
         int $userId
-    ): ?Booking {
+    ): Booking {
 
-        // Récupération de l'utilisateur
-        $user = $this->userRepository->findUserById($userId);
-
-        // Vérification de l'existence de l'utilisateur
-        if (!$user) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
-
-        // Vérification des permissions.
-        $this->ensurePassenger($userId);
+        $this->userService->checkIfUserExists($userId);
+        $this->userService->isPassenger($userId);
 
 
         // Vérification de l'existence des entités
@@ -107,22 +126,18 @@ class BookingService extends BaseService
         }
 
         // Décrémentation les crédits du passager
-        $passenger->setUserCredits($passenger->getUserCredits() - $ride->getRidePrice());
+        $creditsToDeduct =  $ride->getRidePrice();
 
+        $userDto = new UpdateUserDTO(['credits' => $creditsToDeduct]);
 
-        //Enregistrement en BD
-        $this->userRepository->updateUser(
-            $passenger,
-            [
-                'credits' => $passenger->getUserCredits()
-            ]
-        );
+        //Enregistrement des modifications
+        $this->userService->updateProfile($userDto, $passenger->getUserId());
         $this->bookingRepository->insertBooking($booking);
-        $this->rideRepository->updateRide($ride);
+        $this->rideService->updateRide($ride->getRideId());
 
 
         // Notification
-        $this->sendRideConfirmationToPassenger($passenger, $ride);
+        $this->notificationService->sendRideConfirmationToPassenger($passenger, $ride);
 
 
         return $booking;
@@ -139,42 +154,23 @@ class BookingService extends BaseService
     public function cancelBooking(
         int $bookingId,
         int $userId
-    ): ?Booking {
+    ): Booking {
+
+        $this->checkIfBookingExists($bookingId);
+        $this->userService->checkIfUserExists($userId);
+        $this->userService->ensurePassengerAndStaff($userId);
 
         // Récupération de l'entité Booking
         $booking = $this->bookingRepository->findBookingById($bookingId);
 
-        // Vérification de l'existence de la réservation
-        if (!$booking) {
-            throw new InvalidArgumentException("Réservation introuvable.");
-        }
-
-        // Récupération de l'utilisateur
-        $user = $this->userRepository->findUserById($userId);
-
-        // Vérification de l'existence de l'utilisateur
-        if (!$user) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
-
-        // Vérification des permissions.
-        if (!$this->hasAnyRole($userId, [
-            UserRoles::PASSAGER,
-            UserRoles::EMPLOYE,
-            UserRoles::ADMIN
-        ])) {
-            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à annuler cette réservation.");
-        }
-
         // Vérification qu'il s'agit bien du passager
-        if ($this->isPassenger($userId)) {
+        if ($this->userService->isPassenger($userId)) {
             if ($booking->getBookingPassengerId() !== $userId) {
                 throw new InvalidArgumentException("Le conducteur ne correspond pas à ce trajet.");
             }
         }
 
         // Vérification que la réservation appartient au passager
-        $passengerId = $booking->getBookingPassenger()->getUserId();
         if ($booking->getBookingPassengerId() !== $userId) {
             throw new InvalidArgumentException("Seulement le passager associé au trajet peut annuler sa réservation.");
         }
@@ -192,15 +188,14 @@ class BookingService extends BaseService
         $ride->incrementAvailableSeats();
 
         // Enregistrement des modifications de trajet en BD
-        $this->rideRepository->updateRide($ride); // permet de conserver l'historique
+        $this->rideService->updateRide($ride->getRideId());
 
         // Enregistrement des modifications de réservation en BD
         $this->bookingRepository->updateBooking($booking);
 
         // Récupération des utilisateurs
-        $passenger = $this->userRepository->findUserById($passengerId);
-        $driverId = $booking->getBookingDriver()->getUserId();
-        $driver = $this->userRepository->findUserById($driverId);
+        $passenger = $booking->getBookingPassenger();
+        $driver = $booking->getBookingDriver();
 
         // Préparation des variables
         $today = (new DateTimeImmutable());
@@ -214,19 +209,40 @@ class BookingService extends BaseService
             $passenger->setUserCredits($passenger->getUserCredits() + $ride->getRidePrice());
 
             // Envoi des confirmations sans frais
-            $this->sendBookingCancelationToPassenger($passenger, $booking);
-            $this->sendBookingCancelationToDriver($driver, $booking);
+            $this->notificationService->sendBookingCancelationToPassenger($passenger, $booking);
+            $this->notificationService->sendBookingCancelationToDriver($driver, $booking);
+
+            $passengerDto = new UpdateUserDTO([$passenger]);
 
             // Enregistrement des modifications de l'utilisateur en BD
-            $this->userRepository->updateUser($passenger);
+            $this->userService->updateProfile($passengerDto, $userId);
         } else {
 
             // Envoi des confirmations avec frais
-            $this->sendBookingLateCancelationToPassenger($passenger, $booking);
-            $this->sendBookingLateCancelationToDriver($driver, $booking);
+            $this->notificationService->sendBookingLateCancelationToPassenger($passenger, $booking);
+            $this->notificationService->sendBookingLateCancelationToDriver($driver, $booking);
         }
         return $booking;
     }
+
+
+    public function updateBookingStatus(
+        int $bookingId,
+        BookingStatus $bookingStatus,
+    ): Booking {
+        $this->checkIfBookingExists($bookingId);
+
+        // Récupération de l'Objet Booking
+        $booking = $this->bookingRepository->findBookingById($bookingId);
+
+        $booking->setBookingStatus($bookingStatus);
+
+        // Enregistrement dans la BD
+        $this->bookingRepository->updateBooking($booking);
+
+        return $booking;
+    }
+
 
     /**
      * Permet à un utilisateur PASSAGER OU EMPLOYE OU ADMIN de confirmer une réservation à la fin du trajet.
@@ -238,40 +254,22 @@ class BookingService extends BaseService
     public function finalizeBooking(
         int $bookingId,
         int $userId
-    ): void {
+    ): Booking {
+        $this->checkIfBookingExists($bookingId);
+
         // Récupération de la réservation
         $booking = $this->bookingRepository->findBookingById($bookingId);
-
-        // Vérification de l'existence de la réservation
-        if (!$booking) {
-            throw new InvalidArgumentException("Réservation introuvable.");
-        }
 
         // Vérification du status de la réservation.
         if ($booking->getBookingStatus() !== BookingStatus::ENCOURS) {
             throw new InvalidArgumentException("La réservation n'a pas le statut ENCOURS.");
         }
 
-
-        // Récupération de l'utilisateur
-        $user = $this->userRepository->findUserById($userId);
-
-        // Vérification de l'existence de l'utilisateur
-        if (!$user) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
-
-        // Vérification des permissions.
-        if (!$this->hasAnyRole($userId, [
-            UserRoles::PASSAGER,
-            UserRoles::EMPLOYE,
-            UserRoles::ADMIN
-        ])) {
-            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à finaliser cette réservation.");
-        }
+        $this->userService->checkIfUserExists($userId);
+        $this->userService->ensurePassengerAndStaff($userId);
 
         // Vérification qu'il s'agit bien du passager
-        if ($this->isPassenger($userId)) {
+        if ($this->userService->isPassenger($userId)) {
             if ($booking->getBookingPassengerId() !== $userId) {
                 throw new InvalidArgumentException("Le conducteur ne correspond pas à ce trajet.");
             }
@@ -287,6 +285,8 @@ class BookingService extends BaseService
                 'booking_status' => $booking->getBookingStatus()
             ]
         );
+
+        return $booking;
     }
 
     //------------------RECUPERATIONS------------------------
@@ -299,27 +299,22 @@ class BookingService extends BaseService
      * @return Booking|null
      */
     public function getBooking(
-        int $bookingId,
-        int $userId
-    ): ?Booking {
-        // Récupération de l'utilisateur
-        $user = $this->userRepository->findUserById($userId);
-
-        // Vérification de l'existence de l'utilisateur
-        if (!$user) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
-
-        // Vérification des permissions.
-        if (!$this->hasAnyRole($userId, [
-            UserRoles::PASSAGER,
-            UserRoles::EMPLOYE,
-            UserRoles::ADMIN
-        ])) {
-            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
-        }
-
+        int $bookingId
+    ): Booking {
         return $this->bookingRepository->findBookingById($bookingId);
+    }
+
+public function getBookingByPassengerAndRide(int $passengerId, int $rideId ){
+        return $this->bookingRepository->findBookingByPassengerAndRide($passengerId, $rideId);
+}
+
+    public function getAllBookingsByRideId(
+        int $rideId
+    ): array {
+
+        $this->rideService->checkIfRideExists($rideId);
+
+        return $this->bookingRepository->findAllBookingByRideId($rideId);
     }
 
 
@@ -336,34 +331,13 @@ class BookingService extends BaseService
         int $passengerId,
         int $userId
     ): array {
-        // Récupération de l'utilisateur
-        $user = $this->userRepository->findUserById($userId);
+        $this->userService->checkIfUserExists($userId);
+        $this->userService->ensurePassengerAndStaff($userId);
 
-        // Vérification de l'existence de l'utilisateur
-        if (!$user) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
-
-        // Vérification des permissions.
-        if (!$this->hasAnyRole($userId, [
-            UserRoles::PASSAGER,
-            UserRoles::EMPLOYE,
-            UserRoles::ADMIN
-        ])) {
-            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
-        }
-
-
-        // Récupération du passager
-        $passenger = $this->userRepository->findUserById($passengerId);
-
-        // Vérification de l'existence du passeger
-        if (!$passenger) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
+        $this->userService->checkIfUserExists($passengerId);
 
         // Vérification qu'il s'agit bien du passager
-        if ($this->isPassenger($userId)) {
+        if ($this->userService->isPassenger($passengerId)) {
             if ($userId !== $passengerId) {
                 throw new InvalidArgumentException("Accés interdit.");
             }
@@ -383,34 +357,13 @@ class BookingService extends BaseService
         int $passengerId,
         int $userId
     ): array {
-        // Récupération de l'utilisateur
-        $user = $this->userRepository->findUserById($userId);
+        $this->userService->checkIfUserExists($userId);
+        $this->userService->ensurePassengerAndStaff($userId);
 
-        // Vérification de l'existence de l'utilisateur
-        if (!$user) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
-
-        // Vérification des permissions.
-        if (!$this->hasAnyRole($userId, [
-            UserRoles::PASSAGER,
-            UserRoles::EMPLOYE,
-            UserRoles::ADMIN
-        ])) {
-            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à accéder à ces informations.");
-        }
-
-
-        // Récupération du passager
-        $passenger = $this->userRepository->findUserById($passengerId);
-
-        // Vérification de l'existence du passeger
-        if (!$passenger) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
+        $this->userService->checkIfUserExists($passengerId);
 
         // Vérification qu'il s'agit bien du passager
-        if ($this->isPassenger($userId)) {
+        if ($this->userService->isPassenger($passengerId)) {
             if ($userId !== $passengerId) {
                 throw new InvalidArgumentException("Accés interdit.");
             }
@@ -433,16 +386,8 @@ class BookingService extends BaseService
         DateTimeImmutable $departureDate,
         int $staffId
     ): array {
-        // Récupération du membre du personnel
-        $staff = $this->userRepository->findUserById($staffId);
-
-        // Vérification de l'existence du membre du personnel
-        if (!$staff) {
-            throw new InvalidArgumentException("Membre du personnel introuvable.");
-        }
-
-        // Vérification de la permission
-        $this->ensureStaff($staffId);
+        $this->userService->checkIfUserExists($staffId);
+        $this->userService->ensureStaff($staffId);
 
         return $this->bookingRepository->findAllBookingsByDepartureDate($departureDate);
     }
@@ -458,16 +403,9 @@ class BookingService extends BaseService
         BookingStatus $bookingStatus,
         int $staffId
     ): array {
-        // Récupération du membre du personnel
-        $staffMember = $this->userRepository->findUserById($staffId);
 
-        // Vérification de l'existence du membre du personnel
-        if (!$staffMember) {
-            throw new InvalidArgumentException("Membre du personnel introuvable.");
-        }
-
-        // Vérification de la permission
-        $this->ensureStaff($staffId);
+        $this->userService->checkIfUserExists($staffId);
+        $this->userService->ensureStaff($staffId);
 
         return $this->bookingRepository->fetchAllBookingsByStatus($bookingStatus);
     }
@@ -483,16 +421,9 @@ class BookingService extends BaseService
         DateTimeInterface $creationDate,
         int $staffId
     ): array {
-        // Récupération du membre du personnel
-        $staffMember = $this->userRepository->findUserById($staffId);
 
-        // Vérification de l'existence du membre du personnel
-        if (!$staffMember) {
-            throw new InvalidArgumentException("Membre du personnel introuvable.");
-        }
-
-        // Vérification de la permission
-        $this->ensureStaff($staffId);
+        $this->userService->checkIfUserExists($staffId);
+        $this->userService->ensureStaff($staffId);
 
         return $this->bookingRepository->fetchAllBookingsByCreatedAt($creationDate);
     }
