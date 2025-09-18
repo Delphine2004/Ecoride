@@ -16,6 +16,8 @@ class CreateUserDTO
     public string $city;
     public string $zipCode;
     public ?string $uriPicture = null;
+    public ?float $credits = null;
+    public ?string $preferences = null;
 
 
     public function __construct(array $data)
@@ -66,5 +68,7 @@ class CreateUserDTO
         }
 
         $this->uriPicture = isset($data['picture']) ? trim($data['picture']) : null;
+        $this->uriPicture = isset($data['credits']) ? (int)($data['credits']) : null;
+        $this->uriPicture = isset($data['preferences']) ? trim($data['preferences']) : null;
     }
 }
