@@ -53,8 +53,9 @@ class BookingService
      * @param integer $bookingId
      * @return void
      */
-    public function checkIfBookingExists(int $bookingId)
-    {
+    public function checkIfBookingExists(
+        int $bookingId
+    ) {
         // Récupération de l'entité Booking
         $booking = $this->bookingRepository->findBookingById($bookingId);
 
@@ -127,8 +128,9 @@ class BookingService
 
         // Décrémentation les crédits du passager
         $creditsToDeduct =  $ride->getRidePrice();
+        $newCreditsBalance = $passenger->getUserCredits() - $creditsToDeduct;
 
-        $userDto = new UpdateUserDTO(['credits' => $creditsToDeduct]);
+        $userDto = new UpdateUserDTO(['credits' => $newCreditsBalance]);
 
         //Enregistrement des modifications
         $this->userService->updateProfile($userDto, $passenger->getUserId());
@@ -163,12 +165,6 @@ class BookingService
         // Récupération de l'entité Booking
         $booking = $this->bookingRepository->findBookingById($bookingId);
 
-        // Vérification qu'il s'agit bien du passager
-        if ($this->userService->isPassenger($userId)) {
-            if ($booking->getBookingPassengerId() !== $userId) {
-                throw new InvalidArgumentException("Le conducteur ne correspond pas à ce trajet.");
-            }
-        }
 
         // Vérification que la réservation appartient au passager
         if ($booking->getBookingPassengerId() !== $userId) {
@@ -205,14 +201,14 @@ class BookingService
         // Vérification des conditions d'annulation
         if ($today <= $refundableDeadLine) {
 
-            // Remboursement
-            $passenger->setUserCredits($passenger->getUserCredits() + $ride->getRidePrice());
-
             // Envoi des confirmations sans frais
             $this->notificationService->sendBookingCancelationToPassenger($passenger, $booking);
             $this->notificationService->sendBookingCancelationToDriver($driver, $booking);
 
-            $passengerDto = new UpdateUserDTO([$passenger]);
+            // Remboursement
+            $newCreditsBalance = $passenger->getUserCredits() + $ride->getRidePrice();
+
+            $passengerDto = new UpdateUserDTO(['credits' => $newCreditsBalance]);
 
             // Enregistrement des modifications de l'utilisateur en BD
             $this->userService->updateProfile($passengerDto, $userId);
@@ -271,7 +267,7 @@ class BookingService
         // Vérification qu'il s'agit bien du passager
         if ($this->userService->isPassenger($userId)) {
             if ($booking->getBookingPassengerId() !== $userId) {
-                throw new InvalidArgumentException("Le conducteur ne correspond pas à ce trajet.");
+                throw new InvalidArgumentException("Le passager ne correspond pas à ce trajet.");
             }
         }
 
@@ -304,9 +300,10 @@ class BookingService
         return $this->bookingRepository->findBookingById($bookingId);
     }
 
-public function getBookingByPassengerAndRide(int $passengerId, int $rideId ){
+    public function getBookingByPassengerAndRide(int $passengerId, int $rideId)
+    {
         return $this->bookingRepository->findBookingByPassengerAndRide($passengerId, $rideId);
-}
+    }
 
     public function getAllBookingsByRideId(
         int $rideId
