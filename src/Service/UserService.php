@@ -2,17 +2,137 @@
 
 namespace App\Service;
 
-
+use App\Repository\UserRepository;
 use App\Model\User;
 use App\DTO\CreateUserDTO;
 use App\DTO\UpdateUserDTO;
 use App\Enum\UserRoles;
 use InvalidArgumentException;
 
-class UserService extends BaseService
+class UserService
 {
 
-    //----------Action VISITEUR----------------------------
+    public function __construct(
+        protected UserRepository $userRepository
+    ) {}
+
+    // Vérification de l'existence de l'utilisateur
+    public function checkIfUserExists(int $userId): void
+    {
+        $user = $this->userRepository->findUserById($userId);
+
+        if (!$user) {
+            throw new InvalidArgumentException("Utilisateur introuvable.");
+        }
+    }
+
+    //------------------------Vérification des rôles-------------------
+    /**
+     * Vérifie un rôle en particulier.
+     *
+     * @param integer $userId
+     * @param string $roleName
+     * @return boolean
+     */
+    public function hasRole(int $userId, UserRoles $role): bool
+    {
+        // Trouver les roles de l'utilisateur
+        $roles = $this->userRepository->getUserRoles($userId);
+
+        // Vérifier si le rôle qui lui est associé est correct
+        return in_array($role, $roles, true);
+    }
+
+    public function hasAnyRole(int $userId, array $roles): bool
+    {
+        foreach ($roles as $role) {
+            if ($this->hasRole($userId, $role)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function isPassenger(int $userId): bool
+    {
+        return $this->hasRole($userId, UserRoles::PASSAGER);
+    }
+
+    public function isDriver(int $userId): bool
+    {
+        return $this->hasRole($userId, UserRoles::CONDUCTEUR);
+    }
+
+    public function isCustomer(int $userId): bool
+    {
+        return $this->hasAnyRole($userId, [UserRoles::PASSAGER, UserRoles::CONDUCTEUR]);
+    }
+
+    public function isEmployee(int $userId): bool
+    {
+        return $this->hasRole($userId, UserRoles::EMPLOYE);
+    }
+
+    public function isAdmin(int $userId): bool
+    {
+        return $this->hasRole($userId, UserRoles::ADMIN);
+    }
+
+    public function isStaff(int $userId): bool
+    {
+        return $this->hasAnyRole($userId, [UserRoles::EMPLOYE, UserRoles::ADMIN]);
+    }
+
+    public function isUser(int $userId): bool
+    {
+        return $this->hasAnyRole($userId, [UserRoles::PASSAGER, UserRoles::CONDUCTEUR, UserRoles::EMPLOYE, UserRoles::ADMIN]);
+    }
+
+
+    public function ensurePassenger(int $userId)
+    {
+        if (!$this->isPassenger($userId)) {
+            throw new InvalidArgumentException("L'utilisateur n'a pas le rôle PASSAGER.");
+        }
+    }
+
+    public function ensureDriver(int $userId)
+    {
+        if (!$this->isDriver($userId)) {
+            throw new InvalidArgumentException("L'utilisateur n'a pas le rôle CONDUCTEUR.");
+        }
+    }
+
+    public function ensureCustomer(int $userId)
+    {
+        if (!$this->isCustomer($userId)) {
+            throw new InvalidArgumentException("L'utilisateur n'a pas le rôle PASSAGER ou CONDUCTEUR.");
+        }
+    }
+
+    public function ensureEmployee(int $userId)
+    {
+        if (!$this->isEmployee($userId)) {
+            throw new InvalidArgumentException("L'utilisateur n'a pas le rôle EMPLOYE.");
+        }
+    }
+
+    public function ensureAdmin(int $userId)
+    {
+        if (!$this->isAdmin($userId)) {
+            throw new InvalidArgumentException("L'utilisateur n'a pas le rôle ADMIN.");
+        }
+    }
+
+    public function ensureUser(int $userId)
+    {
+        if (!$this->isUser($userId)) {
+            throw new InvalidArgumentException("L'utilisateur n'a pas de rôle défini.");
+        }
+    }
+
+
+    //-------------------Action VISITEUR----------------------
 
     /**
      * Permet à un visiteur de créer un compte.
@@ -22,14 +142,13 @@ class UserService extends BaseService
      */
     public function createAccount(
         CreateUserDTO $dto
-    ): ?User {
+    ): User {
         // Vérifier que l'email n'est pas déjà utilisé
         $existingUser = $this->userRepository->findUserByEmail($dto->email);
 
         if ($existingUser) {
             throw new InvalidArgumentException("Cet email est déjà utilisé.");
         }
-
 
         //Création de l'objet User
         $user = new User();
@@ -39,7 +158,9 @@ class UserService extends BaseService
         $user->setUserAddress($dto->address);
         $user->setUserCity($dto->city);
         $user->setUserZipCode($dto->zipCode);
-        $user->setUserUriPicture($dto->uriPicture) ?? null;
+        if (!empty($dto->uriPicture)) {
+            $user->setUserUriPicture($dto->uriPicture);
+        }
         $user->setUserCredits(20);
         $user->setUserRoles([UserRoles::PASSAGER]);
 
@@ -61,24 +182,17 @@ class UserService extends BaseService
     public function becomeDriver(
         UpdateUserDTO $dto,
         int $passengerId
-    ): ?User {
-        // Récupération du passager
-        $passenger = $this->userRepository->findUserById($passengerId);
+    ): User {
 
-        // Vérification de l'existence du passeger
-        if (!$passenger) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
-
-        // Vérification des permissions.
+        $this->checkIfUserExists($passengerId);
         $this->ensurePassenger($passengerId);
 
+        // Récupération de l'objet User
         $user = $this->userRepository->findUserById($passengerId);
 
         // Ajout des champs relatifs au CONDUCTEUR
         $user->setUserLicenceNo($dto->licenceNo);
         $user->addUserRole(UserRoles::CONDUCTEUR);
-
 
         // Enregistrement dans dans BD.
         $this->userRepository->updateUser($user);
@@ -97,22 +211,12 @@ class UserService extends BaseService
     public function deleteAccount(
         int $userId
     ): bool {
-        // Récupération de l'utilisateur
-        $user = $this->userRepository->findUserById($userId);
-
-        // Vérification de l'existence de l'utilisateur
-        if (!$user) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
-
-        // Vérification que l'utilisateur à supprimer n'a pas le rôle ADMIN ou EMPLOYE
-        if ($this->ensureStaff($userId)) {
-            throw new InvalidArgumentException("Les admins ou les employés ne peuvent pas supprimer leur compte.");
-        }
-
+        $this->checkIfUserExists($userId);
+        $this->ensureCustomer($userId);
 
         // Enregistrement en Bd
         $this->userRepository->deleteUser($userId);
+
         return true;
     }
 
@@ -128,21 +232,13 @@ class UserService extends BaseService
     public function updateProfile(
         UpdateUserDTO $dto,
         int $userId
-    ): ?User {
+    ): User {
 
-        // Récupération de l'utilisateur
+        $this->checkIfUserExists($userId);
+        $this->ensureUser($userId);
+
+        // Récupération de l'objet User
         $user = $this->userRepository->findUserById($userId);
-
-        // Vérification de l'existence de l'utilisateur
-        if (!$user) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
-
-        // Vérification des permissions.
-        if (!$this->ensureUser($userId)) {
-            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à modifier son profil.");
-        }
-
 
         // Vérifications des champs modifiés et ajouts des nouvelles valeurs
         if (!empty($dto->lastName)) {
@@ -178,18 +274,19 @@ class UserService extends BaseService
         if (!empty($dto->city)) {
             $user->setUserCity($dto->city);
         }
-        if (!empty($dto->zip_code)) {
+        if (!empty($dto->zipCode)) {
             $user->setUserZipCode($dto->zipCode);
         }
-        if (!empty($dto->picture)) {
+        if (!empty($dto->uripicture)) {
             $user->setUserUriPicture($dto->uriPicture);
         }
-        if (!empty($dto->licenceNo) && $this->ensureDriver($userId)) {
+        if (!empty($dto->licenceNo) && $this->isDriver($userId)) {
             $user->setUserLicenceNo($dto->licenceNo);
         }
 
-
+        // Enregistrement dans dans BD.
         $this->userRepository->updateUser($user);
+
         return $user;
     }
 
@@ -207,18 +304,11 @@ class UserService extends BaseService
         int $userId
     ): bool {
 
+        $this->checkIfUserExists($userId);
+        $this->ensureUser($userId);
+
         // Récupération de l'utilisateur
         $user = $this->userRepository->findUserById($userId);
-
-        // Vérification de l'existence de l'utilisateur
-        if (!$user) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
-
-        // Vérification des permissions.
-        if (!$this->ensureUser($userId)) {
-            throw new InvalidArgumentException("L'utilisateur n'est pas autorisé à modifier son profil.");
-        }
 
         // Vérification du hashage de l'ancien mot de passe
         if (!password_verify($oldPassword, $user->getUserPassword())) {
@@ -251,18 +341,9 @@ class UserService extends BaseService
     public function createEmployeeAccount(
         CreateUserDTO $dto,
         int $adminId
-    ): ?User {
-        // Récupération de l'admin
-        $admin = $this->userRepository->findUserById($adminId);
-
-        // Vérification de l'existence de l'admin
-        if (!$admin) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
-
-        //Verification de la permission
+    ): User {
+        $this->checkIfUserExists($adminId);
         $this->ensureAdmin($adminId);
-
 
         // Vérifier que l'email n'est pas déjà utilisé
         $existingUser = $this->userRepository->findUserByEmail($dto->email);
@@ -270,7 +351,6 @@ class UserService extends BaseService
         if ($existingUser) {
             throw new InvalidArgumentException("Cet email est déjà utilisé.");
         }
-
 
         //Création de l'objet User vide
         $user = new User(
@@ -298,29 +378,15 @@ class UserService extends BaseService
      * @return boolean
      */
     public function deleteAccountByAdmin(
-        int $adminId,
-        int $userId
+        int $userId,
+        int $adminId
     ): bool {
-        // Récupération de l'utilisateur
-        $user = $this->userRepository->findUserById($userId);
 
-        // Vérification de l'existence de l'utilisateur
-        if (!$user) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
-
-
-        // Récupération de l'admin
-        $admin = $this->userRepository->findUserById($adminId);
-
-        // Vérification de l'existence de l'admin
-        if (!$admin) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
-
-        //Verification de la permission
+        $this->checkIfUserExists($adminId);
         $this->ensureAdmin($adminId);
 
+        $this->checkIfUserExists($userId);
+        $this->ensureUser($userId);
 
         // Enregistrement en Bd
         $this->userRepository->deleteUser($userId);
