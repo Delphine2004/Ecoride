@@ -67,7 +67,7 @@ class UserController extends BaseController
         }
 
         try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
+            // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Conversion des données en DTO
@@ -99,7 +99,7 @@ class UserController extends BaseController
     public function updateProfile(User $user, string $jwtToken): void
     {
         try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
+            // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération de l'utilisateur à modifier
@@ -123,7 +123,7 @@ class UserController extends BaseController
     public function modifyPassword(User $user, string $jwtToken): void
     {
         try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
+            // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération de l'utilisateur à modifier
@@ -147,7 +147,7 @@ class UserController extends BaseController
     public function becomeDriver(User $user, string $jwtToken): void
     {
         try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
+            // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération de l'utilisateur à modifier
@@ -173,7 +173,7 @@ class UserController extends BaseController
     public function deleteAccount(string $jwtToken): void
     {
         try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
+            // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Suppression de l'utilisateur

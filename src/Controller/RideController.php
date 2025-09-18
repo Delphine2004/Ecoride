@@ -28,15 +28,11 @@ class RideController extends BaseController
     ): void {
 
         try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
+            // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Ajout du trajet
             $ride = $this->rideService->createRide($dto, $userId);
-
-            if (!$ride) {
-                $this->errorResponse("Impossible de créer le trajet.", 500);
-            }
 
             // Envoi de la réponse positive
             $this->successResponse($ride, 201);
@@ -58,7 +54,7 @@ class RideController extends BaseController
     ): void {
         try {
 
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
+            // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération du trajet annulé
@@ -81,15 +77,15 @@ class RideController extends BaseController
 
     // Démarre un trajet.
     public function startRide(
-        Ride $ride,
+        int $rideId,
         string $jwtToken
     ): void {
         try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
+            // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération du trajet à démarrer
-            $rideToStart = $this->rideService->startRide($ride, $userId);
+            $rideToStart = $this->rideService->startRide($rideId, $userId);
 
             // Vérification de l'existence du trajet
             if ($rideToStart) {
@@ -108,15 +104,15 @@ class RideController extends BaseController
 
     // Finalise un trajet
     public function finalizeRide(
-        Ride $ride,
+        int $rideId,
         string $jwtToken
     ): void {
         try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
+            // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération du trajet à finaliser
-            $rideToStart = $this->rideService->finalizeRide($ride, $userId);
+            $rideToStart = $this->rideService->finalizeRide($rideId, $userId);
 
             // Vérification de l'existence du trajet
             if ($rideToStart) {
@@ -146,7 +142,7 @@ class RideController extends BaseController
         string $jwtToken
     ): void {
         try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
+            // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération des infos
@@ -197,7 +193,7 @@ class RideController extends BaseController
         string $jwtToken
     ): void {
         try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
+            // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération des infos
@@ -220,7 +216,7 @@ class RideController extends BaseController
         string $jwtToken
     ): void {
         try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
+            // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération des infos
@@ -247,7 +243,7 @@ class RideController extends BaseController
         string $jwtToken
     ): void {
         try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
+            // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération des infos

@@ -21,7 +21,7 @@ class StaffController extends BaseController
 
     ): void {
         try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
+            // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération
@@ -44,7 +44,7 @@ class StaffController extends BaseController
         string $jwtToken
     ): void {
         try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
+            // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération
@@ -68,7 +68,7 @@ class StaffController extends BaseController
         DateTimeInterface $end
     ): void {
         try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
+            // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération
@@ -90,7 +90,7 @@ class StaffController extends BaseController
         string $jwtToken
     ): void {
         try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
+            // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération
@@ -114,7 +114,7 @@ class StaffController extends BaseController
         DateTimeInterface $end
     ): void {
         try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
+            // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération 
@@ -136,7 +136,7 @@ class StaffController extends BaseController
     public function listBookingsByDepartureDate(DateTimeImmutable $departureDate, string $jwtToken): void
     {
         try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
+            // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération
@@ -156,7 +156,7 @@ class StaffController extends BaseController
     public function listBookingsByStatus(BookingStatus $bookingStatus, string $jwtToken): void
     {
         try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
+            // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération
@@ -176,7 +176,7 @@ class StaffController extends BaseController
     public function listBookingsByCreatedAt(DateTimeImmutable $createdAtDate, string $jwtToken): void
     {
         try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
+            // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération

@@ -37,7 +37,7 @@ class CarController extends BaseController
         }
 
         try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
+            // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Conversion des données en DTO
@@ -82,7 +82,7 @@ class CarController extends BaseController
         string $jwtToken
     ): void {
         try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
+            // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Suppression de la voiture
@@ -117,7 +117,7 @@ class CarController extends BaseController
         string $jwtToken
     ): void {
         try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
+            // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération de la liste de voiture

@@ -34,7 +34,7 @@ class BookingController extends BaseController
         }
 
         try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
+            // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
 
@@ -68,7 +68,7 @@ class BookingController extends BaseController
     ): void {
         try {
 
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
+            // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération du trajet annulé
@@ -100,7 +100,7 @@ class BookingController extends BaseController
         string $jwtToken
     ): void {
         try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
+            // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération des infos
@@ -122,7 +122,7 @@ class BookingController extends BaseController
         string $jwtToken
     ): void {
         try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
+            // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération des infos
@@ -144,7 +144,7 @@ class BookingController extends BaseController
         string $jwtToken
     ): void {
         try {
-            // Récupération de l'id de l'utilisateur dans le token avec vérification
+            // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération des infos
