@@ -700,4 +700,120 @@ class RideService
     ): Booking {
         return $this->bookingRepository->findBookingByPassengerAndRide($passengerId, $rideId);
     }
+
+
+    //------------------HISTORIQUES------------------------
+
+    //-------------Pour les conducteurs------------------
+
+
+    /**
+     * Permet à un utilisateur CONDUCTEUR OU EMPLOYE OU ADMIN de récupèrer la liste d'objet Ride à venir d'un utilisateur CONDUCTEUR.
+     *
+     * @param integer $driverId
+     * @param integer $userId
+     * @return array
+     */
+    public function listUpcomingRidesByDriver(
+        int $driverId,
+        int $userId
+    ): array {
+
+        $this->authService->checkIfUserExists($userId);
+        $this->authService->ensureDriverAndStaff($userId);
+
+        $this->authService->checkIfUserExists($driverId);
+
+        // Vérification qu'il s'agit bien du conducteur
+        if ($this->authService->isDriver($userId)) {
+            if ($userId !== $driverId) {
+                throw new InvalidArgumentException("Accés interdit.");
+            }
+        }
+
+        return $this->rideRepository->findUpcomingRidesByDriver($driverId);
+    }
+
+    /**
+     * Permet à un utilisateur CONDUCTEUR OU EMPLOYE OU ADMIN de récupèrer la liste brute des trajets passés d'un utilisateur CONDUCTEUR.
+     *
+     * @param integer $driverId
+     * @param integer $userId
+     * @return array
+     */
+    public function listPastRidesByDriver(
+        int $driverId,
+        int $userId
+    ): array {
+
+        $this->authService->checkIfUserExists($userId);
+        $this->authService->ensureDriverAndStaff($userId);
+
+        $this->authService->checkIfUserExists($driverId);
+
+        // Vérification qu'il s'agit bien du conducteur
+        if ($this->authService->isDriver($userId)) {
+            if ($userId !== $driverId) {
+                throw new InvalidArgumentException("Accés interdit.");
+            }
+        }
+
+        return $this->rideRepository->fetchPastRidesByDriver($driverId);
+    }
+
+
+    //-------------Pour les Passagers------------------
+
+
+    /**
+     * Permet à un utilisateur PASSAGER OU EMPLOYE OU ADMIN de récupèrer la liste d'objet Booking à vénir d'une utilisateur PASSAGER.
+     *
+     * @param integer $passengerId
+     * @param integer $userId
+     * @return array
+     */
+    public function listUpcomingBookingsByPassenger(
+        int $passengerId,
+        int $userId
+    ): array {
+        $this->authService->checkIfUserExists($userId);
+        $this->authService->ensurePassengerAndStaff($userId);
+
+        $this->authService->checkIfUserExists($passengerId);
+
+        // Vérification qu'il s'agit bien du passager
+        if ($this->authService->isPassenger($passengerId)) {
+            if ($userId !== $passengerId) {
+                throw new InvalidArgumentException("Accés interdit.");
+            }
+        }
+
+        return $this->bookingRepository->findUpcomingBookingsByPassenger($passengerId);
+    }
+
+    /**
+     * Permet à un utilisateur PASSAGER OU EMPLOYE OU ADMIN de récupèrer la liste brute des réservations passées d'une utilisateur PASSAGER.
+     *
+     * @param integer $passengerId
+     * @param integer $userId
+     * @return array
+     */
+    public function listPastBookingsByPassenger(
+        int $passengerId,
+        int $userId
+    ): array {
+        $this->authService->checkIfUserExists($userId);
+        $this->authService->ensurePassengerAndStaff($userId);
+
+        $this->authService->checkIfUserExists($passengerId);
+
+        // Vérification qu'il s'agit bien du passager
+        if ($this->authService->isPassenger($passengerId)) {
+            if ($userId !== $passengerId) {
+                throw new InvalidArgumentException("Accés interdit.");
+            }
+        }
+
+        return $this->bookingRepository->fetchPastBookingsByPassenger($passengerId);
+    }
 }
