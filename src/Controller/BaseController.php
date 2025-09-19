@@ -75,4 +75,23 @@ abstract class BaseController
 
         return (int) $userdata['user_id'];
     }
+
+
+    // Récupère et nettoie les données envoyées via une requete POST
+
+    /*
+    protected function getPostData(): array
+    {
+       // return $this->validator->sanitize($_POST);
+    }
+    */
+
+    // Vérifie si l'utilisateur est connecter sinon le redirige vers la page login
+    protected function requireAuth(): void
+    {
+
+        if (!isset($_SESSION['user_id'])) {
+            // $this->response->redirect('/login');
+        }
+    }
 }
