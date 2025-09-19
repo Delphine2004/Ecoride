@@ -41,8 +41,9 @@ class RideService
      * @param integer $rideId
      * @return void
      */
-    public function checkIfRideExists(int $rideId)
-    {
+    public function checkIfRideExists(
+        int $rideId
+    ): void {
         // Récupération de l'entité Ride
         $ride = $this->rideRepository->findRideById($rideId);
 
@@ -60,7 +61,7 @@ class RideService
      */
     public function checkIfBookingExists(
         int $bookingId
-    ) {
+    ): void {
         // Récupération de l'entité Booking
         $booking = $this->bookingRepository->findBookingById($bookingId);
 
@@ -277,11 +278,12 @@ class RideService
         // Récupération des passagers
         $passengers = $ride->getRidePassengers();
 
+        // Mise à jour du statut et envoi de notification
         foreach ($passengers as $passenger) {
             $booking = $this->bookingRepository->findBookingByPassengerAndRide($passenger, $rideId);
 
             $booking->setBookingStatus(BookingStatus::ENCOURS);
-            // Enregistrement dans la BD
+
             $this->bookingRepository->updateBooking($booking);
 
             $this->notificationService->sendRideStartToPassenger($passenger, $ride);
@@ -327,14 +329,6 @@ class RideService
             throw new InvalidArgumentException("Le trajet n'a pas le statut ENCOURS.");
         }
 
-        // Récupération de l'utilisateur
-        $driver = $this->authService->getUserById($userId);
-
-        // Vérification de l'existence du conducteur
-        if (!$driver) {
-            throw new InvalidArgumentException("Utilisateur introuvable.");
-        }
-
 
         // Modification du status
         $ride->setRideStatus(RideStatus::ENATTENTE);
@@ -356,6 +350,9 @@ class RideService
             // Envoi de la demande de confirmation de fin de trajet
             $this->notificationService->sendRideFinalizationRequestToPassenger($passenger, $ride);
         }
+
+        // Récupération de l'utilisateur
+        $driver = $this->authService->getUserById($userId);
 
         // Notification du conducteur
         $this->notificationService->sendRideConfirmationStopToDriver($driver, $ride);
@@ -662,7 +659,6 @@ class RideService
         $this->authService->checkIfUserExists($userId);
         $this->authService->ensureUser($userId);
         $this->checkIfRideExists($rideId);
-
 
         return $this->rideRepository->findRideWithUsersByRideId($rideId);
     }

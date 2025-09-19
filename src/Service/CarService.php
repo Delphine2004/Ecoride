@@ -5,16 +5,12 @@ namespace App\Service;
 use App\Repository\CarRepository;
 use App\Service\UserService;
 use App\Model\Car;
-use App\Enum\UserRoles;
 use App\DTO\CreateCarDTO;
-
-
 use InvalidArgumentException;
 
 
 class CarService
 {
-
     public function __construct(
         protected CarRepository $carRepository,
         protected UserService $userService
@@ -26,8 +22,9 @@ class CarService
      * @param integer $userId
      * @return boolean
      */
-    public function userHasCars(int $userId): bool
-    {
+    public function userHasCars(
+        int $userId
+    ): bool {
         $this->userService->checkIfUserExists($userId);
         $this->userService->ensureDriver($userId);
         return count($this->carRepository->findAllCarsByOwner($userId)) > 0;
@@ -83,13 +80,7 @@ class CarService
         $this->userService->checkIfUserExists($userId);
 
         // Vérification des permissions.
-        if (!$this->userService->hasAnyRole($userId, [
-            UserRoles::CONDUCTEUR,
-            UserRoles::EMPLOYE,
-            UserRoles::ADMIN
-        ])) {
-            throw new InvalidArgumentException("Seulement les utilisateurs CONDUCTEUR, EMPLOYE ou ADMIN peuvent effectuer cette action.");
-        }
+        $this->userService->ensureDriverAndStaff($userId);
 
         // Vérification si l'utilisateur CONDUCTEUR est le propriétaire.
         if ($this->userService->isDriver($userId) && !$this->carRepository->isOwner($userId, $carId)) {
@@ -117,16 +108,8 @@ class CarService
 
         $this->userService->checkIfUserExists($userId);
 
-        // Vérification des permissions.
-        if (!$this->userService->hasAnyRole($userId, [
-            UserRoles::CONDUCTEUR,
-            UserRoles::EMPLOYE,
-            UserRoles::ADMIN
-        ])) {
-            throw new InvalidArgumentException("Seulement les utilisateurs CONDUCTEUR,  ou ADMIN peuvent effectuer cette action.");
-        }
+        $this->userService->ensureDriverAndStaff($userId);
 
-        // Récupération du conducteur
         $this->userService->checkIfUserExists($driverId);
 
 

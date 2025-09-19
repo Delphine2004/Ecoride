@@ -11,12 +11,16 @@ use InvalidArgumentException;
 
 class UserService
 {
-
     public function __construct(
         protected UserRepository $userRepository
     ) {}
 
-    // Vérification de l'existence de l'utilisateur
+    /**
+     * Vérifie que l'utilisateur existe.
+     *
+     * @param integer $userId
+     * @return void
+     */
     public function checkIfUserExists(int $userId): void
     {
         $user = $this->userRepository->findUserById($userId);
@@ -28,14 +32,16 @@ class UserService
 
     //------------------------Vérification des rôles-------------------
     /**
-     * Vérifie un rôle en particulier.
+     * Vérifie qu'un utilisateur a un rôle en particulier.
      *
      * @param integer $userId
      * @param string $roleName
      * @return boolean
      */
-    public function hasRole(int $userId, UserRoles $role): bool
-    {
+    public function hasRole(
+        int $userId,
+        UserRoles $role
+    ): bool {
         // Trouver les roles de l'utilisateur
         $roles = $this->userRepository->getUserRoles($userId);
 
@@ -43,8 +49,17 @@ class UserService
         return in_array($role, $roles, true);
     }
 
-    public function hasAnyRole(int $userId, array $roles): bool
-    {
+    /**
+     * Vérifie qu'un utilisateur a au moins un rôle dans la liste des rôles.
+     *
+     * @param integer $userId
+     * @param array $roles
+     * @return boolean
+     */
+    public function hasAnyRole(
+        int $userId,
+        array $roles
+    ): bool {
         foreach ($roles as $role) {
             if ($this->hasRole($userId, $role)) {
                 return true;
@@ -53,100 +68,211 @@ class UserService
         return false;
     }
 
-    public function isPassenger(int $userId): bool
-    {
+    /**
+     * Vérifie que l'utilisateur a le rôle PASSAGER
+     *
+     * @param integer $userId
+     * @return boolean
+     */
+    public function isPassenger(
+        int $userId
+    ): bool {
         return $this->hasRole($userId, UserRoles::PASSAGER);
     }
 
-    public function isDriver(int $userId): bool
-    {
+    /**
+     * Vérifie que l'utilisateur a le rôle DRIVER
+     *
+     * @param integer $userId
+     * @return boolean
+     */
+    public function isDriver(
+        int $userId
+    ): bool {
         return $this->hasRole($userId, UserRoles::CONDUCTEUR);
     }
 
-    public function isCustomer(int $userId): bool
-    {
+    /**
+     * Vérifie que l'utilisateur a le rôle PASSAGER ou CONDUCTEUR 
+     *
+     * @param integer $userId
+     * @return boolean
+     */
+    public function isCustomer(
+        int $userId
+    ): bool {
         return $this->hasAnyRole($userId, [UserRoles::PASSAGER, UserRoles::CONDUCTEUR]);
     }
 
-    public function isEmployee(int $userId): bool
-    {
+    /**
+     * Vérifie que l'utilisateur a le rôle EMPLOYE
+     *
+     * @param integer $userId
+     * @return boolean
+     */
+    public function isEmployee(
+        int $userId
+    ): bool {
         return $this->hasRole($userId, UserRoles::EMPLOYE);
     }
 
-    public function isAdmin(int $userId): bool
-    {
+    /**
+     * Vérifie que l'utilisateur a le rôle ADMIN
+     *
+     * @param integer $userId
+     * @return boolean
+     */
+    public function isAdmin(
+        int $userId
+    ): bool {
         return $this->hasRole($userId, UserRoles::ADMIN);
     }
 
-    public function isStaff(int $userId): bool
-    {
+    /**
+     * Vérifie que l'utilisateur a 
+     *
+     * @param integer $userId
+     * @return boolean
+     */
+    public function isStaff(
+        int $userId
+    ): bool {
         return $this->hasAnyRole($userId, [UserRoles::EMPLOYE, UserRoles::ADMIN]);
     }
 
-    public function isUser(int $userId): bool
-    {
+    /**
+     * Vérifie que l'utilisateur a un rôle de défini
+     *
+     * @param integer $userId
+     * @return boolean
+     */
+    public function isUser(
+        int $userId
+    ): bool {
         return $this->hasAnyRole($userId, [UserRoles::PASSAGER, UserRoles::CONDUCTEUR, UserRoles::EMPLOYE, UserRoles::ADMIN]);
     }
 
-
-    public function ensurePassenger(int $userId)
-    {
+    /**
+     * Confirme que l'utilisateur a le rôle PASSAGER
+     *
+     * @param integer $userId
+     * @return void
+     */
+    public function ensurePassenger(
+        int $userId
+    ): void {
         if (!$this->isPassenger($userId)) {
             throw new InvalidArgumentException("L'utilisateur n'a pas le rôle PASSAGER.");
         }
     }
 
-    public function ensureDriver(int $userId)
-    {
+    /**
+     * Confirme que l'utilisateur a le rôle DRIVER
+     *
+     * @param integer $userId
+     * @return void
+     */
+    public function ensureDriver(
+        int $userId
+    ): void {
         if (!$this->isDriver($userId)) {
             throw new InvalidArgumentException("L'utilisateur n'a pas le rôle CONDUCTEUR.");
         }
     }
 
-    public function ensureCustomer(int $userId)
-    {
+    /**
+     * Confirme que l'utilisateur a le rôle PASSAGER OU CONDUCTEUR
+     *
+     * @param integer $userId
+     * @return void
+     */
+    public function ensureCustomer(
+        int $userId
+    ): void {
         if (!$this->isCustomer($userId)) {
             throw new InvalidArgumentException("L'utilisateur n'a pas le rôle PASSAGER ou CONDUCTEUR.");
         }
     }
 
-    public function ensureEmployee(int $userId)
-    {
+    /**
+     * Confirme que l'utilisateur a le rôle EMPLOYE
+     *
+     * @param integer $userId
+     * @return void
+     */
+    public function ensureEmployee(
+        int $userId
+    ): void {
         if (!$this->isEmployee($userId)) {
             throw new InvalidArgumentException("L'utilisateur n'a pas le rôle EMPLOYE.");
         }
     }
 
-    public function ensureAdmin(int $userId)
-    {
+    /**
+     * Confirme que l'utilisateur a le rôle ADMIN
+     *
+     * @param integer $userId
+     * @return void
+     */
+    public function ensureAdmin(
+        int $userId
+    ): void {
         if (!$this->isAdmin($userId)) {
             throw new InvalidArgumentException("L'utilisateur n'a pas le rôle ADMIN.");
         }
     }
 
-    public function ensureStaff(int $userId)
-    {
+    /**
+     * Confirme que l'utilisateur a le rôle EMPLOYE ou ADMIN
+     *
+     * @param integer $userId
+     * @return void
+     */
+    public function ensureStaff(
+        int $userId
+    ): void {
         if (!$this->isStaff($userId)) {
             throw new InvalidArgumentException("L'utilisateur n'a pas le rôle EMPLOYE ou ADMIN.");
         }
     }
 
-    public function ensurePassengerAndStaff(int $userId)
-    {
+    /**
+     * Confirme que l'utilisateur a le rôle PASSAGER ou EMPLOYE ou ADMIN
+     *
+     * @param integer $userId
+     * @return void
+     */
+    public function ensurePassengerAndStaff(
+        int $userId
+    ): void {
         if (!$this->isPassenger($userId) && !$this->isStaff($userId)) {
             throw new InvalidArgumentException("L'utilisateur n'a pas le rôle PASSAGER ou EMPLOYE ou ADMIN.");
         }
     }
 
-    public function ensureDriverAndStaff(int $userId)
-    {
+    /**
+     * Confirme que l'utilisateur a le rôle CONDUCTEUR ou EMPLOYE ou ADMIN
+     *
+     * @param integer $userId
+     * @return void
+     */
+    public function ensureDriverAndStaff(
+        int $userId
+    ): void {
         if (!$this->isDriver($userId) && !$this->isStaff($userId)) {
             throw new InvalidArgumentException("L'utilisateur n'a pas le rôle CONDUCTEUR ou EMPLOYE ou ADMIN.");
         }
     }
 
-    public function ensureUser(int $userId)
-    {
+    /**
+     * Confirme que l'utilisateur a un rôle
+     *
+     * @param integer $userId
+     * @return void
+     */
+    public function ensureUser(
+        int $userId
+    ): void {
         if (!$this->isUser($userId)) {
             throw new InvalidArgumentException("L'utilisateur n'a pas de rôle défini.");
         }
@@ -154,8 +280,15 @@ class UserService
 
     //---------------------Récupération simple---------------
 
-    public function getUserById(int $userId): User
-    {
+    /**
+     * Récupére un Objet User par son id.
+     *
+     * @param integer $userId
+     * @return User
+     */
+    public function getUserById(
+        int $userId
+    ): User {
         $this->checkIfUserExists($userId);
         return $this->userRepository->findUserById($userId);
     }
@@ -200,7 +333,7 @@ class UserService
     // ----------Actions PASSAGER --------------------------
 
     /**
-     * Permet à un utilisateur de devenir CONDUCTEUR.
+     * Permet à un utilisateur d'ajouter le rôle CONDUCTEUR.
      *
      * @param UpdateUserDTO $dto
      * @param integer $passengerId
@@ -325,7 +458,7 @@ class UserService
     }
 
     /**
-     * Permet à tous les utilisateurs de modifier le mot de passe
+     * Permet à tous les utilisateurs de modifier leur mot de passe
      *
      * @param string $newPassword
      * @param string $oldPassword
