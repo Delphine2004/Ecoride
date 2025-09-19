@@ -2,25 +2,19 @@
 
 namespace App\Security;
 
-use App\Repository\UserRepository;
+
 use App\Model\User;
-use App\Service\BaseService;
+use App\Service\UserService;
 use Firebase\JWT\JWT; // sert à encoder/décoder
 use Firebase\JWT\Key; // sert à vérifier un JWT avec une clé spécifique et un algorithme
 use InvalidArgumentException;
 
-class AuthService extends BaseService
+class AuthService extends UserService
 {
 
     private string $secretKey = "ma_cle_secrete";
     private int $accessExpiry = 3600; // exipiration 1h
 
-
-    public function __construct(
-        private UserRepository $userRepository
-    ) {
-        parent::__construct();
-    }
 
 
     public function login(string $email, string $password): array
