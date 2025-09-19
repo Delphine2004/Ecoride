@@ -1,53 +1,47 @@
 <?php
 
-// Rajouter les méthodes liées à userRepository
-
 namespace App\Model;
-
 
 use App\Enum\UserRoles;
 use App\Utils\RegexPatterns;
 use InvalidArgumentException;
 use DateTimeImmutable;
 
-//Pas besoin de base model dans une entité
 
 /** 
  * Cette classe représente un utilisateur dans la BDD.
- * Elle contient la validation des données 
- * ainsi que les actions réalisables par les utilisateurs en fonction de leur rôle.
+ * Elle contient la validation des données.
  */
 
 class User
 {
 
-    // Promotion des propriétés (depuis PHP 8)
     function __construct(
-        private ?int $userId = null, // n'a pas de valeur au moment de l'instanciation
-        private ?string $lastName = null,
-        private ?string $firstName = null,
-        private ?string $email = null,
-        private ?string $password = null,
-        private ?bool $isHashed = false,
+        public ?int $userId = null, // n'a pas de valeur au moment de l'instanciation
+        public ?string $lastName = null,
+        public ?string $firstName = null,
+        public ?string $email = null,
+        public ?string $password = null,
+        public ?bool $isHashed = false,
 
-        private ?string $login = null,
-        private ?string $phone = null,
-        private ?string $address = null,
-        private ?string $city = null,
-        private ?string $zipCode = null,
-        private ?string $uriPicture = null,
-        private ?string $licenceNo = null,
-        private ?int $credits = null,
-        private ?string $preferences = null,
+        public ?string $login = null,
+        public ?string $phone = null,
+        public ?string $address = null,
+        public ?string $city = null,
+        public ?string $zipCode = null,
+        public ?string $uriPicture = null,
+        public ?string $licenceNo = null,
+        public ?int $credits = null,
+        public ?string $preferences = null,
 
-        private array $roles = [], // pour pouvoir stoker plusieurs rôles pour un utilisateur
-        private array $cars = [], // pour stocker les voitures d'un conducteur
-        private array $rides = [], // pour stocker les trajets d'un conducteur
-        private array $bookings = [], // pour stocker les réservations
+        public array $roles = [], // pour pouvoir stoker plusieurs rôles pour un utilisateur
+        public array $cars = [], // pour stocker les voitures d'un conducteur
+        public array $rides = [], // pour stocker les trajets d'un conducteur
+        public array $bookings = [], // pour stocker les réservations
 
 
-        private ?DateTimeImmutable $createdAt = null, // n'a pas de valeur au moment de l'instanciation
-        private ?DateTimeImmutable $updatedAt = null // n'a pas de valeur au moment de l'instanciation
+        public ?DateTimeImmutable $createdAt = null, // n'a pas de valeur au moment de l'instanciation
+        public ?DateTimeImmutable $updatedAt = null // n'a pas de valeur au moment de l'instanciation
     ) {
         // Affectation avec validation
         $this

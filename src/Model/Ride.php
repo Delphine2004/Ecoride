@@ -18,27 +18,26 @@ use DateTimeImmutable;
 class Ride
 {
 
-    // Promotion des propriétés (depuis PHP 8)
     public function __construct(
-        private ?int $rideId = null, // n'a pas de valeur au moment de l'instanciation
+        public ?int $rideId = null, // n'a pas de valeur au moment de l'instanciation
 
-        private ?int $driverId = null, // pour l'hydratation brute
-        private ?User $driver = null, // pour le mapping
+        public ?int $driverId = null, // pour l'hydratation brute
+        public ?User $driver = null, // pour le mapping
 
-        private ?DateTimeImmutable $departureDateTime = null,
-        private ?string $departurePlace = null,
-        private ?DateTimeImmutable $arrivalDateTime = null,
-        private ?string $arrivalPlace = null,
-        private ?int $price = null,
-        private ?int $availableSeats = null,
-        private ?RideStatus $rideStatus = null,
-        private ?int $commission = 2,
+        public ?DateTimeImmutable $departureDateTime = null,
+        public ?string $departurePlace = null,
+        public ?DateTimeImmutable $arrivalDateTime = null,
+        public ?string $arrivalPlace = null,
+        public ?float $price = null,
+        public ?int $availableSeats = null,
+        public ?RideStatus $rideStatus = null,
+        public ?int $commission = 2,
 
-        private ?array $passengers = [], // Pour charger plusieurs passagers
+        public ?array $passengers = [], // Pour charger plusieurs passagers
 
 
-        private ?DateTimeImmutable $createdAt = null, // n'a pas de valeur au moment de l'instanciation
-        private ?DateTimeImmutable $updatedAt = null // n'a pas de valeur au moment de l'instanciation
+        public ?DateTimeImmutable $createdAt = null, // n'a pas de valeur au moment de l'instanciation
+        public ?DateTimeImmutable $updatedAt = null // n'a pas de valeur au moment de l'instanciation
 
     ) {
         // Affectation avec validation

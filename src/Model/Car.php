@@ -19,23 +19,21 @@ use DateTimeImmutable;
 class Car
 {
 
-
-    // Promotion des propriétés (depuis PHP 8)
     function __construct(
-        private ?int $carId = null, // n'a pas de valeur au moment de l'instanciation
-        private ?int $ownerId = null, // pour l'hydratation brute 
-        private ?User $owner = null, // // pour le mapping
+        public ?int $carId = null, // n'a pas de valeur au moment de l'instanciation
+        public ?int $ownerId = null, // pour l'hydratation brute 
+        public ?User $owner = null, // // pour le mapping
 
-        private ?CarBrand $brand = null,
-        private ?string $model = null,
-        private ?CarColor $color = null,
-        private ?int $year = null,
-        private ?CarPower $power = null,
-        private ?int $seatsNumber = null,
-        private ?string $registrationNumber = null,
-        private ?DateTimeImmutable $registrationDate = null,
+        public ?CarBrand $brand = null,
+        public ?string $model = null,
+        public ?CarColor $color = null,
+        public ?int $year = null,
+        public ?CarPower $power = null,
+        public ?int $seatsNumber = null,
+        public ?string $registrationNumber = null,
+        public ?DateTimeImmutable $registrationDate = null,
 
-        private ?DateTimeImmutable $createdAt = null // n'a pas de valeur au moment de l'instanciation
+        public ?DateTimeImmutable $createdAt = null // n'a pas de valeur au moment de l'instanciation
 
 
     ) {

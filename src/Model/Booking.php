@@ -2,32 +2,35 @@
 
 namespace App\Model;
 
-
 use App\Model\Ride;
 use App\Model\User;
 use App\Enum\BookingStatus;
 use InvalidArgumentException;
 use DateTimeImmutable;
 
+/**
+ * Cette classe représente une réservation de trajet dans la BD.
+ */
+
 class Booking
 {
-    // Promotion des propriétés (depuis PHP 8)
+
     public function __construct(
-        private ?int $bookingId = null, // n'a pas de valeur au moment de l'instanciation
+        public ?int $bookingId = null, // n'a pas de valeur au moment de l'instanciation
 
-        private ?int $rideId = null, // pour l'hydratation brute dans bookingRepository
-        private ?int $passengerId = null, // pour l'hydratation brute dans bookingRepository
-        private ?int $driverId = null, // pour l'hydratation brute dans bookingRepository
+        public ?int $rideId = null, // pour l'hydratation brute dans bookingRepository
+        public ?int $passengerId = null, // pour l'hydratation brute dans bookingRepository
+        public ?int $driverId = null, // pour l'hydratation brute dans bookingRepository
 
-        private ?Ride $ride = null, // Pour le mapping dans bookingRepository
-        private ?User $passenger = null, // Pour le mapping dans bookingRepository
-        private ?User $driver = null, // Pour mapping bookingRepository
+        public ?Ride $ride = null, // Pour le mapping dans bookingRepository
+        public ?User $passenger = null, // Pour le mapping dans bookingRepository
+        public ?User $driver = null, // Pour mapping bookingRepository
 
-        private ?BookingStatus $bookingStatus = null,
-        private array $passengers = [], // Pour charger plusieurs passagers
+        public ?BookingStatus $bookingStatus = null,
+        public array $passengers = [], // Pour charger plusieurs passagers
 
-        private ?\DateTimeImmutable $createdAt = null, // n'a pas de valeur au moment de l'instanciation
-        private ?\DateTimeImmutable $updatedAt = null // n'a pas de valeur au moment de l'instanciation
+        public ?\DateTimeImmutable $createdAt = null, // n'a pas de valeur au moment de l'instanciation
+        public ?\DateTimeImmutable $updatedAt = null // n'a pas de valeur au moment de l'instanciation
 
     ) {
 
