@@ -284,4 +284,100 @@ class RideController extends BaseController
             $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
         }
     }
+
+    //-------------Pour les conducteurs------------------
+
+    // Affiche tous les trajets à venir d'un conducteur.
+    public function listUpcomingRidesByDriver(
+        int $driverId,
+        string $jwtToken
+    ): void {
+        try {
+            // Récupération de l'id de l'utilisateur
+            $userId = $this->getUserIdFromToken($jwtToken);
+
+            // Récupération des infos
+            $rides = $this->rideService->listUpcomingRidesByDriver($userId, $driverId);
+
+            // Envoi de la réponse positive
+            $this->successResponse($rides, 200);
+        } catch (InvalidArgumentException $e) {
+
+            $this->errorResponse($e->getMessage(), 400);
+        } catch (\Exception $e) {
+
+            $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
+        }
+    }
+
+    // Affiche tous les trajets passés d'un conducteur.
+    public function listPastRidesByDriver(
+        int $driverId,
+        string $jwtToken
+    ): void {
+        try {
+            // Récupération de l'id de l'utilisateur
+            $userId = $this->getUserIdFromToken($jwtToken);
+
+            // Récupération des infos
+            $rides = $this->rideService->listPastRidesByDriver($userId, $driverId);
+
+            // Envoi de la réponse positive
+            $this->successResponse($rides, 200);
+        } catch (InvalidArgumentException $e) {
+
+            $this->errorResponse($e->getMessage(), 400);
+        } catch (\Exception $e) {
+
+            $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
+        }
+    }
+
+
+    //-------------Pour les Passagers------------------
+
+
+    public function listUpcomingBookingsByPassenger(
+        int $passengerId,
+        string $jwtToken
+    ): void {
+        try {
+            // Récupération de l'id de l'utilisateur
+            $userId = $this->getUserIdFromToken($jwtToken);
+
+            // Récupération des infos
+            $bookings = $this->rideService->listUpcomingBookingsByPassenger($passengerId, $userId);
+
+            // Envoi de la réponse positive
+            $this->successResponse($bookings);
+        } catch (InvalidArgumentException $e) {
+            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
+            $this->errorResponse($e->getMessage(), 400);
+        } catch (\Exception $e) {
+            // Attrappe les erreurs "Internal Server Error"
+            $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
+        }
+    }
+
+    public function listPastBookingsByPassenger(
+        int $passengerId,
+        string $jwtToken
+    ): void {
+        try {
+            // Récupération de l'id de l'utilisateur
+            $userId = $this->getUserIdFromToken($jwtToken);
+
+            // Récupération des infos
+            $bookings = $this->rideService->listPastBookingsByPassenger($passengerId, $userId);
+
+            // Envoi de la réponse positive
+            $this->successResponse($bookings);
+        } catch (InvalidArgumentException $e) {
+            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
+            $this->errorResponse($e->getMessage(), 400);
+        } catch (\Exception $e) {
+            // Attrappe les erreurs "Internal Server Error"
+            $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
+        }
+    }
 }
