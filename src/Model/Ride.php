@@ -62,11 +62,14 @@ class Ride
         $driverId = $row['driver_id'] ?? null;
         $departureDateTime = $row['departure_date_time'] ? new DateTimeImmutable($row['departure_date_time']) : null;
         $departurePlace = $row['departure_place'] ?? null;
-        $arrivalDateTime = $row['arrival_date_time'] ? new DateTimeImmutable($row['arrival_date_time']) : null;
+        $arrivalDateTime = null;
+        if (!empty($row['arrival_date_time']) && $row['arrival_date_time'] !== '0000-00-00 00:00:00') {
+            $arrivalDateTime = new DateTimeImmutable($row['arrival_date_time']);
+        }
         $arrivalPlace = $row['arrival_place'] ?? null;
         $price = (float) ($row['price'] ?? 0);
         $availableSeats = $row['available_seats'] ?? null;
-        $rideStatus = $row['ride_status'] ?? null;
+        $rideStatus = $row['ride_status'] ? \App\Enum\RideStatus::from($row['ride_status']) : null;
         $commission = $row['commission'] ?? null;
         $createdAt = $row['created_at'] ? new DateTimeImmutable($row['created_at']) : null;
         $updatedAt = $row['updated_at'] ? new DateTimeImmutable($row['updated_at']) : null;
@@ -133,7 +136,7 @@ class Ride
         return (int)($interval / 60);
     }
 
-    public function getRidePrice(): ?int
+    public function getRidePrice(): ?float
     {
         return $this->price;
     }
@@ -225,10 +228,18 @@ class Ride
     public function setRideArrivalDateTime(?DateTimeImmutable $arrivalDateTime): self
     {
 
-        if (isset($this->departureDateTime) && $arrivalDateTime <= $this->departureDateTime) {
+        if ($arrivalDateTime !== null && isset($this->departureDateTime) && $arrivalDateTime <= $this->departureDateTime) {
             throw new InvalidArgumentException("La date d'arrivée doit être supérieure à la date de départ.");
         }
+
         $this->arrivalDateTime = $arrivalDateTime;
+        $this->updateTimestamp();
+
+
+        if ($arrivalDateTime !== null) {
+            $this->validateDuration();
+        }
+
         $this->updateTimestamp();
         $this->validateDuration();
         return $this;
@@ -252,7 +263,7 @@ class Ride
         return $this;
     }
 
-    public function setRidePrice(?int $price): self
+    public function setRidePrice(?float $price): self
     {
         if ($price < 0 || $price >= 100) {
             throw new InvalidArgumentException("Le prix doit être supérieure à 0 et inférieure à 100.");
@@ -325,8 +336,10 @@ class Ride
     // ------ Validation interne de la durée -----
     private function validateDuration(): void
     {
-        $duration = $this->getRideDuration();
-        if ($duration <= 0) {
+        $arrival = $this->getRideArrivalDateTime();
+        $departure = $this->getRideDepartureDateTime();
+
+        if ($arrival !== null && $arrival <= $departure) {
             throw new InvalidArgumentException("La durée du trajet doit être supérieure à 0.");
         }
     }

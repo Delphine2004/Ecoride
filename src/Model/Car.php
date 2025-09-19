@@ -57,10 +57,11 @@ class Car
     {
         $carId = $row['car_id'] ?? null;
         $ownerId = $row['user_id'] ?? null;
+        $brand = $row['car_brand'] ? \App\Enum\CarBrand::from($row['car_brand']) : null;
         $model = $row['car_model'] ?? null;
-        $color = $row['car_color'] ?? null;
+        $color = $row['car_color'] ? \App\Enum\CarColor::from($row['car_color']) : null;
         $year = $row['car_year'] ?? null;
-        $power = $row['car_power'] ?? null;
+        $power = $row['car_power'] ? \App\Enum\CarPower::from($row['car_power']) : null;
         $seatsNumber = (int) ($row['seats_number'] ?? 0);
         $registrationNumber = $row['registration_number'] ?? null;
         $registrationDate = $row['registration_date'] ? new DateTimeImmutable($row['arrival_date_time']) : null;
@@ -70,6 +71,7 @@ class Car
         return new self(
             carId: $carId,
             ownerId: $ownerId,
+            brand: $brand,
             model: $model,
             color: $color,
             year: $year,

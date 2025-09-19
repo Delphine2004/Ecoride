@@ -50,7 +50,7 @@ class Booking
         $rideId = $row['rideid'] ?? null;
         $passengerId = $row['passenger_id'] ?? null;
         $driverId = $row['driver_id'] ?? null;
-        $bookingStatus = $row['car_year'] ?? null;
+        $bookingStatus = $row['booking_status'] ? \App\Enum\BookingStatus::from($row['booking_status']) : null;
         $createdAt = $row['created_at'] ? new DateTimeImmutable($row['created_at']) : null;
         $updatedAt = $row['updated_at'] ? new DateTimeImmutable($row['updated_at']) : null;
 
