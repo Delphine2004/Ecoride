@@ -16,8 +16,9 @@ abstract class BaseRepository
     protected string $entityClass;
 
 
-    public function __construct(?PDO $db = null)
+    public function __construct(string $entityClass, ?PDO $db = null)
     {
+        $this->entityClass = $entityClass;
         $this->db = $db ?? Database::getInstance();
     }
 

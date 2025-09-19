@@ -14,16 +14,13 @@ use PDO;
 class BookingRepository extends BaseRepository
 {
 
-    /**
-     * @var string Le nom de la table en BDD
-     */
     protected string $table = 'bookings';
     protected string $primaryKey = 'booking_id';
 
     public function __construct(
         ?PDO $db = null
     ) {
-        parent::__construct($db);
+        parent::__construct(\App\Model\Booking::class, $db);
     }
 
     /**
