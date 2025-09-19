@@ -3,29 +3,37 @@
 namespace App\Service;
 
 use App\Repository\RideRepository;
-use App\Service\BookingService;
-use App\Service\UserService;
+use App\Repository\BookingRepository;
+
+use App\Security\AuthService;
 use App\Service\NotificationService;
 use App\Service\CarService;
+
 use App\Model\Ride;
+use App\Model\Booking;
+use App\Model\User;
+
 use App\Enum\RideStatus;
 use App\Enum\BookingStatus;
+
 use App\DTO\CreateRideDTO;
 use App\DTO\UpdateUserDTO;
+
 use DateTimeImmutable;
 use InvalidArgumentException;
-use DateTimeInterface;
 
 
 class RideService
 {
     public function __construct(
         protected RideRepository $rideRepository,
-        protected UserService $userService,
-        protected NotificationService $notificationService,
-        protected BookingService $bookingService,
-        protected CarService $carService
+        protected BookingRepository $bookingRepository,
+        protected AuthService $authService,
+        protected CarService $carService,
+        protected NotificationService $notificationService
     ) {}
+
+    //--------------VERIFICATIONS-----------------
 
     /**
      * Vérifie que le trajet existe.
@@ -44,8 +52,43 @@ class RideService
         }
     }
 
-    //-----------------ACTIONS------------------------------
+    /**
+     * Vérifie que la réservation existe.
+     *
+     * @param integer $bookingId
+     * @return void
+     */
+    public function checkIfBookingExists(
+        int $bookingId
+    ) {
+        // Récupération de l'entité Booking
+        $booking = $this->bookingRepository->findBookingById($bookingId);
 
+        // Vérification de l'existence de la réservation
+        if (!$booking) {
+            throw new InvalidArgumentException("Réservation introuvable.");
+        }
+    }
+
+    /**
+     * Vérifie que le passager n'a pas déjà une réservation
+     *
+     * @param User $user
+     * @param Ride $ride
+     * @return boolean
+     */
+    public function userHasBooking(
+        User $user,
+        Ride $ride
+    ): bool {
+        $booking = $this->bookingRepository->findBookingByFields([
+            'user_id' => $user->getUserId(),
+            'ride_id' => $ride->getRideId()
+        ]);
+        return $booking !== null;
+    }
+
+    //-----------------ACTIONS RIDE------------------------------
 
     /**
      * Permet à un utilisateur CONDUCTEUR d'ajouter un trajet.
@@ -59,8 +102,8 @@ class RideService
         int $userId,
     ): Ride {
 
-        $this->userService->checkIfUserExists($userId);
-        $this->userService->ensureDriver($userId);
+        $this->authService->checkIfUserExists($userId);
+        $this->authService->ensureDriver($userId);
 
         // Vérification que le chauffeur a une voiture
         if (!$this->carService->userHasCars($userId)) {
@@ -85,7 +128,7 @@ class RideService
         $this->rideRepository->insertRide($ride);
 
         // Récupération de l'utilisateur
-        $driver = $this->userService->getUserById($userId);
+        $driver = $this->authService->getUserById($userId);
 
 
         // Déduction de la commission au conducteur
@@ -102,14 +145,13 @@ class RideService
 
 
         // Enregistrement de la modification des crédits
-        $this->userService->updateProfile($userDto, $userId);
+        $this->authService->updateProfile($userDto, $userId);
 
         // Enregistrement dans la bd
         $this->rideRepository->insertRide($ride);
 
         return $ride;
     }
-
 
     /**
      * Permet à un utilisateur CONDUCTEUR OU EMPLOYE OU ADMIN d'annuler un trajet.
@@ -126,13 +168,13 @@ class RideService
 
         $this->checkIfRideExists($rideId);
 
-        $this->userService->checkIfUserExists($userId);
-        $this->userService->ensureDriverAndStaff($userId);
+        $this->authService->checkIfUserExists($userId);
+        $this->authService->ensureDriverAndStaff($userId);
 
         $ride = $this->rideRepository->findRideById($rideId);
 
         // Vérification qu'il s'agit bien du conducteur
-        if ($this->userService->isDriver($userId)) {
+        if ($this->authService->isDriver($userId)) {
             if ($ride->getRideDriverId() !== $userId) {
                 throw new InvalidArgumentException("Le conducteur ne correspond pas à ce trajet.");
             }
@@ -148,7 +190,7 @@ class RideService
 
 
         // Récupération des réservations, mise à jour des réservations et remboursement
-        $bookings = $this->bookingService->getAllBookingsByRideId($rideId, $userId);
+        $bookings = $this->bookingRepository->findAllBookingByRideId($rideId);
 
         foreach ($bookings as $booking) {
             // Récupérer le passager
@@ -157,10 +199,10 @@ class RideService
 
 
             // Mise à jour du statut de la réservation 
-            $bookingStatus = $booking->setBookingStatus(BookingStatus::ANNULEE);
+            $booking->setBookingStatus(BookingStatus::ANNULEE);
 
             // Enregistrement dans la bd
-            $this->bookingService->updateBookingStatus($booking->getBookingId(), $bookingStatus, $passengerId);
+            $this->bookingRepository->updateBooking($booking);
 
 
             // Défini le remboursement au passager
@@ -169,7 +211,7 @@ class RideService
             $passengerDto = new UpdateUserDTO(['credits' => $newCreditsBalance]);
 
             // Enregistrement des crédits du passager en BD
-            $this->userService->updateProfile($passengerDto, $userId);
+            $this->authService->updateProfile($passengerDto, $userId);
 
             // Envoi de la notification
             $this->notificationService->sendRideCancelationToPassenger($passenger, $ride);
@@ -182,36 +224,11 @@ class RideService
 
 
         // Envoi de confirmation
-        $driver = $this->userService->getUserById($userId);
+        $driver = $this->authService->getUserById($userId);
         $this->notificationService->sendRideCancelationToDriver($driver, $ride);
 
         return $ride;
     }
-
-    public function updateRideStatus(
-        int $rideId,
-        RideStatus $rideStatus
-    ): Ride {
-        // récupération de l'Objet Ride
-        $ride = $this->rideRepository->findRideById($rideId);
-
-        $ride->setRideStatus($rideStatus);
-
-        return $ride;
-    }
-
-    public function updateRideAvailableSeats(
-        int $rideId,
-        int $seat
-    ): Ride {
-        // récupération de l'Objet Ride
-        $ride = $this->rideRepository->findRideById($rideId);
-
-        $ride->setRideAvailableSeats($seat);
-
-        return $ride;
-    }
-
 
     /**
      * Permet à un utilisateur CONDUCTEUR OU EMPLOYE OU ADMIN de démarrer un trajet.
@@ -227,8 +244,8 @@ class RideService
 
         $this->checkIfRideExists($rideId);
 
-        $this->userService->checkIfUserExists($userId);
-        $this->userService->ensureDriverAndStaff($userId);
+        $this->authService->checkIfUserExists($userId);
+        $this->authService->ensureDriverAndStaff($userId);
 
         // Récupération de l'objet Ride
         $ride = $this->rideRepository->findRideById($rideId);
@@ -239,7 +256,7 @@ class RideService
         }
 
         // Vérification qu'il s'agit bien du conducteur
-        if ($this->userService->isDriver($userId)) {
+        if ($this->authService->isDriver($userId)) {
             if ($ride->getRideDriverId() !== $userId) {
                 throw new InvalidArgumentException("Le conducteur ne correspond pas à ce trajet.");
             }
@@ -261,16 +278,17 @@ class RideService
         $passengers = $ride->getRidePassengers();
 
         foreach ($passengers as $passenger) {
-            $booking = $this->bookingService->getBookingByPassengerAndRide($passenger, $rideId);
+            $booking = $this->bookingRepository->findBookingByPassengerAndRide($passenger, $rideId);
 
+            $booking->setBookingStatus(BookingStatus::ENCOURS);
             // Enregistrement dans la BD
-            $this->bookingService->updateBookingStatus($booking->getBookingId(), BookingStatus::ENCOURS);
+            $this->bookingRepository->updateBooking($booking);
 
             $this->notificationService->sendRideStartToPassenger($passenger, $ride);
         }
 
         // Notification du conducteur
-        $driver = $this->userService->getUserById($userId);
+        $driver = $this->authService->getUserById($userId);
         $this->notificationService->sendRideStartToDriver($driver, $ride);
 
         return $ride;
@@ -290,14 +308,14 @@ class RideService
 
         $this->checkIfRideExists($rideId);
 
-        $this->userService->checkIfUserExists($userId);
-        $this->userService->ensureDriverAndStaff($userId);
+        $this->authService->checkIfUserExists($userId);
+        $this->authService->ensureDriverAndStaff($userId);
 
         // Récupération de l'objet Ride
         $ride = $this->rideRepository->findRideById($rideId);
 
         // Vérification qu'il s'agit bien du conducteur
-        if ($this->userService->isDriver($userId)) {
+        if ($this->authService->isDriver($userId)) {
             if ($ride->getRideDriverId() !== $userId) {
                 throw new InvalidArgumentException("Le conducteur ne correspond pas à ce trajet.");
             }
@@ -310,7 +328,7 @@ class RideService
         }
 
         // Récupération de l'utilisateur
-        $driver = $this->userService->getUserById($userId);
+        $driver = $this->authService->getUserById($userId);
 
         // Vérification de l'existence du conducteur
         if (!$driver) {
@@ -345,7 +363,6 @@ class RideService
         return $ride;
     }
 
-
     /**
      * Permet à un utilisateur CONDUCTEUR OU EMPLOYE OU ADMIN de finaliser le trajet.
      *
@@ -359,9 +376,9 @@ class RideService
     ): Ride {
 
         $this->checkIfRideExists($rideId);
-        $this->userService->checkIfUserExists($userId);
+        $this->authService->checkIfUserExists($userId);
 
-        $this->userService->ensureDriverAndStaff($userId);
+        $this->authService->ensureDriverAndStaff($userId);
 
         // Récupération de l'objet Ride
         $ride = $this->rideRepository->findRideById($rideId);
@@ -382,7 +399,7 @@ class RideService
 
         foreach ($passengersId as $passengerId) {
             // Récupération de la réservation
-            $booking = $this->bookingService->getBookingByPassengerAndRide($passengerId, $ride->getRideId());
+            $booking = $this->bookingRepository->findBookingByPassengerAndRide($passengerId, $ride->getRideId());
 
             if (!$booking || $booking->getBookingStatus() !== BookingStatus::PASSEE) {
                 $allConfirmed = false;
@@ -400,9 +417,9 @@ class RideService
             return $ride;
         } else {
             // Récupération de l'utilisateur
-            $driver = $this->userService->getUserById($userId);
+            $driver = $this->authService->getUserById($userId);
 
-            $this->userService->checkIfUserExists($driver->getUserId());
+            $this->authService->checkIfUserExists($driver->getUserId());
 
 
             // Ajout des crédits au conducteur
@@ -410,7 +427,7 @@ class RideService
 
             $userDto = new UpdateUserDTO(['credits' => $newCreditsBalance]);
 
-            $this->userService->updateProfile($userDto, $driver->getUserId());
+            $this->authService->updateProfile($userDto, $driver->getUserId());
 
             // Modification du statut du trajet
             $ride->setRideStatus(RideStatus::TERMINE);
@@ -430,7 +447,206 @@ class RideService
         }
     }
 
-    //------------------RECUPERATIONS------------------------
+
+    //-----------------ACTIONS BOOKING--------------------------
+
+    /**
+     * Permet à un utilisateur PASSAGER de créer une réservation.
+     *
+     * @param Ride $ride
+     * @param User $driver
+     * @param User $passenger
+     * @param integer $userId
+     * @return Booking|null
+     */
+    public function createBooking(
+        Ride $ride,
+        User $driver,
+        User $passenger,
+        int $userId
+    ): Booking {
+
+        $this->authService->checkIfUserExists($userId);
+        $this->authService->isPassenger($userId);
+
+
+        // Vérification de l'existence des entités
+        if (!$ride  || !$driver || !$passenger) {
+            throw new InvalidArgumentException("Trajet, conducteur ou passager introuvable.");
+        }
+
+        // Vérification de doublon de réservation
+        if ($this->userHasBooking($passenger, $ride)) {
+            throw new InvalidArgumentException("L'utilisateur a déjà une réservation.");
+        }
+
+        // Vérification du remplissage du trajet
+        if (!$ride->hasAvailableSeat()) {
+            throw new InvalidArgumentException("Trajet complet.");
+        }
+
+        // vérification des crédits du passager
+        if ($passenger->getUserCredits() < $ride->getRidePrice()) {
+            throw new InvalidArgumentException("Crédits insuffisants.");
+        }
+
+        // Création de Booking
+        $booking = new Booking();
+
+        $booking->setBookingRide($ride);
+        $booking->setBookingPassenger($passenger);
+        $booking->setBookingDriver($driver);
+        $booking->setBookingStatus(BookingStatus::CONFIRMEE);
+
+
+        // Décrémentation du nombre de place disponible
+        $ride->decrementAvailableSeats();
+        $seatsLeft = $ride->getRideAvailableSeats();
+
+        // Modification du statut si complet
+        if ($seatsLeft === 0) {
+            $rideStatus = $ride->setRideStatus(RideStatus::COMPLET);
+        }
+
+        // Décrémentation les crédits du passager
+        $creditsToDeduct =  $ride->getRidePrice();
+        $newCreditsBalance = $passenger->getUserCredits() - $creditsToDeduct;
+
+        $userDto = new UpdateUserDTO(['credits' => $newCreditsBalance]);
+
+        //Enregistrement des modifications
+        $this->authService->updateProfile($userDto, $passenger->getUserId());
+        $this->bookingRepository->insertBooking($booking);
+        $this->rideRepository->updateRide($ride);
+
+        // Notification
+        $this->notificationService->sendRideConfirmationToPassenger($passenger, $ride);
+
+        return $booking;
+    }
+
+    /**
+     * Permet à un utilisateur PASSAGER OU EMPLOYE OU ADMIN d'annuler un réservation.
+     *
+     * @param integer $bookingId
+     * @param integer $userId
+     * @return Booking|null
+     */
+    public function cancelBooking(
+        int $bookingId,
+        int $userId
+    ): Booking {
+
+        $this->checkIfBookingExists($bookingId);
+        $this->authService->checkIfUserExists($userId);
+        $this->authService->ensurePassengerAndStaff($userId);
+
+        // Récupération de l'entité Booking
+        $booking = $this->bookingRepository->findBookingById($bookingId);
+
+
+        // Vérification que la réservation appartient au passager
+        if ($booking->getBookingPassengerId() !== $userId) {
+            throw new InvalidArgumentException("Seulement le passager associé au trajet peut annuler sa réservation.");
+        }
+
+        // Vérification du status de la réservation.
+        if ($booking->getBookingStatus() === BookingStatus::ANNULEE) {
+            throw new InvalidArgumentException("La réservation est déjà annulée.");
+        }
+
+        // Mise à jour du status
+        $booking->setBookingStatus(BookingStatus::ANNULEE);
+
+        // Mise à jour des places disponibles
+        $ride = $booking->getBookingRide();
+        $ride->incrementAvailableSeats();
+
+        // Enregistrement des modifications de trajet en BD
+        $this->rideRepository->updateRide($ride);
+
+        // Enregistrement des modifications de réservation en BD
+        $this->bookingRepository->updateBooking($booking);
+
+        // Récupération des utilisateurs
+        $passenger = $booking->getBookingPassenger();
+        $driver = $booking->getBookingDriver();
+
+        // Préparation des variables
+        $today = (new DateTimeImmutable());
+        $rideDate = $ride->getRideDepartureDateTime();
+        $refundableDeadLine = (clone $rideDate)->modify('-2 days');
+
+        // Vérification des conditions d'annulation
+        if ($today <= $refundableDeadLine) {
+
+            // Envoi des confirmations sans frais
+            $this->notificationService->sendBookingCancelationToPassenger($passenger, $booking);
+            $this->notificationService->sendBookingCancelationToDriver($driver, $booking);
+
+            // Remboursement
+            $newCreditsBalance = $passenger->getUserCredits() + $ride->getRidePrice();
+
+            $passengerDto = new UpdateUserDTO(['credits' => $newCreditsBalance]);
+
+            // Enregistrement des modifications de l'utilisateur en BD
+            $this->authService->updateProfile($passengerDto, $userId);
+        } else {
+
+            // Envoi des confirmations avec frais
+            $this->notificationService->sendBookingLateCancelationToPassenger($passenger, $booking);
+            $this->notificationService->sendBookingLateCancelationToDriver($driver, $booking);
+        }
+        return $booking;
+    }
+
+    /**
+     * Permet à un utilisateur PASSAGER OU EMPLOYE OU ADMIN de confirmer une réservation à la fin du trajet.
+     *
+     * @param integer $bookingId
+     * @param integer $userId
+     * @return void
+     */
+    public function finalizeBooking(
+        int $bookingId,
+        int $userId
+    ): Booking {
+        $this->checkIfBookingExists($bookingId);
+
+        // Récupération de la réservation
+        $booking = $this->bookingRepository->findBookingById($bookingId);
+
+        // Vérification du status de la réservation.
+        if ($booking->getBookingStatus() !== BookingStatus::ENCOURS) {
+            throw new InvalidArgumentException("La réservation n'a pas le statut ENCOURS.");
+        }
+
+        $this->authService->checkIfUserExists($userId);
+        $this->authService->ensurePassengerAndStaff($userId);
+
+        // Vérification qu'il s'agit bien du passager
+        if ($this->authService->isPassenger($userId)) {
+            if ($booking->getBookingPassengerId() !== $userId) {
+                throw new InvalidArgumentException("Le passager ne correspond pas à ce trajet.");
+            }
+        }
+
+        // Modification du statut de la réservation
+        $booking->setBookingStatus(BookingStatus::PASSEE);
+
+        // Enregistrement dans la bd.
+        $this->bookingRepository->updateBooking(
+            $booking,
+            [
+                'booking_status' => $booking->getBookingStatus()
+            ]
+        );
+
+        return $booking;
+    }
+
+
+    //------------------RECUPERATIONS RIDE------------------------
 
     /**
      * Permet à un utilisateur de récupèrer un trajet avec les passagers.
@@ -443,8 +659,8 @@ class RideService
         int $rideId,
         int $userId
     ): Ride {
-        $this->userService->checkIfUserExists($userId);
-        $this->userService->ensureUser($userId);
+        $this->authService->checkIfUserExists($userId);
+        $this->authService->ensureUser($userId);
         $this->checkIfRideExists($rideId);
 
 
@@ -467,226 +683,25 @@ class RideService
         return $this->rideRepository->findAllRidesByDateAndPlace($date, $departurePlace, $arrivalPlace);
     }
 
-
-    //-------------Pour les conducteurs------------------
-
+    //------------------RECUPERATIONS BOOKING------------------------
 
     /**
-     * Permet à un utilisateur CONDUCTEUR OU EMPLOYE OU ADMIN de récupèrer la liste d'objet Ride à venir d'un utilisateur CONDUCTEUR.
+     * Permet à un utilisateur PASSAGER OU EMPLOYE OU ADMIN de récupèrer une réservations.
      *
-     * @param integer $driverId
+     * @param integer $bookingId
      * @param integer $userId
-     * @return array
+     * @return Booking|null
      */
-    public function listUpcomingRidesByDriver(
-        int $driverId,
-        int $userId
-    ): array {
-
-        $this->userService->checkIfUserExists($userId);
-        $this->userService->ensureDriverAndStaff($userId);
-
-        $this->userService->checkIfUserExists($driverId);
-
-        // Vérification qu'il s'agit bien du conducteur
-        if ($this->userService->isDriver($userId)) {
-            if ($userId !== $driverId) {
-                throw new InvalidArgumentException("Accés interdit.");
-            }
-        }
-
-        return $this->rideRepository->findUpcomingRidesByDriver($driverId);
+    public function getBooking(
+        int $bookingId
+    ): Booking {
+        return $this->bookingRepository->findBookingById($bookingId);
     }
 
-    /**
-     * Permet à un utilisateur CONDUCTEUR OU EMPLOYE OU ADMIN de récupèrer la liste brute des trajets passés d'un utilisateur CONDUCTEUR.
-     *
-     * @param integer $driverId
-     * @param integer $userId
-     * @return array
-     */
-    public function listPastRidesByDriver(
-        int $driverId,
-        int $userId
-    ): array {
-
-        $this->userService->checkIfUserExists($userId);
-        $this->userService->ensureDriverAndStaff($userId);
-
-        $this->userService->checkIfUserExists($driverId);
-
-        // Vérification qu'il s'agit bien du conducteur
-        if ($this->userService->isDriver($userId)) {
-            if ($userId !== $driverId) {
-                throw new InvalidArgumentException("Accés interdit.");
-            }
-        }
-
-        return $this->rideRepository->fetchPastRidesByDriver($driverId);
-    }
-
-
-    //-------------Pour les Passagers------------------
-
-
-    /**
-     * Permet à un utilisateur PASSAGER OU EMPLOYE OU ADMIN de récupèrer la liste d'objet Ride à venir d'un utilisateur PASSAGER.
-     *
-     * @param integer $passengerId
-     * @param integer $userId
-     * @return array
-     */
-    public function listUpcomingRidesByPassenger(
+    public function getBookingByPassengerAndRide(
         int $passengerId,
-        int $userId
-    ): array {
-        $this->userService->checkIfUserExists($userId);
-        $this->userService->ensurePassengerAndStaff($userId);
-
-        $this->userService->checkIfUserExists($passengerId);
-
-        // Vérification qu'il s'agit bien du passager
-        if ($this->userService->isPassenger($userId)) {
-            if ($userId !== $passengerId) {
-                throw new InvalidArgumentException("Accés interdit.");
-            }
-        }
-
-        return $this->rideRepository->findUpcomingRidesByPassenger($passengerId);
-    }
-
-    /**
-     * Permet à un utilisateur PASSAGER OU EMPLOYE OU ADMIN de récupèrer la liste brute des trajets passés d'un utilisateur PASSAGER.
-     *
-     * @param integer $passengerId
-     * @param integer $userId
-     * @return array
-     */
-    public function listPastRidesByPassenger(
-        int $passengerId,
-        int $userId
-    ): array {
-        $this->userService->checkIfUserExists($userId);
-        $this->userService->ensurePassengerAndStaff($userId);
-
-        $this->userService->checkIfUserExists($passengerId);
-
-        // Vérification qu'il s'agit bien du passager
-        if ($this->userService->isPassenger($userId)) {
-            if ($userId !== $passengerId) {
-                throw new InvalidArgumentException("Accés interdit.");
-            }
-        }
-
-        return $this->rideRepository->fetchPastRidesByPassenger($passengerId);
-    }
-
-    //------- Pour le staff uniquement ---------
-    /**
-     * Permet à un membre du personnel de récupèrer la liste des objets Booking par date de création.
-     *
-     * @param DateTimeInterface $creationDate
-     * @param integer $staffId
-     * @return array
-     */
-    public function listRidesByCreationDate(
-        DateTimeInterface $creationDate,
-        int $staffId
-    ): array {
-
-        $this->userService->checkIfUserExists($staffId);
-        $this->userService->ensureStaff($staffId);
-
-        return $this->rideRepository->findAllRidesByCreationDate($creationDate);
-    }
-
-
-    //-------------Pour les Admins------------------
-    /**
-     * Permet à un admin de récupèrer le nombre de trajets effectués pour le jour J.
-     *
-     * @param integer $adminId
-     * @return array
-     */
-    public function getNumberOfRidesFromToday(
-        int $adminId
-    ): array {
-
-        $this->userService->checkIfUserExists($adminId);
-        $this->userService->ensureAdmin($adminId);
-
-        return $this->rideRepository->countRidesByToday();
-    }
-
-    /**
-     * Permet à un admin de récupèrer le nombre de trajets effectués sur une période donnée.
-     *
-     * @param DateTimeInterface $start
-     * @param DateTimeInterface $end
-     * @param integer $adminId
-     * @return array
-     */
-    public function getNumberOfRidesOverPeriod(
-        DateTimeInterface $start,
-        DateTimeInterface $end,
-        int $adminId
-    ): array {
-
-        $this->userService->checkIfUserExists($adminId);
-        $this->userService->ensureAdmin($adminId);
-
-        return $this->rideRepository->countRidesByPeriod($start, $end);
-    }
-
-    /**
-     * Permet à un admin de récupèrer le total des commissions gagnées.
-     *
-     * @param integer $adminId
-     * @return array
-     */
-    public function getTotalCommission(
-        int $adminId
-    ): array {
-
-        $this->userService->checkIfUserExists($adminId);
-        $this->userService->ensureAdmin($adminId);
-
-        return $this->rideRepository->countCommissionByFields([]);
-    }
-
-    /**
-     * Permet à un admin de récupèrer le total des commissions gagnées pour le jour J.
-     *
-     * @param integer $adminId
-     * @return array
-     */
-    public function getTotalCommissionFromToday(
-        int $adminId
-    ): array {
-
-        $this->userService->checkIfUserExists($adminId);
-        $this->userService->ensureAdmin($adminId);
-
-        return $this->rideRepository->countCommissionByToday();
-    }
-
-    /**
-     * Permet à un admin de récupèrer le total des commissions gagnées sur une période donnée.
-     *
-     * @param DateTimeInterface $start
-     * @param DateTimeInterface $end
-     * @param integer $adminId
-     * @return array
-     */
-    public function getTotalCommissionOverPeriod(
-        DateTimeInterface $start,
-        DateTimeInterface $end,
-        int $adminId
-    ): array {
-
-        $this->userService->checkIfUserExists($adminId);
-        $this->userService->ensureAdmin($adminId);
-
-        return $this->rideRepository->countCommissionByPeriod($start, $end);
+        int $rideId
+    ): Booking {
+        return $this->bookingRepository->findBookingByPassengerAndRide($passengerId, $rideId);
     }
 }
