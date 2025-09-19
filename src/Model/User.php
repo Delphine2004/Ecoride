@@ -67,6 +67,45 @@ class User
         $this->updatedAt = $updatedAt ?? new DateTimeImmutable();
     }
 
+    public static function fromDatabaseRow(array $row): self
+    {
+        $userId = $row['user_id'] ?? null;
+        $lastName = $row['last_name'] ?? null;
+        $firstName = $row['first_name'] ?? null;
+        $email = $row['email'] ?? null;
+        $password = $row['password'] ?? null;
+        $login = $row['login'] ?? null;
+        $phone = $row['phone'] ?? null;
+        $address = $row['address'] ?? null;
+        $city = $row['city'] ?? null;
+        $zipCode = $row['zip_code'] ?? null;
+        $uriPicture = $row['picture'] ?? null;
+        $licenceNo = $row['licence_no'] ?? null;
+        $credits = (int)$row['credits'] ?? null;
+        $preferences = $row['preferences'] ?? null;
+        $createdAt = $row['created_at'] ? new DateTimeImmutable($row['created_at']) : null;
+        $updatedAt = $row['updated_at'] ? new DateTimeImmutable($row['updated_at']) : null;
+
+        return new self(
+            userId: $userId,
+            firstName: $firstName,
+            lastName: $lastName,
+            email: $email,
+            password: $password,
+            login: $login,
+            phone: $phone,
+            address: $address,
+            city: $city,
+            zipCode: $zipCode,
+            uriPicture: $uriPicture,
+            licenceNo: $licenceNo,
+            credits: $credits,
+            preferences: $preferences,
+            createdAt: $createdAt,
+            updatedAt: $updatedAt,
+        );
+    }
+
 
     // ---------Les Getters ---------
 

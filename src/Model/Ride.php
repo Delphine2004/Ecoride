@@ -56,6 +56,38 @@ class Ride
         $this->updatedAt = $updatedAt ?? new DateTimeImmutable();
     }
 
+    public static function fromDatabaseRow(array $row): self
+    {
+        $rideId = $row['ride_id'] ?? null;
+        $driverId = $row['driver_id'] ?? null;
+        $departureDateTime = $row['departure_date_time'] ? new DateTimeImmutable($row['departure_date_time']) : null;
+        $departurePlace = $row['departure_place'] ?? null;
+        $arrivalDateTime = $row['arrival_date_time'] ? new DateTimeImmutable($row['arrival_date_time']) : null;
+        $arrivalPlace = $row['arrival_place'] ?? null;
+        $price = (float) ($row['price'] ?? 0);
+        $availableSeats = $row['available_seats'] ?? null;
+        $rideStatus = $row['ride_status'] ?? null;
+        $commission = $row['commission'] ?? null;
+        $createdAt = $row['created_at'] ? new DateTimeImmutable($row['created_at']) : null;
+        $updatedAt = $row['updated_at'] ? new DateTimeImmutable($row['updated_at']) : null;
+
+        return new self(
+            rideId: $rideId,
+            driverId: $driverId,
+            departureDateTime: $departureDateTime,
+            departurePlace: $departurePlace,
+            arrivalDateTime: $arrivalDateTime,
+            arrivalPlace: $arrivalPlace,
+            price: $price,
+            availableSeats: $availableSeats,
+            rideStatus: $rideStatus,
+            commission: $commission,
+            createdAt: $createdAt,
+            updatedAt: $updatedAt,
+        );
+    }
+
+
     // ---------Les Getters ---------
 
     public function getRideId(): ?int

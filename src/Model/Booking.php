@@ -44,6 +44,28 @@ class Booking
         $this->updatedAt = $updatedAt ?? new DateTimeImmutable();
     }
 
+    public static function fromDatabaseRow(array $row): self
+    {
+        $bookingId = $row['booking_id'] ?? null;
+        $rideId = $row['rideid'] ?? null;
+        $passengerId = $row['passenger_id'] ?? null;
+        $driverId = $row['driver_id'] ?? null;
+        $bookingStatus = $row['car_year'] ?? null;
+        $createdAt = $row['created_at'] ? new DateTimeImmutable($row['created_at']) : null;
+        $updatedAt = $row['updated_at'] ? new DateTimeImmutable($row['updated_at']) : null;
+
+        return new self(
+            bookingId: $bookingId,
+            rideId: $rideId,
+            passengerId: $passengerId,
+            driverId: $driverId,
+            bookingStatus: $bookingStatus,
+            createdAt: $createdAt,
+            updatedAt: $updatedAt,
+        );
+    }
+
+
     // ---------Les Getters ---------
 
     public function getBookingId(): ?int

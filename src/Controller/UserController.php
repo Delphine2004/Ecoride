@@ -4,17 +4,15 @@ namespace App\Controller;
 
 use App\Model\User;
 use App\DTO\CreateUserDTO;
-use App\Service\UserService;
 use App\Security\AuthService;
 use InvalidArgumentException;
 
 class UserController extends BaseController
 {
     public function __construct(
-        private UserService $userService,
         private AuthService $authService
     ) {
-        parent::__construct($authService);
+        parent::__construct($this->authService);
     }
 
     // POST
@@ -35,7 +33,7 @@ class UserController extends BaseController
             $dto = new CreateUserDTO($data);
 
             // Ajout du trajet
-            $user = $this->userService->createAccount($dto);
+            $user = $this->authService->createAccount($dto);
 
             // Définir le header Location
             $userId = null;
@@ -74,7 +72,7 @@ class UserController extends BaseController
             $dto = new CreateUserDTO($data);
 
             // Ajout du trajet
-            $user = $this->userService->createEmployeeAccount($dto, $userId);
+            $user = $this->authService->createEmployeeAccount($dto, $userId);
 
             // Définir le header Location
             $userId = null;
@@ -177,7 +175,7 @@ class UserController extends BaseController
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Suppression de l'utilisateur
-            $removed = $this->userService->deleteAccount($userId);
+            $removed = $this->authService->deleteAccount($userId);
 
             // Vérification de l'existence de l'utilisateur
             if ($removed) {

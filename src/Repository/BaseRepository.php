@@ -115,7 +115,15 @@ abstract class BaseRepository
         }
         $stmt->execute();
 
-        return $stmt->fetchAll(PDO::FETCH_CLASS, $this->entityClass);
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $entities = [];
+        foreach ($results as $row) {
+            // Appeler la méthode statique d'usine de l'entité
+            $entities[] = $this->entityClass::fromDatabaseRow($row);
+        }
+
+        return $entities;
     }
 
 

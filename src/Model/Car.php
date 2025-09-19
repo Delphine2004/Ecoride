@@ -53,6 +53,37 @@ class Car
         $this->createdAt = $createdAt ?? new DateTimeImmutable();
     }
 
+    public static function fromDatabaseRow(array $row): self
+    {
+        $carId = $row['car_id'] ?? null;
+        $ownerId = $row['user_id'] ?? null;
+        $model = $row['car_model'] ?? null;
+        $color = $row['car_color'] ?? null;
+        $year = $row['car_year'] ?? null;
+        $power = $row['car_power'] ?? null;
+        $seatsNumber = (int) ($row['seats_number'] ?? 0);
+        $registrationNumber = $row['registration_number'] ?? null;
+        $registrationDate = $row['registration_date'] ? new DateTimeImmutable($row['arrival_date_time']) : null;
+        $createdAt = $row['created_at'] ? new DateTimeImmutable($row['created_at']) : null;
+
+
+        return new self(
+            carId: $carId,
+            ownerId: $ownerId,
+            model: $model,
+            color: $color,
+            year: $year,
+            power: $power,
+            seatsNumber: $seatsNumber,
+            registrationNumber: $registrationNumber,
+            registrationDate: $registrationDate,
+            createdAt: $createdAt,
+
+        );
+    }
+
+
+
     // ---------Les Getters ---------
     public function getCarId(): ?int
     {
