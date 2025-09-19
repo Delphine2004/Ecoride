@@ -1,10 +1,9 @@
-RewriteEngine On
+<IfModule mod_rewrite.c>
+    RewriteEngine On
 
-# API: redirige api.php/xxx vers api.php?path=xxx
-RewriteRule ^api\.php/(.*)$ api.php?path=$1 [QSA,L]
+    # Redirige toutes les requêtes vers api.php si le fichier ou dossier n'existe pas
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ api.php [QSA,L]
 
-
-# Si le fichier ou dossier n'existe pas, redirige vers index.php
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ index.php [QSA,L]
+</IfModule>
