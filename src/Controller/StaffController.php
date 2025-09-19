@@ -2,30 +2,34 @@
 
 use App\Enum\BookingStatus;
 use App\Controller\BaseController;
-use App\Service\BookingService;
-use App\Service\RideService;
+use App\Service\StaffService;
+use App\Security\AuthService;
+use DateTimeInterface;
 
 class StaffController extends BaseController
 {
 
     public function __construct(
-        private RideService $rideService,
-        private BookingService $bookingService
-    ) {}
+
+        private StaffService $staffService,
+        private AuthService $authService
+    ) {
+        parent::__construct($this->authService);
+    }
 
     // --------------------TRAJETS-----------------------
 
+    // Affiche la liste des trajets par date de création
     public function listRidesByCreationDate(
         DateTimeInterface $creationDate,
         string $jwtToken
-
     ): void {
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération
-            $numberOfRides = $this->rideService->listRidesByCreationDate($creationDate, $userId);
+            $numberOfRides = $this->staffService->listRidesByCreationDate($creationDate, $userId);
 
             // Envoi de la réponse positive
             $this->successResponse($numberOfRides);
@@ -38,7 +42,6 @@ class StaffController extends BaseController
         }
     }
 
-
     // Affiche le total de trajet pour le jour J.
     public function getNumberOfRidesFromToday(
         string $jwtToken
@@ -48,7 +51,7 @@ class StaffController extends BaseController
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération
-            $numberOfRides = $this->rideService->getNumberOfRidesFromToday($userId);
+            $numberOfRides = $this->staffService->getNumberOfRidesFromToday($userId);
 
             // Envoi de la réponse positive
             $this->successResponse($numberOfRides);
@@ -72,7 +75,7 @@ class StaffController extends BaseController
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération
-            $numberOfRides = $this->rideService->getNumberOfRidesOverPeriod($start, $end, $userId);
+            $numberOfRides = $this->staffService->getNumberOfRidesOverPeriod($start, $end, $userId);
 
             // Envoi de la réponse positive
             $this->successResponse($numberOfRides);
@@ -85,6 +88,9 @@ class StaffController extends BaseController
         }
     }
 
+    // Affiche le total de commission reçues en tout
+    public function getTotalCommmission() {}
+
     // Affiche le total des commissions reçues pour le jour J.
     public function getTotalCommissionFromToday(
         string $jwtToken
@@ -94,7 +100,7 @@ class StaffController extends BaseController
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération
-            $commissionOfTheDay = $this->rideService->getTotalCommissionFromToday($userId);
+            $commissionOfTheDay = $this->staffService->getTotalCommissionFromToday($userId);
 
             // Envoi de la réponse positive
             $this->successResponse($commissionOfTheDay);
@@ -118,7 +124,7 @@ class StaffController extends BaseController
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération 
-            $totalCommission = $this->rideService->getTotalCommissionOverPeriod($start, $end, $userId);
+            $totalCommission = $this->staffService->getTotalCommissionOverPeriod($start, $end, $userId);
 
             // Envoi de la réponse positive
             $this->successResponse($totalCommission);
@@ -132,15 +138,18 @@ class StaffController extends BaseController
     }
 
 
-    //-------------------BOOKING--------------------------
-    public function listBookingsByDepartureDate(DateTimeImmutable $departureDate, string $jwtToken): void
-    {
+    //--------------RESERVATIONS--------------------
+    // Affiche la liste des réservation par date de départ
+    public function listBookingsByDepartureDate(
+        DateTimeImmutable $departureDate,
+        string $jwtToken
+    ): void {
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération
-            $bookings = $this->bookingService->listBookingsByDepartureDate($departureDate, $userId);
+            $bookings = $this->staffService->listBookingsByDepartureDate($departureDate, $userId);
 
             // Envoi de la réponse positive
             $this->successResponse($bookings);
@@ -153,14 +162,17 @@ class StaffController extends BaseController
         }
     }
 
-    public function listBookingsByStatus(BookingStatus $bookingStatus, string $jwtToken): void
-    {
+    // Affiche la liste des réservation par statut
+    public function listBookingsByStatus(
+        BookingStatus $bookingStatus,
+        string $jwtToken
+    ): void {
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération
-            $bookings = $this->bookingService->listBookingsByStatus($bookingStatus, $userId);
+            $bookings = $this->staffService->listBookingsByStatus($bookingStatus, $userId);
 
             // Envoi de la réponse positive
             $this->successResponse($bookings);
@@ -173,14 +185,17 @@ class StaffController extends BaseController
         }
     }
 
-    public function listBookingsByCreatedAt(DateTimeImmutable $createdAtDate, string $jwtToken): void
-    {
+    // Affiche la liste des réservation par date de création
+    public function listBookingsByCreatedAt(
+        DateTimeImmutable $createdAtDate,
+        string $jwtToken
+    ): void {
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération
-            $bookings = $this->bookingService->listBookingsByCreatedAt($createdAtDate, $userId);
+            $bookings = $this->staffService->listBookingsByCreatedAt($createdAtDate, $userId);
 
             // Envoi de la réponse positive
             $this->successResponse($bookings);
