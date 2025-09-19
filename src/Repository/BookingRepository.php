@@ -23,24 +23,6 @@ class BookingRepository extends BaseRepository
         parent::__construct(\App\Model\Booking::class, $db);
     }
 
-    /**
-     * Remplit un objet Booking avec les données brute de la table bookings.
-     *
-     * @param array $data
-     * @return Booking
-     */
-    public function hydrateBooking(array $data): Booking
-    {
-        return new Booking(
-            bookingId: (int)$data['booking_id'],
-            ride: null, // car pas encore chargé
-            passenger: null, // car pas encore chargé
-            driver: null, // car pas encore chargé
-            bookingStatus: BookingStatus::from($data['booking_status']),
-            createdAt: !empty($data['created_at']) ? new \DateTimeImmutable($data['created_at']) : null,
-            updatedAt: !empty($data['updated_at']) ? new \DateTimeImmutable($data['updated_at']) : null
-        );
-    }
 
     /**
      * Transforme Booking en tableau pour insert et update.
@@ -70,9 +52,7 @@ class BookingRepository extends BaseRepository
      */
     public function findBookingById(int $bookingId): ?Booking
     {
-        // Chercher l'élément
-        $row = parent::findById($bookingId);
-        return $row ? $this->hydrateBooking((array) $row) : null;
+        return parent::findById($bookingId);
     }
 
     /**
@@ -84,9 +64,6 @@ class BookingRepository extends BaseRepository
     public function findBookingByFields(
         array $criteria = []
     ): ?Booking {
-        // Pas nécessaire de vérifier les champs car table pivot.
-
-        // Chercher l'élément
         $row = $this->findAllBookingsByFields($criteria, limit: 1);
         return $row[0] ?? null;
     }
@@ -118,9 +95,7 @@ class BookingRepository extends BaseRepository
             'booking_id'
         );
 
-        // Chercher les éléments.
-        $rows = parent::findAllByFields($criteria, $orderBy, $orderDirection, $limit, $offset);
-        return array_map(fn($row) => $this->hydrateBooking((array) $row), $rows);
+        return parent::findAllByFields($criteria, $orderBy, $orderDirection, $limit, $offset);
     }
 
     /**
@@ -148,9 +123,8 @@ class BookingRepository extends BaseRepository
             $orderDirection,
             'booking_id'
         );
-        // Chercher les éléments.
-        $rows = parent::findAllByFields($criteria, $orderBy, $orderDirection, $limit, $offset);
-        return $rows;
+
+        return parent::findAllByFields($criteria, $orderBy, $orderDirection, $limit, $offset);
     }
 
 

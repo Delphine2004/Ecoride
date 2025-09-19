@@ -37,29 +37,6 @@ class CarRepository extends BaseRepository
         parent::__construct(\App\Model\Car::class, $db);
     }
 
-    /**
-     * Remplit un objet Car avec les données de la table cars.
-     *
-     * @param array $data
-     * @return Car
-     */
-    public function hydrateCar(
-        array $data
-    ): Car {
-        return new Car(
-            carId: (int)$data['car_id'],
-            owner: null, // car pas encore chargé
-            brand: CarBrand::from($data['car_brand']),
-            model: $data['car_model'],
-            color: CarColor::from($data['car_color']),
-            year: (int) $data['car_year'],
-            power: CarPower::from($data['car_power']),
-            seatsNumber: (int) $data['seats_number'],
-            registrationNumber: $data['registration_number'],
-            registrationDate: new \DateTimeImmutable($data['registration_date']),
-            createdAt: !empty($data['created_at']) ? new \DateTimeImmutable($data['created_at']) : null,
-        );
-    }
 
     /**
      * Transforme Car en tableau pour insert et update.
@@ -132,9 +109,7 @@ class CarRepository extends BaseRepository
     public function findCarById(
         int $carId
     ): ?Car {
-        // Chercher l'élément
-        $row = parent::findById($carId);
-        return $row ? $this->hydrateCar((array) $row) : null;
+        return parent::findById($carId);
     }
 
     /**
@@ -168,9 +143,7 @@ class CarRepository extends BaseRepository
             'car_id'
         );
 
-        // Chercher les éléments.
-        $rows = parent::findAllByFields($criteria, $orderBy, $orderDirection, $limit, $offset);
-        return array_map(fn($row) => $this->hydrateCar((array) $row), $rows);
+        return parent::findAllByFields($criteria, $orderBy, $orderDirection, $limit, $offset);
     }
 
     /**
@@ -198,9 +171,8 @@ class CarRepository extends BaseRepository
             $orderDirection,
             'car_id'
         );
-        // Chercher les éléments.
-        $rows = parent::findAllByFields($criteria, $orderBy, $orderDirection, $limit, $offset);
-        return $rows;
+
+        return parent::findAllByFields($criteria, $orderBy, $orderDirection, $limit, $offset);
     }
 
 

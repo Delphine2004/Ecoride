@@ -116,8 +116,7 @@ class RideRepository extends BaseRepository
         int $rideId
     ): ?Ride {
         // Chercher l'élément
-        $row = parent::findById($rideId);
-        return $row ? $this->hydrateRide((array) $row) : null;
+        return parent::findById($rideId);
     }
 
     /**
@@ -152,8 +151,7 @@ class RideRepository extends BaseRepository
         );
 
         // Chercher les éléments.
-        $rows = parent::findAllByFields($criteria, $orderBy, $orderDirection, $limit, $offset);
-        return array_map(fn($row) => $this->hydrateRide((array) $row), $rows);
+        return parent::findAllByFields($criteria, $orderBy, $orderDirection, $limit, $offset);
     }
 
     /**
@@ -188,13 +186,11 @@ class RideRepository extends BaseRepository
             'ride_id'
         );
         // Chercher les éléments.
-        $rows = parent::findAllByFields($criteria, $orderBy, $orderDirection, $limit, $offset);
-        return $rows;
+        return parent::findAllByFields($criteria, $orderBy, $orderDirection, $limit, $offset);
     }
 
 
     // Récupère la liste des objets Ride selon la date, le lieu de depart et le lieu d'arrivée avec tri et pagination.
-
     public function findAllRidesByDateAndPlace(
         DateTimeImmutable $date,
         string $departurePlace,
@@ -319,8 +315,7 @@ class RideRepository extends BaseRepository
      */
     public function findRideWithUsersByRideId($rideId): ?Ride
     {
-        $ride = $this->findRideWithUsersByFields(['ride_id' => $rideId]);
-        return $ride;
+        return $this->findRideWithUsersByFields(['ride_id' => $rideId]);
     }
 
 

@@ -39,47 +39,6 @@ class UserRepository extends BaseRepository
     }
 
 
-    /**
-     * Remplit un objet User avec les données de la table users.
-     *
-     * @param array $data
-     * @return User
-     */
-    public function hydrateUser(array $data): User
-    {
-
-        $roles = [];
-        if (!empty($data['roles'])) {
-            // si le rôle ou les rôles sont presents
-            $rolesNames = explode(',', $data['roles']);
-            foreach ($rolesNames as $roleName) {
-                $roles[] = UserRoles::from($roleName);
-            }
-        } else {
-            // sinon recherche du rôle via SQL
-            $roles = $this->getUserRoles((int)$data['user_id']);
-        }
-        return new User(
-            userId: (int)$data['user_id'],
-            lastName: $data['last_name'],
-            firstName: $data['first_name'],
-            email: $data['email'],
-            password: $data['password'], // ok si vient de la BD donc déjà hashé
-            isHashed: true,
-            login: $data['login'] ?? null,
-            phone: $data['phone'] ?? null,
-            address: $data['address'] ?? null,
-            city: $data['city'] ?? null,
-            zipCode: $data['zip_code'] ?? null,
-            uriPicture: $data['picture'] ?? null,
-            licenceNo: $data['licence_no'] ?? null,
-            credits: isset($data['credits']) ? (int)$data['credits'] : null,
-            preferences: $data['preferences'] ?? null,
-            roles: $roles,
-            createdAt: !empty($data['created_at']) ? new \DateTimeImmutable($data['created_at']) : null,
-            updatedAt: !empty($data['updated_at']) ? new \DateTimeImmutable($data['updated_at']) : null
-        );
-    }
 
     /**
      * Transforme User en tableau pour insert et update.
@@ -162,9 +121,7 @@ class UserRepository extends BaseRepository
      */
     public function findUserById(int $userId): ?User
     {
-        // Chercher l'élément
-        $row = parent::findById($userId);
-        return $row ? $this->hydrateUser((array) $row) : null;
+        return parent::findById($userId);
     }
 
     /**
@@ -219,9 +176,7 @@ class UserRepository extends BaseRepository
             'user_id'
         );
 
-        // Chercher les éléments.
-        $rows = parent::findAllByFields($criteria, $orderBy, $orderDirection, $limit, $offset);
-        return array_map(fn($row) => $this->hydrateUser((array) $row), $rows);
+        return parent::findAllByFields($criteria, $orderBy, $orderDirection, $limit, $offset);
     }
 
     /**
@@ -249,8 +204,7 @@ class UserRepository extends BaseRepository
             'user_id'
         );
         // Chercher les éléments.
-        $rows = parent::findAllByFields($criteria, $orderBy, $orderDirection, $limit, $offset);
-        return $rows;
+        return parent::findAllByFields($criteria, $orderBy, $orderDirection, $limit, $offset);
     }
 
 
@@ -278,51 +232,6 @@ class UserRepository extends BaseRepository
         return $this->findUserByFields(['login' => $login]);
     }
 
-
-    // ------ Récupérations spécifiques de liste d'objet ---------
-    /**
-     * Récupère la liste des objets User selon un rôle avec tri et pagination.
-     *
-     * @param string $role
-     * @param string $orderBy
-     * @param string $orderDirection
-     * @param integer $limit
-     * @param integer $offset
-     * @return array
-     */
-    public function findAllUsersByRole(
-        string $role,
-        string $orderBy = 'user_id',
-        string $orderDirection = 'DESC',
-        int $limit = 20,
-        int $offset = 0
-    ): array {
-        // Vérifier si l'ordre et la direction sont définis et valides.
-        [$orderBy, $orderDirection] = $this->sanitizeOrder(
-            $orderBy,
-            $orderDirection,
-            'user_id'
-        );
-
-        // Construction du SQL
-        $sql = "SELECT u.*
-        FROM {$this->table} u
-        INNER JOIN user_roles ur ON u.user_id = ur.user_id
-        INNER JOIN roles r ON ur.role_id = r.role_id
-        WHERE r.role_name = :role
-        ";
-
-        // Tri et limite
-        $sql .= " ORDER BY u.$orderBy $orderDirection 
-                LIMIT " . (int)$limit . " OFFSET " . (int)$offset;
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':role', $role, PDO::PARAM_STR);
-        $stmt->execute();
-
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        return array_map(fn($row) => $this->hydrateUser((array) $row), $rows);
-    }
 
     //------------------------------------------
 
