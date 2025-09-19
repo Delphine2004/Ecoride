@@ -15,9 +15,9 @@ export function searchRide() {
 
   // Stockage des éléments dans un objet
   const inputs = {
-    ville_depart: document.getElementById("departure-place"),
-    ville_arrivee: document.getElementById("arrival-place"),
-    date_depart: document.getElementById("departure-date-time"),
+    departure_place: document.getElementById("departure-place"),
+    arrival_place: document.getElementById("arrival-place"),
+    departure_date_time: document.getElementById("departure-date-time"),
   };
 
   // Boucle de validation en temps réel sur les éléments du formulaire -(Il faut que les champs aient un attribut type)
@@ -46,15 +46,18 @@ export function searchRide() {
 
     // Instanciation de la class Api
     const api = new Api("./api.php");
-
+    //console.log(api.baseUrl + "/rechercher");
     try {
       // appel de la méthode post de la classe api
-      const trajets = await api.get("/rechercher", cleanInputs);
-      console.log("Réponse de l’API :", trajets);
+      const response = await api.get("/rechercher", cleanInputs);
+      console.log("Réponse de l’API :", response);
 
-      //---- Partie à modifier ---- /
-      results.innerHTML = trajets.length
-        ? trajets
+      // Récupération du tableau
+      const rides = response.rides ?? [];
+
+      // Afficher les résultats
+      results.innerHTML = response.length
+        ? rides
             .map((t) => `<div>${t.ville_depart} → ${t.ville_arrivee}</div>`)
             .join("")
         : "<p>Aucun résultat trouvé.</p>";
@@ -62,6 +65,6 @@ export function searchRide() {
       console.error("Erreur lors de l’appel à l’API :", error);
       // TODO - ne pas afficher les erreurs mais plutot un message
       results.innerHTML = `<p class="error">Erreur : ${error.message}</p>`;
-    } // rajouter finally
+    }
   });
 }

@@ -23,12 +23,19 @@ export class Api {
       headers,
     };
 
-    if (data) {
+    if (data && method !== "GET") {
       options.body = JSON.stringify(data);
     }
 
+    // Construire l'URL avec query string pour GET
+    let url = endpoint;
+    if (method === "GET" && data && Object.keys(data).length > 0) {
+      const query = new URLSearchParams(data).toString();
+      url += (endpoint.includes("?") ? "&" : "?") + query;
+    }
+
     try {
-      const response = await fetch(`${this.baseUrl}${endpoint}`, options);
+      const response = await fetch(`${this.baseUrl}${url}`, options);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -42,19 +49,19 @@ export class Api {
     }
   }
 
-  get(endpoint, token = null) {
-    return this.request(endpoint, "GET", null, token);
+  get(endpoint, params = {}, token = null) {
+    return this.request(endpoint, "GET", params, token);
   }
 
-  post(endpoint, data, token = null) {
+  post(endpoint, data = {}, token = null) {
     return this.request(endpoint, "POST", data, token);
   }
 
-  put(endpoint, data, token = null) {
+  put(endpoint, data = {}, token = null) {
     return this.request(endpoint, "PUT", data, token);
   }
 
-  delete(endpoint, token = null) {
-    return this.request(endpoint, "DELETE", null, token);
+  delete(endpoint, data = {}, token = null) {
+    return this.request(endpoint, "DELETE", data, token);
   }
 }
