@@ -15,7 +15,9 @@ class UserController extends BaseController
         parent::__construct($this->authService);
     }
 
-    // POST
+    // ------------------------POST--------------------------------
+
+    // Permet à un visiteur de créer un compte
     public function createUser(): void
     {
         // Récupération des données
@@ -53,8 +55,10 @@ class UserController extends BaseController
         }
     }
 
-    public function createStaff(string $jwtToken): void
-    {
+    // Autorise un admin à créer un employé
+    public function createEmployee(
+        string $jwtToken
+    ): void {
         // Récupération des données
         $data = $this->getJsonBody();
 
@@ -92,10 +96,12 @@ class UserController extends BaseController
         }
     }
 
-    // PUT
-
-    public function updateProfile(User $user, string $jwtToken): void
-    {
+    // ------------------------PUT--------------------------------
+    // Autorise un utilisateur à modifier son profil
+    public function updateProfile(
+        User $user,
+        string $jwtToken
+    ): void {
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
@@ -118,8 +124,11 @@ class UserController extends BaseController
         }
     }
 
-    public function modifyPassword(User $user, string $jwtToken): void
-    {
+    // Autorise un utilisateur à modifier son mot de passe
+    public function modifyPassword(
+        User $user,
+        string $jwtToken
+    ): void {
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
@@ -142,8 +151,11 @@ class UserController extends BaseController
         }
     }
 
-    public function becomeDriver(User $user, string $jwtToken): void
-    {
+    // Autorise un utilisateur à ajouter le rôle CONDUCTEY
+    public function becomeDriver(
+        User $user,
+        string $jwtToken
+    ): void {
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
@@ -166,10 +178,12 @@ class UserController extends BaseController
         }
     }
 
-    // DELETE
+    // --------------------------DELETE------------------------------
     // Voir comment conserver l'historique des trajets et réservations
-    public function deleteAccount(string $jwtToken): void
-    {
+    // Autorise un utilisateur à supprimer son compte
+    public function deleteAccount(
+        string $jwtToken
+    ): void {
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
@@ -192,11 +206,11 @@ class UserController extends BaseController
         }
     }
 
-    public function deleteUserByAdmin(string $jwtToken): void {}
+    // Autorise un admin à supprimer un autre compte
+    public function deleteUserByAdmin(
+        string $jwtToken
+    ): void {}
 
-    // GET
-    // pas besoin de faire getDriverWithCars car listUserCars dans carController
-    // pas besoin de faire getDriverWithRides car listRidesBydriver dans ridesController
-    // pas besoin de faire getUserWithBookings car listBookingsbyPassenger dans bookingRepository
-
+    // --------------------------GET----------------------------------
+    // Récupération dans CustomerHistoryRepository
 }

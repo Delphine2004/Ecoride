@@ -13,7 +13,7 @@ class CarController extends BaseController
         private CarService $carService,
         private AuthService $authService
     ) {
-        parent::__construct($authService);
+        parent::__construct($this->authService);
     }
 
 
@@ -65,7 +65,7 @@ class CarController extends BaseController
     }
 
 
-    // // ------------------------PUT--------------------------------
+    // ------------------------PUT--------------------------------
     // pas de modification de voiture possible
 
 

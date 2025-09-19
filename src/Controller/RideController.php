@@ -46,156 +46,7 @@ class RideController extends BaseController
         }
     }
 
-
-    // ------------------------PUT--------------------------------
-    // Annule un trajet.
-    public function cancelRide(
-        int $rideId,
-        string $jwtToken
-    ): void {
-        try {
-
-            // Récupération de l'id de l'utilisateur
-            $userId = $this->getUserIdFromToken($jwtToken);
-
-            // Récupération du trajet annulé
-            $canceled = $this->rideService->cancelRide($userId, $rideId);
-
-            // Vérification de l'existence du trajet
-            if ($canceled) {
-                $this->successResponse(["message" => "Trajet annulé"], 200);
-            } else {
-                $this->errorResponse("Trajet introuvable", 404);
-            }
-        } catch (InvalidArgumentException $e) {
-
-            $this->errorResponse($e->getMessage(), 400);
-        } catch (\Exception $e) {
-
-            $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
-        }
-    }
-
-    // Démarre un trajet.
-    public function startRide(
-        int $rideId,
-        string $jwtToken
-    ): void {
-        try {
-            // Récupération de l'id de l'utilisateur
-            $userId = $this->getUserIdFromToken($jwtToken);
-
-            // Récupération du trajet à démarrer
-            $rideToStart = $this->rideService->startRide($rideId, $userId);
-
-            // Vérification de l'existence du trajet
-            if ($rideToStart) {
-                $this->successResponse(["message" => "Trajet démarré"], 200);
-            } else {
-                $this->errorResponse("Trajet introuvable", 404);
-            }
-        } catch (InvalidArgumentException $e) {
-
-            $this->errorResponse($e->getMessage(), 400);
-        } catch (\Exception $e) {
-
-            $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
-        }
-    }
-
-    // Finalise un trajet
-    public function finalizeRide(
-        int $rideId,
-        string $jwtToken
-    ): void {
-        try {
-            // Récupération de l'id de l'utilisateur
-            $userId = $this->getUserIdFromToken($jwtToken);
-
-            // Récupération du trajet à finaliser
-            $rideToStart = $this->rideService->finalizeRide($rideId, $userId);
-
-            // Vérification de l'existence du trajet
-            if ($rideToStart) {
-                $this->successResponse(["message" => "Trajet finalisé"], 200);
-            } else {
-                $this->errorResponse("Trajet introuvable", 404);
-            }
-        } catch (InvalidArgumentException $e) {
-
-            $this->errorResponse($e->getMessage(), 400);
-        } catch (\Exception $e) {
-
-            $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
-        }
-    }
-
-
-    // --------------------------DELETE------------------------------
-    // Pas de suppression car conservation de l'historique
-
-
-    // --------------------------GET----------------------------------
-
-    // Affiche un trajet avec les utilisateurs associés.
-    public function getRideWithPassengers(
-        int $rideId,
-        string $jwtToken
-    ): void {
-        try {
-            // Récupération de l'id de l'utilisateur
-            $userId = $this->getUserIdFromToken($jwtToken);
-
-            // Récupération des infos
-            $ride = $this->rideService->getRideWithPassengers($userId, $rideId);
-
-            // Envoi de la réponse positive
-            $this->successResponse($ride, 200);
-        } catch (InvalidArgumentException $e) {
-
-            $this->errorResponse($e->getMessage(), 400);
-        } catch (\Exception $e) {
-
-            $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
-        }
-    }
-
-    // Affiche les trajets disponibles en fonction de la date de départ et les ville de départ et d'arrivée
-    public function listRidesByDateAndPlaces(): void
-    {
-
-        $departurePlace = $_GET['departure_place'] ?? null;
-        $arrivalPlace = $_GET['arrival_place'] ?? null;
-        $date = $_GET['departure_date_time'] ?? null;
-
-        if (!$date || !$departurePlace || !$arrivalPlace) {
-            throw new InvalidArgumentException("Tous les paramètres sont requis");
-        }
-        try {
-            // Transformation de la date string en date objet
-            $dateObj = new DateTimeImmutable($date);
-
-            // Récupération de la liste des trajets avec vérification des droits incluse
-            $rides = $this->rideService->listRidesByDateAndPlaces($dateObj, $departurePlace, $arrivalPlace);
-
-            // Envoi de la réponse positive
-            $this->successResponse($rides, 200);
-        } catch (InvalidArgumentException $e) {
-
-            $this->errorResponse($e->getMessage(), 400);
-        } catch (\Exception $e) {
-
-            $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
-        }
-    }
-
-
-
-
-
-
-    // ------------------------POST--------------------------------
-
+    // Autorise un utilisateur à faire une réservation
     public function createBooking(
         Ride $ride,
         User $driver,
@@ -240,6 +91,92 @@ class RideController extends BaseController
 
 
     // ------------------------PUT--------------------------------
+    // Autorise un utilisateur à annuler un trajet.
+    public function cancelRide(
+        int $rideId,
+        string $jwtToken
+    ): void {
+        try {
+
+            // Récupération de l'id de l'utilisateur
+            $userId = $this->getUserIdFromToken($jwtToken);
+
+            // Récupération du trajet annulé
+            $canceled = $this->rideService->cancelRide($userId, $rideId);
+
+            // Vérification de l'existence du trajet
+            if ($canceled) {
+                $this->successResponse(["message" => "Trajet annulé"], 200);
+            } else {
+                $this->errorResponse("Trajet introuvable", 404);
+            }
+        } catch (InvalidArgumentException $e) {
+
+            $this->errorResponse($e->getMessage(), 400);
+        } catch (\Exception $e) {
+
+            $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
+        }
+    }
+
+    // Autorise un utilisateur à démarrer un trajet.
+    public function startRide(
+        int $rideId,
+        string $jwtToken
+    ): void {
+        try {
+            // Récupération de l'id de l'utilisateur
+            $userId = $this->getUserIdFromToken($jwtToken);
+
+            // Récupération du trajet à démarrer
+            $rideToStart = $this->rideService->startRide($rideId, $userId);
+
+            // Vérification de l'existence du trajet
+            if ($rideToStart) {
+                $this->successResponse(["message" => "Trajet démarré"], 200);
+            } else {
+                $this->errorResponse("Trajet introuvable", 404);
+            }
+        } catch (InvalidArgumentException $e) {
+
+            $this->errorResponse($e->getMessage(), 400);
+        } catch (\Exception $e) {
+
+            $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
+        }
+    }
+
+    // Autorise un utilisateur à arrêter un trajet.
+    public function stopRide() {}
+
+    // Autorise un utilisateur à finaliser un trajet.
+    public function finalizeRide(
+        int $rideId,
+        string $jwtToken
+    ): void {
+        try {
+            // Récupération de l'id de l'utilisateur
+            $userId = $this->getUserIdFromToken($jwtToken);
+
+            // Récupération du trajet à finaliser
+            $rideToStart = $this->rideService->finalizeRide($rideId, $userId);
+
+            // Vérification de l'existence du trajet
+            if ($rideToStart) {
+                $this->successResponse(["message" => "Trajet finalisé"], 200);
+            } else {
+                $this->errorResponse("Trajet introuvable", 404);
+            }
+        } catch (InvalidArgumentException $e) {
+
+            $this->errorResponse($e->getMessage(), 400);
+        } catch (\Exception $e) {
+
+            $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
+        }
+    }
+
+    //  Autorise un utilisateur à annuler une réservation
     public function cancelBooking(
         int $bookingId,
         string $jwtToken
@@ -267,12 +204,36 @@ class RideController extends BaseController
         }
     }
 
-
     // --------------------------DELETE------------------------------
     // Pas de suppression car conservation de l'historique
 
 
     // --------------------------GET----------------------------------
+
+    // Affiche un trajet avec les utilisateurs associés.
+    public function getRideWithPassengers(
+        int $rideId,
+        string $jwtToken
+    ): void {
+        try {
+            // Récupération de l'id de l'utilisateur
+            $userId = $this->getUserIdFromToken($jwtToken);
+
+            // Récupération des infos
+            $ride = $this->rideService->getRideWithPassengers($userId, $rideId);
+
+            // Envoi de la réponse positive
+            $this->successResponse($ride, 200);
+        } catch (InvalidArgumentException $e) {
+
+            $this->errorResponse($e->getMessage(), 400);
+        } catch (\Exception $e) {
+
+            $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
+        }
+    }
+
+    // Affiche une réservation 
     public function getBooking(
         int $bookingId,
         string $jwtToken
@@ -291,6 +252,35 @@ class RideController extends BaseController
             $this->errorResponse($e->getMessage(), 400);
         } catch (\Exception $e) {
             // Attrappe les erreurs "Internal Server Error"
+            $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
+        }
+    }
+
+    // Affiche les trajets disponibles en fonction de la date de départ et les ville de départ et d'arrivée
+    public function listRidesByDateAndPlaces(): void
+    {
+
+        $departurePlace = $_GET['departure_place'] ?? null;
+        $arrivalPlace = $_GET['arrival_place'] ?? null;
+        $date = $_GET['departure_date_time'] ?? null;
+
+        if (!$date || !$departurePlace || !$arrivalPlace) {
+            throw new InvalidArgumentException("Tous les paramètres sont requis");
+        }
+        try {
+            // Transformation de la date string en date objet
+            $dateObj = new DateTimeImmutable($date);
+
+            // Récupération de la liste des trajets avec vérification des droits incluse
+            $rides = $this->rideService->listRidesByDateAndPlaces($dateObj, $departurePlace, $arrivalPlace);
+
+            // Envoi de la réponse positive
+            $this->successResponse($rides, 200);
+        } catch (InvalidArgumentException $e) {
+
+            $this->errorResponse($e->getMessage(), 400);
+        } catch (\Exception $e) {
+
             $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
         }
     }
