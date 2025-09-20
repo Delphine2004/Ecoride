@@ -190,7 +190,18 @@ class RideRepository extends BaseRepository
     }
 
 
-    // Récupère la liste des objets Ride selon la date, le lieu de depart et le lieu d'arrivée avec tri et pagination.
+    /**
+     * Récupère la liste des objets Ride selon la date, le lieu de depart et le lieu d'arrivée avec tri et pagination.
+     *
+     * @param DateTimeImmutable $date
+     * @param string $departurePlace
+     * @param string $arrivalPlace
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
     public function findAllRidesByDateAndPlace(
         DateTimeImmutable $date,
         string $departurePlace,
@@ -217,7 +228,27 @@ class RideRepository extends BaseRepository
     }
 
     /**
-     * Récupère la liste d'objet Ride selon la date de création avec tri et pagination.
+     * Récupère la liste brute des trajets par date de départ avec tri et pagination.
+     *
+     * @param DateTimeInterface $departureDate
+     * @param string|null $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
+    public function fetchAllBookingsByDepartureDate(
+        DateTimeInterface $departureDate,
+        ?string $orderBy = 'departure_date_time',
+        string $orderDirection = 'DESC',
+        int $limit = 20,
+        int $offset = 0
+    ): array {
+        return $this->fetchAllRidesRowsByFields(['departure_date_time' => $departureDate], $orderBy, $orderDirection, $limit, $offset);
+    }
+
+    /**
+     * Récupère la liste brute des trajets selon la date de création avec tri et pagination.
      *
      * @param integer $creationDate
      * @param string $orderBy
@@ -226,16 +257,53 @@ class RideRepository extends BaseRepository
      * @param integer $offset
      * @return array
      */
-    public function findAllRidesByCreationDate(
+    public function fetchAllRidesByCreatedAt(
         DateTimeImmutable $creationDate,
         string $orderBy = 'created_at',
         string $orderDirection = 'DESC',
         int $limit = 20,
         int $offset = 0
     ): array {
-        return $this->findAllRidesByFields(['created_at' => $creationDate], $orderBy, $orderDirection, $limit, $offset);
+        return $this->fetchAllRidesRowsByFields(['created_at' => $creationDate], $orderBy, $orderDirection, $limit, $offset);
     }
 
+    /**
+     * Récupère la liste d'objet Ride selon le statut de trajet avec tri et pagination.
+     *
+     * @param RideStatus $rideStatus
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
+    public function findAllRidesByStatus(
+        RideStatus $rideStatus,
+        string $orderBy = 'departure_date_time',
+        string $orderDirection = 'DESC',
+        int $limit = 20,
+        int $offset = 0
+    ): array {
+        return $this->findAllRidesByFields(['ride_status' => $rideStatus->value], $orderBy, $orderDirection, $limit, $offset);
+    }
+
+    /**
+     * Récupère la liste d'objet Ride selon le statut de trajet ENATTENTE avec tri et pagination.
+     *
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
+    public function findAllRidesByPendingStatus(
+        string $orderBy = 'departure_date_time',
+        string $orderDirection = 'DESC',
+        int $limit = 20,
+        int $offset = 0
+    ): array {
+        return $this->findAllRidesByFields(['ride_status' => RideStatus::ENATTENTE->value], $orderBy, $orderDirection, $limit, $offset);
+    }
 
     //  ------ Récupèrations des trajets et des utilisateurs ---------
 
@@ -313,8 +381,9 @@ class RideRepository extends BaseRepository
      * @param [type] $rideId
      * @return Ride|null
      */
-    public function findRideWithUsersByRideId($rideId): ?Ride
-    {
+    public function findRideWithUsersByRideId(
+        $rideId
+    ): ?Ride {
         return $this->findRideWithUsersByFields(['ride_id' => $rideId]);
     }
 

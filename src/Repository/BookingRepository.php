@@ -30,8 +30,9 @@ class BookingRepository extends BaseRepository
      * @param Booking $booking
      * @return array
      */
-    private function mapBookingToArray(Booking $booking): array
-    {
+    private function mapBookingToArray(
+        Booking $booking
+    ): array {
         return [
             'ride_id' => $booking->getBookingRide()?->getRideId(),
             'passenger_id' => $booking->getBookingPassenger()?->getUserId(),
@@ -50,8 +51,9 @@ class BookingRepository extends BaseRepository
      * @param integer $bookingId
      * @return Booking|null
      */
-    public function findBookingById(int $bookingId): ?Booking
-    {
+    public function findBookingById(
+        int $bookingId
+    ): ?Booking {
         return parent::findById($bookingId);
     }
 
@@ -131,46 +133,6 @@ class BookingRepository extends BaseRepository
     //----------------------------------------------------------
 
     /**
-     * Récupère la liste des objets Booking par date de départ avec tri et pagination.
-     *
-     * @param DateTimeInterface $departureDate
-     * @param string|null $orderBy
-     * @param string $orderDirection
-     * @param integer $limit
-     * @param integer $offset
-     * @return array
-     */
-    public function findAllBookingsByDepartureDate(
-        DateTimeInterface $departureDate,
-        ?string $orderBy = null,
-        string $orderDirection = 'DESC',
-        int $limit = 50,
-        int $offset = 0
-    ): array {
-        return $this->findAllBookingsByFields(['departure_date_time' => $departureDate], $orderBy, $orderDirection, $limit, $offset);
-    }
-
-    /**
-     * Récupère la liste brute des réservations par le statut de réservation avec tri et pagination.
-     *
-     * @param BookingStatus $bookingStatus
-     * @param string|null $orderBy
-     * @param string $orderDirection
-     * @param integer $limit
-     * @param integer $offset
-     * @return array
-     */
-    public function fetchAllBookingsByStatus(
-        BookingStatus $bookingStatus,
-        ?string $orderBy = null,
-        string $orderDirection = 'DESC',
-        int $limit = 50,
-        int $offset = 0
-    ): array {
-        return $this->fetchAllBookingsRowsByFields(['booking_status' => $bookingStatus->value], $orderBy, $orderDirection, $limit, $offset);
-    }
-
-    /**
      * Récupère la liste brute des réservations par la date de création avec tri et pagination.
      *
      * @param DateTimeInterface $createdAt
@@ -184,12 +146,49 @@ class BookingRepository extends BaseRepository
         DateTimeInterface $createdAt,
         ?string $orderBy = null,
         string $orderDirection = 'DESC',
-        int $limit = 50,
+        int $limit = 20,
         int $offset = 0
     ): array {
         return $this->fetchAllBookingsRowsByFields(['created_at' => $createdAt], $orderBy, $orderDirection, $limit, $offset);
     }
 
+    /**
+     * Récupère la liste des objets Booking par le statut de réservation avec tri et pagination.
+     *
+     * @param BookingStatus $bookingStatus
+     * @param string|null $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
+    public function findAllBookingsByStatus(
+        BookingStatus $bookingStatus,
+        string $orderBy = 'created_at',
+        string $orderDirection = 'DESC',
+        int $limit = 20,
+        int $offset = 0
+    ): array {
+        return $this->findAllBookingsByFields(['booking_status' => $bookingStatus->value], $orderBy, $orderDirection, $limit, $offset);
+    }
+
+    /**
+     * Récupère la liste des objets Booking par le statut de réservation ENCOURS avec tri et pagination.
+     *
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @param integer $limit
+     * @param integer $offset
+     * @return void
+     */
+    public function FindAllBookingsByPendingStatus(
+        string $orderBy = 'created_at',
+        string $orderDirection = 'DESC',
+        int $limit = 20,
+        int $offset = 0
+    ) {
+        return $this->findAllBookingsByFields(['booking_status' => BookingStatus::ENCOURS->value], $orderBy, $orderDirection, $limit, $offset);
+    }
 
     //------- Pour les passagers passagers uniquement ---------
 
@@ -283,7 +282,7 @@ class BookingRepository extends BaseRepository
         int $limit = 50,
         int $offset = 0
     ): array {
-        return $this->fetchAllBookingsByPassenger($passengerId, BookingStatus::PASSEE, $orderBy, $orderDirection, $limit, $offset);
+        return $this->fetchAllBookingsByPassenger($passengerId, BookingStatus::FINALISE, $orderBy, $orderDirection, $limit, $offset);
     }
 
 
