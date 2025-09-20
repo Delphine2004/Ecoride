@@ -5,7 +5,6 @@ namespace App\Repository;
 use App\Model\Ride;
 use App\Enum\RideStatus;
 use App\Enum\UserRoles;
-use DateTimeInterface;
 use DateTimeImmutable;
 use PDO;
 use InvalidArgumentException;
@@ -230,7 +229,7 @@ class RideRepository extends BaseRepository
     /**
      * Récupère la liste brute des trajets par date de départ avec tri et pagination.
      *
-     * @param DateTimeInterface $departureDate
+     * @param DateTimeImmutable $departureDate
      * @param string|null $orderBy
      * @param string $orderDirection
      * @param integer $limit
@@ -238,7 +237,7 @@ class RideRepository extends BaseRepository
      * @return array
      */
     public function fetchAllBookingsByDepartureDate(
-        DateTimeInterface $departureDate,
+        DateTimeImmutable $departureDate,
         ?string $orderBy = 'departure_date_time',
         string $orderDirection = 'DESC',
         int $limit = 20,
@@ -757,13 +756,13 @@ class RideRepository extends BaseRepository
     /**
      * Calcule le nombre de trajet par période.
      *
-     * @param DateTimeInterface $start
-     * @param DateTimeInterface $end
+     * @param DateTimeImmutable $start
+     * @param DateTimeImmutable $end
      * @return array|null
      */
     public function countRidesByPeriod(
-        DateTimeInterface $start,
-        DateTimeInterface $end
+        DateTimeImmutable $start,
+        DateTimeImmutable $end
     ): ?array {
         return $this->countRidesByFields([
             'created_at >= ' => $start->format('Y-m-d H:i:s'),
@@ -774,13 +773,13 @@ class RideRepository extends BaseRepository
     /**
      * Calcule le total des commissions perçues du jour
      *
-     * @param DateTimeInterface $start
-     * @param DateTimeInterface $end
+     * @param DateTimeImmutable $start
+     * @param DateTimeImmutable $end
      * @return array|null
      */
     public function countCommissionByPeriod(
-        DateTimeInterface $start,
-        DateTimeInterface $end
+        DateTimeImmutable $start,
+        DateTimeImmutable $end
     ): ?array {
         return $this->countCommissionByFields([
             'created_at >= ' => $start->format('Y-m-d H:i:s'),

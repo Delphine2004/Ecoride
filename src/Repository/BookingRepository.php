@@ -4,7 +4,7 @@ namespace App\Repository;
 
 use App\Model\Booking;
 use App\Enum\BookingStatus;
-use DateTimeInterface;
+use DateTimeImmutable;
 use PDO;
 
 /**
@@ -135,7 +135,7 @@ class BookingRepository extends BaseRepository
     /**
      * Récupère la liste brute des réservations par la date de création avec tri et pagination.
      *
-     * @param DateTimeInterface $createdAt
+     * @param DateTimeImmutable $createdAt
      * @param string|null $orderBy
      * @param string $orderDirection
      * @param integer $limit
@@ -143,7 +143,7 @@ class BookingRepository extends BaseRepository
      * @return array
      */
     public function fetchAllBookingsByCreatedAt(
-        DateTimeInterface $createdAt,
+        DateTimeImmutable $createdAt,
         ?string $orderBy = null,
         string $orderDirection = 'DESC',
         int $limit = 20,
