@@ -298,7 +298,7 @@ class UserService
      * Permet à un visiteur de créer un compte.
      *
      * @param CreateUserDTO $dto
-     * @return User|null
+     * @return User
      */
     public function createAccount(
         CreateUserDTO $dto
@@ -337,7 +337,7 @@ class UserService
      *
      * @param UpdateUserDTO $dto
      * @param integer $passengerId
-     * @return User|null
+     * @return User
      */
     public function becomeDriver(
         UpdateUserDTO $dto,
@@ -387,7 +387,7 @@ class UserService
      *
      * @param UpdateUserDTO $dto
      * @param integer $userId
-     * @return User|null
+     * @return User
      */
     public function updateProfile(
         UpdateUserDTO $dto,
@@ -437,7 +437,7 @@ class UserService
         if (!empty($dto->zipCode)) {
             $user->setUserZipCode($dto->zipCode);
         }
-        if (!empty($dto->uripicture)) {
+        if (!empty($dto->uriPicture)) {
             $user->setUserUriPicture($dto->uriPicture);
         }
         if (!empty($dto->licenceNo) && $this->isDriver($userId)) {
@@ -501,9 +501,9 @@ class UserService
     /**
      * Permet à un admin de créer un compte employé.
      *
-     * @param array $data
+     * @param CreateUserDTO $dto
      * @param integer $adminId
-     * @return User|null
+     * @return User
      */
     public function createEmployeeAccount(
         CreateUserDTO $dto,
