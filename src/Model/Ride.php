@@ -156,9 +156,9 @@ class Ride
         return $this->commission;
     }
 
-    public function getRidePassengers(): ?array
+    public function getRidePassengersId(): ?array
     {
-        return $this->passengers;
+        return $this->passengers ?? [];
     }
 
     public function getRideCreatedAt(): DateTimeImmutable
