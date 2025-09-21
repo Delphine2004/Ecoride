@@ -3,7 +3,7 @@
 namespace App\Service;
 
 use App\Repository\CarRepository;
-use App\Service\UserService;
+use App\Security\AuthService;
 use App\Model\Car;
 use App\DTO\CreateCarDTO;
 use InvalidArgumentException;
@@ -13,7 +13,7 @@ class CarService
 {
     public function __construct(
         protected CarRepository $carRepository,
-        protected UserService $userService
+        protected AuthService $authService,
     ) {}
 
     /**
@@ -25,8 +25,8 @@ class CarService
     public function userHasCars(
         int $userId
     ): bool {
-        $this->userService->checkIfUserExists($userId);
-        $this->userService->ensureDriver($userId);
+        $this->authService->checkIfUserExists($userId);
+        $this->authService->ensureDriver($userId);
         return count($this->carRepository->findAllCarsByOwner($userId)) > 0;
     }
 
@@ -43,8 +43,8 @@ class CarService
         CreateCarDTO $dto,
         int $userId
     ): Car {
-        $this->userService->checkIfUserExists($userId);
-        $this->userService->ensureDriver($userId);
+        $this->authService->checkIfUserExists($userId);
+        $this->authService->ensureDriver($userId);
 
         // Création de l'objet Car
         $car = new Car();
@@ -77,13 +77,13 @@ class CarService
         int $carId,
         int $userId
     ): void {
-        $this->userService->checkIfUserExists($userId);
+        $this->authService->checkIfUserExists($userId);
 
         // Vérification des permissions.
-        $this->userService->ensureDriverAndStaff($userId);
+        $this->authService->ensureDriverAndStaff($userId);
 
         // Vérification si l'utilisateur CONDUCTEUR est le propriétaire.
-        if ($this->userService->isDriver($userId) && !$this->carRepository->isOwner($userId, $carId)) {
+        if ($this->authService->isDriver($userId) && !$this->carRepository->isOwner($userId, $carId)) {
             throw new InvalidArgumentException("Vous ne pouvez pas supprimer cette voiture.");
         }
 
@@ -106,15 +106,15 @@ class CarService
         int $userId
     ): array {
 
-        $this->userService->checkIfUserExists($userId);
+        $this->authService->checkIfUserExists($userId);
 
-        $this->userService->ensureDriverAndStaff($userId);
+        $this->authService->ensureDriverAndStaff($userId);
 
-        $this->userService->checkIfUserExists($driverId);
+        $this->authService->checkIfUserExists($driverId);
 
 
         // Vérification qu'il s'agit bien du conducteur
-        if ($this->userService->isDriver($driverId)) {
+        if ($this->authService->isDriver($driverId)) {
             if ($userId !== $driverId) {
                 throw new InvalidArgumentException("Accés interdit.");
             }
