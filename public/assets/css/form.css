@@ -36,6 +36,7 @@
   justify-content: center;
   align-items: center;
   width: 100%;
+  min-height: 5rem;
   color: rgba(222, 21, 21, 0.92);
   font-size: 0.8em;
   margin: 0.5rem auto;
@@ -203,7 +204,7 @@
   .addRide-form .card-body {
     display: flex;
     justify-content: center;
-    flex-direction: row;
+    flex-direction: column;
   }
 
   #addRide-form .item {
