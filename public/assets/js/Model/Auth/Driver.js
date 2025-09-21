@@ -1,27 +1,46 @@
-import { User } from "./User";
-
-export class Driver extends User {
-  constructor(pseudo, picture, rating, preference) {
-    this.pseudo = pseudo;
-    this.picture = picture;
-    this.rating = rating;
-    this.preference = preference;
+export class Driver extends Passenger {
+  constructor(data) {
+    super(data); // appel du constructeur parent
+    this.rating = data.rating;
+    this.licenceNo = data.licenceNo;
+    this.preferences = data.preferences;
   }
 
+  // Les getters
   getDriverInfo() {
-    return `Pseudo : ${this.pseudo} - Note : ${this.rating} - Préférences : ${this.preference} `;
-  }
-
-  getPicture() {
-    return `<img src="${this.picture}" alt="photo de ${this.pseudo}">`;
+    return `<div class="driver-info"> ${this.login} - Note : ${this.rating} - Préférences : ${this.preferences} </div>`;
   }
 
   getDriverToJSON() {
     return {
-      pseudo: this.pseudo,
-      picture: this.picture,
+      id: this.userId,
+      lastName: this.lastName,
+      firstName: this.firstName,
+      email: this.email,
+      role: this.role,
+      login: this.login,
+      phone: this.phone,
+      address: this.address,
+      city: this.city,
+      zipCode: this.zipCode,
+      uriPicture: this.uriPicture,
+      credits: this.credits,
       rating: this.rating,
-      preference: this.preference,
+      licenceNo: this.licenceNo,
+      preferences: this.preferences,
     };
+  }
+
+  // Les setters
+  setDriverInfo(updates) {
+    if (updates.rating !== undefined) {
+      this.rating = updates.rating;
+    }
+    if (updates.licenceNo !== undefined) {
+      this.licenceNo = updates.licenceNo;
+    }
+    if (updates.preferences !== undefined) {
+      this.preferences = updates.preferences;
+    }
   }
 }
