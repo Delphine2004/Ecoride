@@ -53,17 +53,19 @@ export function searchRide() {
       console.log("Réponse de l’API :", response);
 
       // Récupération du tableau
-      const rides = response.rides ?? [];
+      const rides = response.data ?? [];
 
-      // Afficher les résultats
-      results.innerHTML = response.length
-        ? rides
-            .map((t) => `<div>${t.ville_depart} → ${t.ville_arrivee}</div>`)
-            .join("")
-        : "<p>Aucun résultat trouvé.</p>";
+      if (rides.length) {
+        // Stocker les résultats don sessionStorage
+        sessionStorage.setItem("rides", JSON.stringify(rides));
+      } else {
+        sessionStorage.setItem("rides", JSON.stringify([]));
+      }
+
+      // redirection vers la page de résultats
+      window.location.href = "/resultats";
     } catch (error) {
       console.error("Erreur lors de l’appel à l’API :", error);
-      // TODO - ne pas afficher les erreurs mais plutot un message
       results.innerHTML = `<p class="error">Erreur : ${error.message}</p>`;
     }
   });

@@ -1,45 +1,61 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-    <link rel="stylesheet" href="/ECF/public/assets/css/style.css" />
-    <link rel="stylesheet" href="/ECF/public/assets/css/result.css" />
-  </head>
-  <body>
-    <section class="container">
-      <article class="result">
-        <div class="ride-info">
-          <div class="cities">Paris → Rouen</div>
-          <div class="date-time">18 juin 2025 - 14h00</div>
-          <div class="duration">Durée estimée : 2h30</div>
-          <div class="seats">Places disponibles : 2</div>
-          <div class="price">20 crédits</div>
+<section id="hero" class="search">
+  <div class="sub-container hero-title">
+    <h1>EcoRide</h1>
+    <h2>Voyagez malin, voyagez durable.</h2>
+  </div>
+  <div class="sub-container search-form">
+    <form id="search-form" method="GET" novalidate>
+      <!-- sr-only = screen reader only -->
+      <div class="big-screen small-screen">
+        <div class="item city">
+          <label class="sr-only" for="departure-place">Ville de départ</label>
+          <input
+            class="input-form"
+            id="departure-place"
+            name="departure_place"
+            type="text"
+            data-type="onlytext"
+            maxlength="25"
+            placeholder="Ville de départ"
+            required
+          />
         </div>
-
-        <div class="driver-info">
-          <figure class="driver-profile">
-            <img
-              src="../../../../public/assets/img/icons/person.png"
-              alt="Photo de Marie Dupont, utilisatrice EcoRide"
-              class="driver-photo"
-            />
-            <figcaption>
-              <span class="driver-username">Marie Dupont</span>
-              <br />
-              <span class="driver-rating">⭐ 4.8 • 120 avis</span>
-            </figcaption>
-          </figure>
-
-          <p class="car-type">Electrique</p>
-          <a href="#" aria-label="Les détails du trajet">Détails</a>
+        <div class="item city">
+          <label class="sr-only" for="arrival-place">Ville d'arrivée</label>
+          <input
+            class="input-form"
+            id="arrival-place"
+            name="arrival_place"
+            type="text"
+            data-type="onlytext"
+            maxlength="25"
+            placeholder="Ville d'arrivée"
+            required
+          />
         </div>
-
-        <div class="ride-action">
-          <button onclick="location.href='#'">Participer</button>
+        <div class="item date">
+          <label class="sr-only" for="departure-date-time"
+            >Date de départ</label
+          >
+          <input
+            class="input-form"
+            id="departure-date-time"
+            name="departure_date_time"
+            type="date"
+            required
+          />
         </div>
-      </article>
-    </section>
-  </body>
-</html>
+        <button
+          class="btn"
+          type="submit"
+          aria-label="Rechercher le trajet sur ecoride"
+        >
+          Rechercher
+        </button>
+      </div>
+    </form>
+    <div id="feedback-form" role="alert"></div>
+  </div>
+</section>
+
+<section id="results" class="sub-container"></section>

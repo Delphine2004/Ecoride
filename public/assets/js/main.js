@@ -1,4 +1,5 @@
 import { searchRide } from "./Controller/searchController.js";
+import { showRidesResult } from "./Controller/ResultsSearchController.js";
 import { addRide } from "./Controller/addRideController.js";
 import { login } from "./Controller/Auth/loginController.js";
 import { registration } from "./Controller/Auth/registrationController.js";
@@ -17,7 +18,6 @@ window.onpopstate = loadContent;
 window.route = routeEvent;
 
 // Chargement du contenu de la page au chargement initial
-
 document.addEventListener("DOMContentLoaded", async () => {
   try {
     await loadContent(); // attendre que le contenu soit injecté sur la page
@@ -36,12 +36,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Bouton de deconnexion
     const logoutBtn = document.getElementById("logout-btn");
 
-    /* ---------------------------------------------------- */
+    // ----------------------------------------------------
 
     // Initialisation des formulaires accessibles sans connexion
     if (path.includes("/") && searchForm) {
       searchRide();
     }
+
+    if (path.includes("resultats") && searchForm) {
+      searchRide();
+      showRidesResult();
+    }
+
     if (path.includes("connexion") && loginForm) {
       login();
     }
