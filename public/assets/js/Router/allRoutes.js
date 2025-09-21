@@ -19,10 +19,9 @@ export const allRoutes = [
   new Route(
     "/rechercher",
     "Rechercher un trajet",
-    "./assets/view/home.html",
+    "./assets/view/result.html",
     []
   ),
-  new Route("/resultats", "Trajets trouvés", "./assets/view/result.html", []),
   new Route("/publier", "Publier un trajet", "./assets/view/addRide.html"),
   new Route("/connexion", "Connexion", "./assets/view/auth/login.html", []),
   new Route(

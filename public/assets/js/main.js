@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       searchRide();
     }
 
-    if (path.includes("resultats") && searchForm) {
+    if (path.includes("rechercher") && searchForm) {
       searchRide();
       showRidesResult();
     }

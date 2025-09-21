@@ -63,7 +63,8 @@ export function searchRide() {
       }
 
       // redirection vers la page de résultats
-      window.location.href = "/resultats";
+
+      window.location.href = "/rechercher";
     } catch (error) {
       console.error("Erreur lors de l’appel à l’API :", error);
       results.innerHTML = `<p class="error">Erreur : ${error.message}</p>`;
