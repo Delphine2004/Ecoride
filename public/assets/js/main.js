@@ -60,8 +60,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     if (logoutBtn) {
-      logoutBtn.addEventListener("click", (e) => {
-        e.preventDefault();
+      logoutBtn.addEventListener("click", (event) => {
+        event.preventDefault();
         logout();
       });
     }
