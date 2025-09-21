@@ -1,8 +1,10 @@
 import { Driver } from "./Auth/Driver.js";
+import { fetchDriverById } from "../Service/UserService.js";
 
 export class Ride {
   constructor(data) {
     this.rideId = data.rideId;
+    this.driverId = data.driverId ?? null;
     this.driver = data.driver ? new Driver(data.driver) : null;
 
     this.departureDateTime = data.departureDateTime?.date
@@ -47,8 +49,14 @@ export class Ride {
     return `${h}h${m.toString().padStart(2, "0")}`;
   }
 
+  // Vérifie si le trajet est complet
   isFull() {
     return this.availableSeats <= 0 || this.rideStatus === "complet";
+  }
+
+  // Permet d'ajouter l'objet User
+  async attachDriver() {
+    this.driver = await fetchDriverById(this.driverId);
   }
 
   // Les getters
@@ -75,7 +83,9 @@ export class Ride {
       <div class="big-screen">----------</div>
 
       <div class="driver-info"> ${
-        this.driver ? this.driver.getDriverInfo() : "Conducteur non précisé"
+        this.driver
+          ? this.driver.getDriverInfo()
+          : `Conducteur #${this.driverId ?? "non précisé"}`
       }</div>
 
       <div class="ride-item">
