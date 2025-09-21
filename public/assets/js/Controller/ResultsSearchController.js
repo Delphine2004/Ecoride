@@ -8,25 +8,32 @@ export function showRidesResult() {
   const ridesCount = document.getElementById("rides-count");
   const filterInputs = document.querySelectorAll(".input-filter");
 
+  // Vérifie si des résultats existent en session
+  const ridesDataRaw = sessionStorage.getItem("rides");
+  if (!ridesDataRaw) {
+    results.innerHTML = "<p>Veuillez effectuer une recherche.</p>";
+    ridesCount.textContent = "";
+    return;
+  }
+
   // Récupération des données
   const ridesData = JSON.parse(sessionStorage.getItem("rides")) || [];
   const rides = ridesData.map((data) => new Ride(data));
-  //console.log("Nombre de trajets récupérés :", ridesData.length, ridesData);
 
-  // affichage du nombre de trajet trouvé
-  ridesCount.textContent = `Nombre de trajets trouvés : ${rides.length}`;
-
-  const renderRide = (ridesToDisplay) => {
+  // Fonction qui permet d'afficher les résultats
+  function renderRide(ridesToDisplay) {
     const filteredRides = ridesToDisplay.filter((ride) => !ride.isFull());
     if (filteredRides.length === 0) {
       results.innerHTML =
         "<p>Aucun résultat trouvé. Merci de faire une nouvelle recherche pour une date plus proche.</p>";
     } else {
+      // affichage du nombre de trajet trouvé
+      ridesCount.textContent = `Nombre de trajets trouvés : ${filteredRides.length}`;
       results.innerHTML = filteredRides
         .map((ride) => ride.getRideInfo())
         .join("");
     }
-  };
+  }
 
   // Affichage sans filtre
   renderRide(rides);
@@ -37,6 +44,7 @@ export function showRidesResult() {
     input.addEventListener("change", applyFilters);
   });
 
+  // Fonction qui permet d'appliquer les filtres
   function applyFilters() {
     let filteredRides = rides.filter((ride) => !ride.isFull());
 
