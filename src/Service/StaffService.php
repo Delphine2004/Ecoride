@@ -4,9 +4,13 @@ namespace App\Service;
 
 use App\Repository\RideRepository;
 use App\Repository\BookingRepository;
+use App\Repository\ReviewRepository;
+use App\Model\Review;
+use App\Enum\ReviewStatus;
 use App\Enum\RideStatus;
 use App\Enum\BookingStatus;
 use DateTimeImmutable;
+use InvalidArgumentException;
 
 class StaffService
 {
@@ -14,6 +18,7 @@ class StaffService
     public function __construct(
         protected RideRepository $rideRepository,
         protected BookingRepository $bookingRepository,
+        private ReviewRepository $reviewRepository,
         protected UserService $userService,
     ) {}
 
@@ -142,6 +147,49 @@ class StaffService
         return $this->bookingRepository->fetchAllBookingsByCreatedAt($creationDate);
     }
 
+    //--------------COMMENTAIRES--------------------
+    //Fonction qui permet à un employé d'approuver un commentaire.
+    public function approveReview(
+        Review $review,
+        int $staffMemberId,
+    ): ?Review {
+
+        // Vérification du statut du commentaire
+        if ($review->getReviewStatus() !== ReviewStatus::ATTENTE) {
+            throw new InvalidArgumentException("Le commentaire est déjà approuvé.");
+        }
+
+        $this->userService->checkIfUserExists($staffMemberId);
+        $this->userService->ensureStaff($staffMemberId);
+
+        // Modifier le statut
+        $review->setReviewStatus(ReviewStatus::CONFIRME);
+
+        //$this->reviewRepository->updateReview($review);
+        return $review;
+    }
+
+
+    public function rejectReview(
+        Review $review,
+        int $staffMemberId,
+    ): ?Review {
+
+        // Vérification du statut du commentaire
+        if ($review->getReviewStatus() !== ReviewStatus::ATTENTE) {
+            throw new InvalidArgumentException("Le commentaire est déjà approuvé.");
+        }
+
+        $this->userService->checkIfUserExists($staffMemberId);
+
+        $this->userService->ensureStaff($staffMemberId);
+
+        // Modifier le statut
+        $review->setReviewStatus(ReviewStatus::REJETE);
+
+        //$this->reviewRepository->updateReview($review);
+        return $review;
+    }
 
     //-------------Pour les Admins uniquement ------------------
     /**

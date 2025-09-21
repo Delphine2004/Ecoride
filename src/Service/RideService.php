@@ -12,9 +12,11 @@ use App\Service\CarService;
 use App\Model\Ride;
 use App\Model\Booking;
 use App\Model\User;
+use App\Model\Review;
 
 use App\Enum\RideStatus;
 use App\Enum\BookingStatus;
+use App\Enum\ReviewStatus;
 
 use App\DTO\CreateRideDTO;
 use App\DTO\UpdateUserDTO;
@@ -604,6 +606,58 @@ class RideService
         return $booking;
     }
 
+
+    //---------- Action Review -----
+
+    // Permet à un utilisateur PASSAGER de laisser un commentaire à un utilisateur CONDUCTEUR.
+    public function addReviewToDriver(
+        Ride $ride,
+        int $passengerId,
+        array $data
+    ): ?Review {
+
+        $this->checkIfRideExists($ride->getRideId());
+
+        $this->authService->checkIfUserExists($passengerId);
+        $this->authService->isPassenger($passengerId);
+
+
+        // Récupération de l'id du chauffeur
+        $driverId = $ride->getRideDriverId();
+        $this->authService->checkIfUserExists($driverId);
+
+        // Vérification que le passager n'est pas le conducteur
+        if ($passengerId === $driverId) {
+            throw new InvalidArgumentException("Le passager ne peut pas être le conducteur.");
+        }
+
+        // Récupération des passagers
+        $ridePassengers = $ride->getRidePassengersId();
+        $passenger = $this->authService->getUserById($passengerId);
+
+        // Vérification que le passager a bien participé au trajet
+        if (!in_array($passenger, $ridePassengers, true)) {
+            throw new InvalidArgumentException("Le passager n'a pas participé à ce trajet.");
+        }
+
+
+        // Création de l'objet Review
+        $review = new Review();
+
+        // Remplissage de l'objet
+        $review->setReviewAuthorId($passengerId);
+        $review->setReviewTargetId($driverId);
+        $review->setReviewRating($data['rating']);
+        if (!empty($data['comment'])) {
+            $review->setReviewComment($data['comment']);
+        }
+        $review->setReviewStatus(ReviewStatus::ATTENTE);
+
+        //$this->reviewRepository->insertReview($review);
+
+
+        return $review;
+    }
 
     //------------------RECUPERATIONS ------------------------
 
