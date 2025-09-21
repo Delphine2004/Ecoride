@@ -21,7 +21,6 @@ input,
 select {
   background-color: #f7fff6 !important;
   color: #000000;
-  box-sizing: border-box;
 }
 
 header,
@@ -98,12 +97,11 @@ select:invalid {
   color: #8491a3;
 }
 
-/* Bordures*/
-
 .input-form,
 .input-form option,
-.input-form select {
-  border: 2px solid #93b48b;
+.input-form select,
+.input-filter,
+#rides-controller {
   font-size: 1rem;
   padding: 0.75rem 1rem;
   outline: none;
@@ -111,8 +109,15 @@ select:invalid {
   height: 3rem;
 }
 
+/* Bordures*/
+
 .input-form,
-#feedback-form {
+.input-form option,
+.input-form select,
+.input-filter,
+#rides-controller,
+.ride-info {
+  border: 2px solid #93b48b;
   border-radius: 0.4rem;
 }
 
