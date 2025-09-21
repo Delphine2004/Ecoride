@@ -1,14 +1,21 @@
 export class Car {
-  constructor(brand, carModel, color, power, numberOfSeats) {
-    this.brand = brand;
-    this.carModel = carModel;
-    this.color = color;
-    this.power = power;
-    this.numberOfSeats = parseInt(numberOfSeats); // parseInt pour garantir le type numérique
+  constructor(data) {
+    this.carId = data.carId;
+    this.brand = data.brand;
+    this.carModel = data.carModel;
+    this.color = data.color;
+    this.power = data.power;
+    this.numberOfSeats = Number(data.numberOfSeats);
   }
 
+  // Vérifications
+  isEco() {
+    return this.power === "Electrique";
+  }
+
+  // Les getters
   getCarInfo() {
-    return `Modèle : ${this.carModel} - Marque : ${this.brand} - Couleur : ${this.color} - Energie : ${this.power}`;
+    return `<div class="car-info">"Modèle : ${this.carModel} - Marque : ${this.brand} - Couleur : ${this.color} - Energie : ${this.power}</div>`;
   }
 
   getCarToJSON() {
@@ -20,6 +27,4 @@ export class Car {
       numberOfSeats: this.numberOfSeats,
     };
   }
-
-  setCarInfo() {}
 }

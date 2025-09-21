@@ -6,6 +6,6 @@ enum UserRoles: string
 {
     case PASSAGER = "Passager";
     case CONDUCTEUR = "Conducteur";
-    case EMPLOYE = "Employer";
+    case EMPLOYE = "Employé";
     case ADMIN = "Admin";
 }

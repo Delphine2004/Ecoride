@@ -1,3 +1,5 @@
+import { Passenger } from "./Passenger.js";
+
 export class Driver extends Passenger {
   constructor(data) {
     super(data); // appel du constructeur parent
@@ -8,7 +10,7 @@ export class Driver extends Passenger {
 
   // Les getters
   getDriverInfo() {
-    return `<div class="driver-info"> ${this.login} - Note : ${this.rating} - Préférences : ${this.preferences} </div>`;
+    return `${this.login} - Note : ${this.rating} - Préférences : ${this.preferences}`;
   }
 
   getDriverToJSON() {

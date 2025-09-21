@@ -15,19 +15,19 @@ export class User {
   }
 
   isPassenger() {
-    return this.role === "passager";
+    return this.role === "Passager";
   }
 
   isDriver() {
-    return this.role === "conducteur";
+    return this.role === "Conducteur";
   }
 
   isEmployee() {
-    return this.role === "employé";
+    return this.role === "Employé";
   }
 
   isAdmin() {
-    return this.role === "admin";
+    return this.role === "Admin";
   }
 
   // Les getters

@@ -1,3 +1,5 @@
+import { User } from "./User.js";
+
 export class Passenger extends User {
   constructor(data) {
     super(data); // appel du constructeur parent

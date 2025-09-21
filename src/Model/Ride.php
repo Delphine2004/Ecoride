@@ -68,7 +68,7 @@ class Ride
         }
         $arrivalPlace = $row['arrival_place'] ?? null;
         $price = (float) ($row['price'] ?? 0);
-        $availableSeats = $row['available_seats'] ?? null;
+        $availableSeats = (int) $row['available_seats'] ?? 0;
         $rideStatus = $row['ride_status'] ? \App\Enum\RideStatus::from($row['ride_status']) : null;
         $commission = $row['commission'] ?? null;
         $createdAt = $row['created_at'] ? new DateTimeImmutable($row['created_at']) : null;
