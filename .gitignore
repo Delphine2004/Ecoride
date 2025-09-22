@@ -14,8 +14,3 @@
 # OS
 .DS_Store
 Thumbs.db
-
-# Build / Temp
-/dist/
-/build/
-/tmp/
