@@ -37,6 +37,7 @@ export function showRidesResult() {
 
   // Affichage sans filtre
   renderRide(rides);
+  sessionStorage.removeItem("rides");
 
   // Filtrer en temps réel
   filterInputs.forEach((input) => {
