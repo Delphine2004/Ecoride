@@ -313,6 +313,10 @@ class UserService
         //Création de l'objet User
         $user = new User();
 
+        $user->setUserLastName($dto->lastName);
+        $user->setUserFirstName($dto->firstName);
+        $user->setUserEmail($dto->email);
+        $user->setUserPassword($dto->password);
         $user->setUserLogin($dto->login);
         $user->setUserPhone($dto->phone);
         $user->setUserAddress($dto->address);
