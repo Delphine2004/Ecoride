@@ -36,6 +36,36 @@ class Review
 
         $this->createdAt = $createdAt ?? new DateTimeImmutable();
     }
+
+
+    public static function fromDatabaseRow(array $row): self
+    {
+        $reviewId =  (string)$row['review_id'] ?? null;
+        $rideId = (string) $row['ride_id'] ?? null;
+        $authorId = (string) $row['author_id'] ?? null;
+        $targetId =  (string) $row['target_id'] ?? null;
+        $rating =  (int) $row['rating'] ?? null;
+        $comment =  (string)$row['comment'] ?? null;
+        $reviewStatus =  ReviewStatus::tryFrom($row['review_status']) ?? null;
+        $createdAt = !empty($row['created_at']) ? new DateTimeImmutable($row['created_at']) : null;
+        $validatedAt = !empty($row['validated_at']) ? new DateTimeImmutable($row['validated_at']) : null;
+
+        return new self(
+            reviewId: $reviewId,
+            rideId: $rideId,
+            authorId: $authorId,
+            targetId: $targetId,
+            rating: $rating,
+            comment: $comment,
+            reviewStatus: $reviewStatus,
+            createdAt: $createdAt,
+            validatedAt: $validatedAt,
+        );
+    }
+
+
+
+
     // ---------Les Getters ---------
     public function getReviewId(): int|string|null
     {

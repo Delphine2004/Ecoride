@@ -64,8 +64,8 @@ class Car
         $power = $row['car_power'] ? \App\Enum\CarPower::from($row['car_power']) : null;
         $seatsNumber = (int) ($row['seats_number'] ?? 0);
         $registrationNumber = $row['registration_number'] ?? null;
-        $registrationDate = $row['registration_date'] ? new DateTimeImmutable($row['arrival_date_time']) : null;
-        $createdAt = $row['created_at'] ? new DateTimeImmutable($row['created_at']) : null;
+        $registrationDate = $row['registration_date'] ? new DateTimeImmutable($row['registration_date']) : null;
+        $createdAt = !empty($row['created_at']) ? new DateTimeImmutable($row['created_at']) : null;
 
 
         return new self(
