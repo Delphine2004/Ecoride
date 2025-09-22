@@ -35,7 +35,7 @@ class UserRepository extends BaseRepository
     public function __construct(
         ?PDO $db = null
     ) {
-        parent::__construct(\App\Model\User::class, $db);
+        parent::__construct(User::class, $db);
     }
 
 
@@ -61,7 +61,7 @@ class UserRepository extends BaseRepository
             'picture' => $user->getUserUriPicture(),
             'licence_no' => $user->getUserLicenceNo(),
             'credits' => $user->getUserCredits(),
-            'preference' => $user->getUserPreference()
+            'preferences' => json_encode($user->getUserPreference(), JSON_THROW_ON_ERROR)
         ];
     }
 

@@ -20,7 +20,7 @@ class BookingRepository extends BaseRepository
     public function __construct(
         ?PDO $db = null
     ) {
-        parent::__construct(\App\Model\Booking::class, $db);
+        parent::__construct(Booking::class, $db);
     }
 
 

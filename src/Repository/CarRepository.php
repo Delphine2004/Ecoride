@@ -34,7 +34,7 @@ class CarRepository extends BaseRepository
     public function __construct(
         ?PDO $db = null
     ) {
-        parent::__construct(\App\Model\Car::class, $db);
+        parent::__construct(Car::class, $db);
     }
 
 
