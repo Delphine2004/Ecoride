@@ -24,21 +24,33 @@ class CarController extends BaseController
      * @param string $jwtToken
      * @return void
      */
-    public function createCar(
-        string $jwtToken
-    ): void {
-        // Récupération des données
-        $data = $this->getJsonBody();
+    public function createCar(): void
+    {
+        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
 
-        // Vérification de la validité des données reçues
-        if (!is_array($data) || empty($data)) {
-            $this->errorResponse("JSON invalide ou vide.", 400);
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
             return;
         }
 
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
+
+
+            // Récupération des données
+            $data = $this->getJsonBody();
+
+            // Vérification de la validité des données reçues
+            if (!is_array($data) || empty($data)) {
+                $this->errorResponse("JSON invalide ou vide.", 400);
+                return;
+            }
 
             // Conversion des données en DTO
             $dto = new CreateCarDTO($data);
@@ -53,13 +65,11 @@ class CarController extends BaseController
             } elseif (is_array($car)) {
                 $carId = $car['id'] ?? $car['car_id'] ?? null;
             }
-            // Envoi de la réponse positive
+
             $this->successResponse($car, 201, "/users/{$userId}/cars/{$carId}");
         } catch (InvalidArgumentException $e) {
-            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
             $this->errorResponse($e->getMessage(), 400);
         } catch (\Exception $e) {
-            // Attrappe les erreurs "Internal Server Error"
             $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
         }
     }
@@ -77,13 +87,26 @@ class CarController extends BaseController
      * @param string $jwtToken
      * @return void
      */
-    public function deleteCar(
-        int $carId,
-        string $jwtToken
-    ): void {
+    public function deleteCar(): void
+    {
+        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
+
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
+            return;
+        }
+
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
+
+            // Récupération des paramétres depuis la requête
+            $carId = $_GET['car_id'] ?? null;
 
             // Suppression de la voiture
             $removed = $this->carService->removeCar($carId, $userId);
@@ -112,11 +135,13 @@ class CarController extends BaseController
      * @param integer $carId
      * @return void
      */
-    public function getCarById(
-        int $carId,
-        string $jwtToken
-    ): void {
+    public function getCarById(): void
+    {
+
         try {
+            // Récupération des paramétres depuis la requête
+            $carId = $_GET['car_id'] ?? null;
+
             // Récupération des infos
             $car = $this->carService->getCarById($carId);
 
@@ -138,13 +163,26 @@ class CarController extends BaseController
      * @param string $jwtToken
      * @return void
      */
-    public function listCarsbyDriver(
-        int $driverId,
-        string $jwtToken
-    ): void {
+    public function listCarsByDriver(): void
+    {
+        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
+
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
+            return;
+        }
+
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
+
+            // Récupération des paramétres depuis la requête
+            $driverId = $_GET['owner_id'] ?? null;
 
             // Récupération de la liste de voiture
             $cars = $this->carService->listCarsByDriver($driverId, $userId);
