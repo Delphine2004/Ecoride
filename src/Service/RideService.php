@@ -427,20 +427,18 @@ class RideService
      * @return Booking
      */
     public function createBooking(
-        Ride $ride,
-        User $driver,
-        User $passenger,
+        int $rideId,
         int $userId
     ): Booking {
 
+        $this->checkIfRideExists($rideId);
+
         $this->authService->checkIfUserExists($userId);
-        $this->authService->isPassenger($userId);
+        $this->authService->ensurePassengerAndStaff($userId);
 
 
-        // Vérification de l'existence des entités
-        if (!$ride  || !$driver || !$passenger) {
-            throw new InvalidArgumentException("Trajet, conducteur ou passager introuvable.");
-        }
+        $ride = $this->getRideWithUsersById($rideId, $userId);
+        $passenger = $this->authService->getUserById($userId);
 
         // Vérification de doublon de réservation
         if ($this->userHasBooking($passenger, $ride)) {
@@ -462,7 +460,6 @@ class RideService
 
         $booking->setBookingRide($ride);
         $booking->setBookingPassenger($passenger);
-        $booking->setBookingDriver($driver);
         $booking->setBookingStatus(BookingStatus::CONFIRMEE);
 
 
