@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "db6ec0cf901a317bdc89dbec6ce2c41f",
+    "content-hash": "9d43aab0cdbf17f5274127e69773854d",
     "packages": [
         {
             "name": "firebase/php-jwt",
@@ -2488,6 +2488,42 @@
                 }
             ],
             "time": "2023-02-07T11:34:05+00:00"
+        },
+        {
+            "name": "soyuka/stubs-mongodb",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/soyuka/stubs-mongodb.git",
+                "reference": "16cc7ca08c59f69774779175dd65c8dedd21de13"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/soyuka/stubs-mongodb/zipball/16cc7ca08c59f69774779175dd65c8dedd21de13",
+                "reference": "16cc7ca08c59f69774779175dd65c8dedd21de13",
+                "shasum": ""
+            },
+            "provide": {
+                "ext-mongodb": "1.7.0"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ],
+                "psr-4": {
+                    "MongoDB\\": "MongoDB/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "description": "ext-mongodb stubs taken from https://github.com/JetBrains/phpstorm-stubs",
+            "support": {
+                "source": "https://github.com/soyuka/stubs-mongodb/tree/v1.0.0"
+            },
+            "time": "2020-09-13T13:49:16+00:00"
         },
         {
             "name": "theseer/tokenizer",
