@@ -1,10 +1,13 @@
 <?php
 
-use App\Enum\BookingStatus;
+namespace App\Controller;
+
 use App\Controller\BaseController;
 use App\Service\StaffService;
 use App\Security\AuthService;
-use DateTimeInterface;
+use App\Enum\BookingStatus;
+use InvalidArgumentException;
+use DateTimeImmutable;
 
 class StaffController extends BaseController
 {
@@ -21,7 +24,7 @@ class StaffController extends BaseController
 
     // Affiche la liste des trajets par date de création
     public function listRidesByCreationDate(
-        DateTimeInterface $creationDate,
+        DateTimeImmutable $creationDate,
         string $jwtToken
     ): void {
         try {
@@ -67,8 +70,8 @@ class StaffController extends BaseController
     // Affiche le total de trajet sur une période.
     public function getNumberOfRidesOverPeriod(
         string $jwtToken,
-        DateTimeInterface $start,
-        DateTimeInterface $end
+        DateTimeImmutable $start,
+        DateTimeImmutable $end
     ): void {
         try {
             // Récupération de l'id de l'utilisateur
@@ -116,8 +119,8 @@ class StaffController extends BaseController
     // Affiche le total des commissions reçues sur une période.
     public function getTotalCommissionOverPeriod(
         string $jwtToken,
-        DateTimeInterface $start,
-        DateTimeInterface $end
+        DateTimeImmutable $start,
+        DateTimeImmutable $end
     ): void {
         try {
             // Récupération de l'id de l'utilisateur
@@ -139,28 +142,7 @@ class StaffController extends BaseController
 
 
     //--------------RESERVATIONS--------------------
-    // Affiche la liste des réservation par date de départ
-    public function listBookingsByDepartureDate(
-        DateTimeImmutable $departureDate,
-        string $jwtToken
-    ): void {
-        try {
-            // Récupération de l'id de l'utilisateur
-            $userId = $this->getUserIdFromToken($jwtToken);
 
-            // Récupération
-            $bookings = $this->staffService->listBookingsByDepartureDate($departureDate, $userId);
-
-            // Envoi de la réponse positive
-            $this->successResponse($bookings);
-        } catch (InvalidArgumentException $e) {
-            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
-            $this->errorResponse($e->getMessage(), 400);
-        } catch (\Exception $e) {
-            // Attrappe les erreurs "Internal Server Error"
-            $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
-        }
-    }
 
     // Affiche la liste des réservation par statut
     public function listBookingsByStatus(
@@ -172,7 +154,7 @@ class StaffController extends BaseController
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération
-            $bookings = $this->staffService->listBookingsByStatus($bookingStatus, $userId);
+            $bookings = $this->staffService->listBookingsByBookingStatus($bookingStatus, $userId);
 
             // Envoi de la réponse positive
             $this->successResponse($bookings);
