@@ -686,7 +686,7 @@ class RideService
      * @param integer $userId
      * @return Ride
      */
-    public function getRideWithUsers(
+    public function getRideWithUsersById(
         int $rideId,
         int $userId
     ): Ride {
@@ -719,7 +719,7 @@ class RideService
      * @param integer $userId
      * @return Booking
      */
-    public function getBooking(
+    public function getBookingById(
         int $bookingId,
         int $userId
     ): Booking {

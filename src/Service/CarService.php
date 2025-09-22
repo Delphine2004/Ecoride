@@ -17,6 +17,21 @@ class CarService
     ) {}
 
     /**
+     * Vérifie que la voiture existe.
+     *
+     * @param integer $carId
+     * @return void
+     */
+    public function checkIfCarExists(int $carId): void
+    {
+        $car = $this->carRepository->findCarById($carId);
+
+        if (!$car) {
+            throw new InvalidArgumentException("Voiture introuvable.");
+        }
+    }
+
+    /**
      * Vérifie si l'utilisateur a des voitures.
      *
      * @param integer $userId
@@ -93,6 +108,19 @@ class CarService
 
 
     //------------------RECUPERATIONS------------------------
+
+    /**
+     * Récupére un Objet Car par son id.
+     *
+     * @param integer $carId
+     * @return Car
+     */
+    public function getCarById(
+        int $carId
+    ): Car {
+        $this->checkIfCarExists($carId);
+        return $this->carRepository->findCarById($carId);
+    }
 
     /**
      * Permet à un utilisateur CONDUCTEUR OU EMPLOYE OU ADMIN de récupèrer les voitures d'un utilisateur CONDUCTEUR.
