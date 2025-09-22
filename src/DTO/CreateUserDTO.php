@@ -38,7 +38,7 @@ class CreateUserDTO
         }
 
         $this->password = trim($data['password'] ?? '');
-        if (strlen($this->password) < 10) {
+        if (strlen($this->password) < 8) {
             throw new InvalidArgumentException("Le mot de passe est trop court.");
         }
 
