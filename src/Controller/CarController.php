@@ -2,9 +2,9 @@
 
 namespace App\Controller;
 
-use App\DTO\CreateCarDTO;
 use App\Service\CarService;
 use App\Security\AuthService;
+use App\DTO\CreateCarDTO;
 use InvalidArgumentException;
 
 class CarController extends BaseController
@@ -105,6 +105,32 @@ class CarController extends BaseController
 
 
     // --------------------------GET----------------------------------
+
+    /**
+     * Récupère une voiture d'une CONDUCTEUR.
+     *
+     * @param integer $carId
+     * @return void
+     */
+    public function getCarById(
+        int $carId,
+        string $jwtToken
+    ): void {
+        try {
+            // Récupération des infos
+            $car = $this->carService->getCarById($carId);
+
+            // Envoi de la réponse positive
+            $this->successResponse($car, 200);
+        } catch (InvalidArgumentException $e) {
+
+            $this->errorResponse($e->getMessage(), 400);
+        } catch (\Exception $e) {
+
+            $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
+        }
+    }
+
     /**
      * Autorise un utilisateur à récupèrer la liste des voitures d'un CONDUCTEUR.
      *

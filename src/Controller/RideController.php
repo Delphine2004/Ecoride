@@ -2,11 +2,11 @@
 
 namespace App\Controller;
 
+use App\Service\RideService;
+use App\Security\AuthService;
 use App\Model\User;
 use App\Model\Ride;
 use App\DTO\CreateRideDTO;
-use App\Service\RideService;
-use App\Security\AuthService;
 use DateTimeImmutable;
 use InvalidArgumentException;
 
@@ -211,7 +211,7 @@ class RideController extends BaseController
     // --------------------------GET----------------------------------
 
     // Affiche un trajet avec les utilisateurs associés.
-    public function getRideWithPassengers(
+    public function getRideWithUsersById(
         int $rideId,
         string $jwtToken
     ): void {
@@ -220,7 +220,7 @@ class RideController extends BaseController
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération des infos
-            $ride = $this->rideService->getRideWithPassengers($userId, $rideId);
+            $ride = $this->rideService->getRideWithUsersByid($userId, $rideId);
 
             // Envoi de la réponse positive
             $this->successResponse($ride, 200);
@@ -234,7 +234,7 @@ class RideController extends BaseController
     }
 
     // Affiche une réservation 
-    public function getBooking(
+    public function getBookingById(
         int $bookingId,
         string $jwtToken
     ): void {
@@ -243,7 +243,7 @@ class RideController extends BaseController
             $userId = $this->getUserIdFromToken($jwtToken);
 
             // Récupération des infos
-            $booking = $this->rideService->getbooking($bookingId, $userId);
+            $booking = $this->rideService->getbookingById($bookingId, $userId);
 
             // Envoi de la réponse positive
             $this->successResponse($booking);

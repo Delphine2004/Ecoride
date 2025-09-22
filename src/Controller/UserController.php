@@ -2,9 +2,10 @@
 
 namespace App\Controller;
 
+use App\Controller\BaseController;
+use App\Security\AuthService;
 use App\Model\User;
 use App\DTO\CreateUserDTO;
-use App\Security\AuthService;
 use InvalidArgumentException;
 
 class UserController extends BaseController
@@ -178,8 +179,8 @@ class UserController extends BaseController
         }
     }
 
+
     // --------------------------DELETE------------------------------
-    // Voir comment conserver l'historique des trajets et réservations
     // Autorise un utilisateur à supprimer son compte
     public function deleteAccount(
         string $jwtToken
@@ -208,9 +209,52 @@ class UserController extends BaseController
 
     // Autorise un admin à supprimer un autre compte
     public function deleteUserByAdmin(
+        int $userId,
         string $jwtToken
-    ): void {}
+    ): void {
+        try {
+            // Récupération de l'id de l'utilisateur
+            $adminId = $this->getUserIdFromToken($jwtToken);
+            // Suppression de l'utilisateur
+            $removed = $this->authService->deleteAccountByAdmin($userId, $adminId);
+
+            // Vérification de l'existence de l'utilisateur
+            if ($removed) {
+                $this->successResponse(["message" => "Utilisateur supprimé."]);
+            } else {
+                $this->errorResponse("Utilisateur introuvable", 404);
+            }
+        } catch (InvalidArgumentException $e) {
+            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
+            $this->errorResponse($e->getMessage(), 400);
+        } catch (\Exception $e) {
+            // Attrappe les erreurs "Internal Server Error"
+            $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
+        }
+    }
 
     // --------------------------GET----------------------------------
-    // Récupération dans CustomerHistoryRepository
+
+    /**
+     * Récupére un utilisateur
+     *
+     * @param integer $userId
+     * @return void
+     */
+    public function getUserById(
+        int $userId
+    ): void {
+        try {
+            // Récupération des infos
+            $user = $this->authService->getUserById($userId);
+            // Envoi de la réponse positive
+            $this->successResponse($user, 200);
+        } catch (InvalidArgumentException $e) {
+
+            $this->errorResponse($e->getMessage(), 400);
+        } catch (\Exception $e) {
+
+            $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
+        }
+    }
 }
