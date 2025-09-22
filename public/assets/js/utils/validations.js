@@ -74,6 +74,18 @@ export function isNumberValide(number) {
   }
 }
 
+// fonction qui vérifie si le numéro respecte le format téléphone
+export function isPhoneValide(phone) {
+  const phoneRegex = /^0[67][0-9]{8}$/;
+
+  const cleanedPhone = phone.replace(/\D/g, "");
+  if (!phoneRegex.test(cleanedPhone)) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
 // Fonction qui vérifie si l'email respecte le format email
 export function isEmailValide(email) {
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -97,7 +109,7 @@ export function isPasswordValide(password) {
 
   const cleanPassword = password.trim();
 
-  if (cleanPassword.length < 8) {
+  if (cleanPassword.length < 12) {
     return false;
   } else if (!uppercaseRegex.test(cleanPassword)) {
     return false;

@@ -2,6 +2,7 @@ import {
   isFreeTextValide,
   isOnlyTextValide,
   isNumberValide,
+  isPhoneValide,
   isEmailValide,
   isPasswordValide,
   isDateValide,
@@ -95,8 +96,7 @@ export class FormManager {
     }
   }
 
-  /* Peut être créer une fonction dans formManager pour valider le prix et le nombre de place?? */
-
+  //Peut être créer une fonction dans formManager pour valider le prix et le nombre de place??
   validateNumber(number, id) {
     if (!this.isEmpty(number, id)) {
       return false;
@@ -104,6 +104,24 @@ export class FormManager {
       const label = this.form.querySelector(`label[for="${id}"]`);
       const fieldName = label ? label.textContent.trim() : id;
       this.showError(`« ${fieldName} » doit être supérieure à 0.`, [id]);
+      return false;
+    } else {
+      this.clearErrors([id]);
+      return true;
+    }
+  }
+
+  // Méthode qui vérifie le format numéro portable français
+  validatephoneNumber(phone, id) {
+    if (!this.isEmpty(phone, id)) {
+      return false;
+    } else if (!isPhoneValide(phone)) {
+      const label = this.form.querySelector(`label[for="${id}"]`);
+      const fieldName = label ? label.textContent.trim() : id;
+      this.showError(
+        `« ${fieldName} » ne respecte pas le format téléphone portable français.`,
+        [id]
+      );
       return false;
     } else {
       this.clearErrors([id]);
@@ -220,6 +238,8 @@ export class FormManager {
         return this.validateEmail(value, id);
       case "number":
         return this.validateNumber(value, id);
+      case "phone":
+        return this.validatephoneNumber(value, id);
       case "password":
         return this.validatePassword(value, id);
       case "date":
