@@ -1,0 +1,22 @@
+# Dépendances
+/vendor/
+
+# Environnements
+.env
+
+# Logs
+*.log
+*.cache
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build / Temp
+/dist/
+/build/
+/tmp/
