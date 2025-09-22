@@ -17,7 +17,7 @@ class CreateUserDTO
     public string $zipCode;
     public ?string $uriPicture = null;
     public ?float $credits = null;
-    public ?string $preferences = null;
+    public array $preferences = [];
 
 
     public function __construct(array $data)
@@ -67,8 +67,21 @@ class CreateUserDTO
             throw new InvalidArgumentException("Le code postal est obligatoire.");
         }
 
-        $this->uriPicture = isset($data['picture']) ? trim($data['picture']) : null;
-        $this->uriPicture = isset($data['credits']) ? (int)($data['credits']) : null;
-        $this->uriPicture = isset($data['preferences']) ? trim($data['preferences']) : null;
+        if (isset($data['picture'])) {
+            $this->uriPicture = trim($data['picture']);
+        }
+
+        if (isset($data['credits'])) {
+            $this->credits =  (float)($data['credits']);
+        }
+
+        if (isset($data['preferences']) && is_array($data['preferences'])) {
+            $allowedKeys = ['smoker', 'pets', 'note'];
+            foreach ($data['preferences'] as $key => $value) {
+                if (in_array($key, $allowedKeys, true)) {
+                    $this->preferences[$key] = $value;
+                }
+            }
+        }
     }
 }

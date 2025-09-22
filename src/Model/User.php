@@ -32,7 +32,12 @@ class User
         public ?string $uriPicture = null,
         public ?string $licenceNo = null,
         public ?int $credits = null,
-        public ?string $preferences = null,
+
+        public array $preferences = [
+            'smoker' => false,
+            'pets' => true,
+            'note' => "Libre"
+        ], // Pour pouvoir stocker les préférences
 
         public array $roles = [], // pour pouvoir stoker plusieurs rôles pour un utilisateur
         public array $cars = [], // pour stocker les voitures d'un conducteur
@@ -83,8 +88,8 @@ class User
         $licenceNo = $row['licence_no'] ?? null;
         $credits = (int)$row['credits'] ?? null;
         $preferences = $row['preferences'] ?? null;
-        $createdAt = $row['created_at'] ? new DateTimeImmutable($row['created_at']) : null;
-        $updatedAt = $row['updated_at'] ? new DateTimeImmutable($row['updated_at']) : null;
+        $createdAt = !empty($row['created_at']) ? new DateTimeImmutable($row['created_at']) : null;
+        $updatedAt = !empty($row['updated_at']) ? new DateTimeImmutable($row['updated_at']) : null;
 
         return new self(
             userId: $userId,
@@ -175,7 +180,7 @@ class User
         return $this->credits;
     }
 
-    public function getUserPreference(): ?string
+    public function getUserPreference(): array
     {
         return $this->preferences;
     }
@@ -391,13 +396,13 @@ class User
         return $this;
     }
 
-    public function setUserPreference(?string $preferences): self
+    public function setUserPreference(array $preferences): self
     {
-        if ($preferences !== null) {
-            $preferences = trim($preferences);
+        $allowedKeys = ['smoker', 'pets', 'note'];
 
-            if (!preg_match(RegexPatterns::COMMENT_REGEX, $preferences)) {
-                throw new InvalidArgumentException("Les préférences peuvent contenir entre 2 et 255 caractères autorisés.");
+        foreach ($preferences as $key => $value) {
+            if (!in_array($key, $allowedKeys, true)) {
+                throw new InvalidArgumentException("Clé de préférence invalide: $key");
             }
         }
         $this->preferences = $preferences;

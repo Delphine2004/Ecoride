@@ -17,7 +17,7 @@ class UpdateUserDTO
     public ?string $uriPicture = null;
     public ?string $licenceNo = null;
     public ?float $credits = null;
-    public ?string $preferences = null;
+    public array $preferences = [];
 
     public function __construct(array $data)
     {
@@ -68,11 +68,16 @@ class UpdateUserDTO
         }
 
         if (isset($data['credits'])) {
-            $this->credits =  (int)($data['credits']);
+            $this->credits =  (float)($data['credits']);
         }
 
-        if (isset($data['preferences'])) {
-            $this->preferences =  trim($data['preferences']);
+        if (isset($data['preferences']) && is_array($data['preferences'])) {
+            $allowedKeys = ['smoker', 'pets', 'note'];
+            foreach ($data['preferences'] as $key => $value) {
+                if (in_array($key, $allowedKeys, true)) {
+                    $this->preferences[$key] = $value;
+                }
+            }
         }
     }
 }
