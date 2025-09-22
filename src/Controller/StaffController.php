@@ -5,9 +5,7 @@ namespace App\Controller;
 use App\Controller\BaseController;
 use App\Service\StaffService;
 use App\Security\AuthService;
-use App\Enum\BookingStatus;
 use InvalidArgumentException;
-use DateTimeImmutable;
 
 class StaffController extends BaseController
 {
@@ -22,14 +20,29 @@ class StaffController extends BaseController
 
     // --------------------TRAJETS-----------------------
 
-    // Affiche la liste des trajets par date de création
-    public function listRidesByCreationDate(
-        DateTimeImmutable $creationDate,
-        string $jwtToken
-    ): void {
+    /**
+     * Affiche la liste des trajets par date de création
+     *
+     * @return void
+     */
+    public function listRidesByCreationDate(): void
+    {
+        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
+
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
+            return;
+        }
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
+
+            $creationDate = $_GET['created_at'] ?? null;
 
             // Récupération
             $numberOfRides = $this->staffService->listRidesByCreationDate($creationDate, $userId);
@@ -42,10 +55,24 @@ class StaffController extends BaseController
         }
     }
 
-    // Affiche le total de trajet pour le jour J.
-    public function getNumberOfRidesFromToday(
-        string $jwtToken
-    ): void {
+    /**
+     * Affiche le total de trajet pour le jour J.
+     *
+     * @return void
+     */
+    public function getNumberOfRidesFromToday(): void
+    {
+        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
+
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
+            return;
+        }
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
@@ -61,15 +88,30 @@ class StaffController extends BaseController
         }
     }
 
-    // Affiche le total de trajet sur une période.
-    public function getNumberOfRidesOverPeriod(
-        string $jwtToken,
-        DateTimeImmutable $start,
-        DateTimeImmutable $end
-    ): void {
+    /**
+     * Affiche le total de trajet sur une période.
+     *
+     * @return void
+     */
+    public function getNumberOfRidesOverPeriod(): void
+    {
+        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
+
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
+            return;
+        }
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
+
+            $start = $_GET['start'] ?? null;
+            $end = $_GET['end'] ?? null;
 
             // Récupération
             $numberOfRides = $this->staffService->getNumberOfRidesOverPeriod($start, $end, $userId);
@@ -82,13 +124,57 @@ class StaffController extends BaseController
         }
     }
 
-    // Affiche le total de commission reçues en tout
-    public function getTotalCommmission() {}
+    /**
+     * Affiche le total de commission reçues en tout
+     *
+     * @return void
+     */
+    public function getTotalCommmission()
+    {        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
 
-    // Affiche le total des commissions reçues pour le jour J.
-    public function getTotalCommissionFromToday(
-        string $jwtToken
-    ): void {
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
+            return;
+        }
+
+        try {
+            // Récupération de l'id de l'utilisateur
+            $userId = $this->getUserIdFromToken($jwtToken);
+
+            // Récupération
+            $totalCommission = $this->staffService->getTotalCommission($userId);
+
+            $this->successResponse($totalCommission, 200);
+        } catch (InvalidArgumentException $e) {
+            $this->errorResponse($e->getMessage(), 400);
+        } catch (\Exception $e) {
+            $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Affiche le total des commissions reçues pour le jour J.
+     *
+     * @return void
+     */
+    public function getTotalCommissionFromToday(): void
+    {
+        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
+
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
+            return;
+        }
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
@@ -104,15 +190,30 @@ class StaffController extends BaseController
         }
     }
 
-    // Affiche le total des commissions reçues sur une période.
-    public function getTotalCommissionOverPeriod(
-        string $jwtToken,
-        DateTimeImmutable $start,
-        DateTimeImmutable $end
-    ): void {
+    /**
+     * Affiche le total des commissions reçues sur une période.
+     *
+     * @return void
+     */
+    public function getTotalCommissionOverPeriod(): void
+    {
+        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
+
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
+            return;
+        }
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
+
+            $start = $_GET['start'] ?? null;
+            $end = $_GET['end'] ?? null;
 
             // Récupération 
             $totalCommission = $this->staffService->getTotalCommissionOverPeriod($start, $end, $userId);
@@ -129,14 +230,29 @@ class StaffController extends BaseController
     //--------------RESERVATIONS--------------------
 
 
-    // Affiche la liste des réservation par statut
-    public function listBookingsByStatus(
-        BookingStatus $bookingStatus,
-        string $jwtToken
-    ): void {
+    /**
+     * Affiche la liste des réservation par statut
+     *
+     * @return void
+     */
+    public function listBookingsByStatus(): void
+    {
+        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
+
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
+            return;
+        }
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
+
+            $bookingStatus = $_GET['booking_status'] ?? null;
 
             // Récupération
             $bookings = $this->staffService->listBookingsByBookingStatus($bookingStatus, $userId);
@@ -149,17 +265,32 @@ class StaffController extends BaseController
         }
     }
 
-    // Affiche la liste des réservation par date de création
-    public function listBookingsByCreatedAt(
-        DateTimeImmutable $createdAtDate,
-        string $jwtToken
-    ): void {
+    /**
+     * Affiche la liste des réservation par date de création
+     *
+     * @return void
+     */
+    public function listBookingsByCreatedAt(): void
+    {
+        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
+
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
+            return;
+        }
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
+            $creationDate = $_GET['created_at'] ?? null;
+
             // Récupération
-            $bookings = $this->staffService->listBookingsByCreatedAt($createdAtDate, $userId);
+            $bookings = $this->staffService->listBookingsByCreatedAt($creationDate, $userId);
 
             $this->successResponse($bookings, 200);
         } catch (InvalidArgumentException $e) {

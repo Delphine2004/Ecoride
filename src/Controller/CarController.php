@@ -21,7 +21,6 @@ class CarController extends BaseController
     /**
      * Autorise un utilisateur à créer une voiture.
      *
-     * @param string $jwtToken
      * @return void
      */
     public function createCar(): void
@@ -83,8 +82,6 @@ class CarController extends BaseController
     /**
      * Autorise un utilisateur à supprimer une voiture.
      *
-     * @param integer $carId
-     * @param string $jwtToken
      * @return void
      */
     public function deleteCar(): void
@@ -139,21 +136,11 @@ class CarController extends BaseController
     /**
      * Récupère une voiture d'une CONDUCTEUR.
      *
-     * @param integer $carId
      * @return void
      */
     public function getCarById(): void
     {
         try {
-            // Récupération des données
-            $data = $this->getJsonBody();
-
-            // Vérification de la validité des données reçues
-            if (!is_array($data) || empty($data)) {
-                $this->errorResponse("JSON invalide ou vide.", 400);
-                return;
-            }
-
             // Récupération des paramétres depuis la requête
             $carId = $_GET['car_id'] ?? null;
 
@@ -171,8 +158,6 @@ class CarController extends BaseController
     /**
      * Autorise un utilisateur à récupèrer la liste des voitures d'un CONDUCTEUR.
      *
-     * @param int $driverId
-     * @param string $jwtToken
      * @return void
      */
     public function listCarsByDriver(): void
@@ -192,15 +177,6 @@ class CarController extends BaseController
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
-
-            // Récupération des données
-            $data = $this->getJsonBody();
-
-            // Vérification de la validité des données reçues
-            if (!is_array($data) || empty($data)) {
-                $this->errorResponse("JSON invalide ou vide.", 400);
-                return;
-            }
 
             // Récupération des paramétres depuis la requête
             $driverId = $_GET['owner_id'] ?? null;

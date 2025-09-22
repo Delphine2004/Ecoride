@@ -18,7 +18,11 @@ class UserController extends BaseController
 
     // ------------------------POST--------------------------------
 
-    // Permet à un visiteur de créer un compte
+    /**
+     * Permet à un visiteur de créer un compte
+     *
+     * @return void
+     */
     public function createUser(): void
     {
         try {
@@ -53,7 +57,11 @@ class UserController extends BaseController
         }
     }
 
-    // Autorise un admin à créer un employé
+    /**
+     * Autorise un admin à créer un employé
+     *
+     * @return void
+     */
     public function createEmployee(): void
     {
         // Récupération du token
@@ -105,7 +113,11 @@ class UserController extends BaseController
     }
 
     // ------------------------PUT--------------------------------
-    // Autorise un utilisateur à modifier son profil
+    /**
+     * Autorise un utilisateur à modifier son profil
+     *
+     * @return void
+     */
     public function updateProfile(): void
     {
         // Récupération du token
@@ -153,7 +165,11 @@ class UserController extends BaseController
         }
     }
 
-    // Autorise un utilisateur à modifier son mot de passe
+    /**
+     * Autorise un utilisateur à modifier son mot de passe
+     *
+     * @return void
+     */
     public function modifyPassword(): void
     {
         // Récupération du token
@@ -202,7 +218,11 @@ class UserController extends BaseController
         }
     }
 
-    // Autorise un utilisateur à ajouter le rôle CONDUCTEUR
+    /**
+     * Autorise un utilisateur à ajouter le rôle CONDUCTEUR
+     *
+     * @return void
+     */
     public function becomeDriver(): void
     {
         // Récupération du token
@@ -253,7 +273,11 @@ class UserController extends BaseController
 
 
     // --------------------------DELETE------------------------------
-    // Autorise un utilisateur à supprimer son compte
+    /**
+     * Autorise un utilisateur à supprimer son compte
+     *
+     * @return void
+     */
     public function deleteAccount(): void
     {
         // Récupération du token
@@ -288,7 +312,11 @@ class UserController extends BaseController
         }
     }
 
-    // Autorise un admin à supprimer un autre compte
+    /**
+     * Autorise un admin à supprimer un autre compte
+     *
+     * @return void
+     */
     public function deleteUserByAdmin(): void
     {
         // Récupération du token
@@ -341,7 +369,6 @@ class UserController extends BaseController
     /**
      * Récupére un utilisateur
      *
-     * @param integer $userId
      * @return void
      */
     public function getUserById(): void

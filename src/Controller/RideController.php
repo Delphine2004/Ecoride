@@ -20,7 +20,11 @@ class RideController extends BaseController
 
 
     // ------------------------POST--------------------------------
-    // Autorise un utilisateur à créer un trajet
+    /**
+     * Autorise un utilisateur à créer un trajet.
+     *
+     * @return void
+     */
     public function createRide(): void
     {
         // Récupération du token
@@ -74,7 +78,11 @@ class RideController extends BaseController
         }
     }
 
-    // Autorise un utilisateur à faire une réservation
+    /**
+     * Autorise un utilisateur à faire une réservation.
+     *
+     * @return void
+     */
     public function createBooking(): void
     {
 
@@ -129,7 +137,11 @@ class RideController extends BaseController
 
 
     // ------------------------PUT--------------------------------
-    // Autorise un utilisateur à annuler un trajet.
+    /**
+     * Autorise un utilisateur à annuler un trajet.
+     *
+     * @return void
+     */
     public function cancelRide(): void
     {
         // Récupération du token
@@ -179,7 +191,11 @@ class RideController extends BaseController
         }
     }
 
-    // Autorise un utilisateur à démarrer un trajet.
+    /**
+     * Autorise un utilisateur à démarrer un trajet.
+     *
+     * @return void
+     */
     public function startRide(): void
     {
         // Récupération du token
@@ -228,7 +244,11 @@ class RideController extends BaseController
         }
     }
 
-    // Autorise un utilisateur à arrêter un trajet.
+    /**
+     * Autorise un utilisateur à arrêter un trajet.
+     *
+     * @return void
+     */
     public function stopRide(): void
     {
         // Récupération du token
@@ -277,7 +297,11 @@ class RideController extends BaseController
         }
     }
 
-    // Autorise un utilisateur à finaliser un trajet.
+    /**
+     * Autorise un utilisateur à finaliser un trajet.
+     *
+     * @return void
+     */
     public function finalizeRide(): void
     {
         // Récupération du token
@@ -326,7 +350,11 @@ class RideController extends BaseController
         }
     }
 
-    //  Autorise un utilisateur à annuler une réservation
+    /**
+     * Autorise un utilisateur à annuler une réservation
+     *
+     * @return void
+     */
     public function cancelBooking(): void
     {
         // Récupération du token
@@ -379,7 +407,11 @@ class RideController extends BaseController
 
     // --------------------------GET----------------------------------
 
-    // Affiche un trajet avec les utilisateurs associés.
+    /**
+     * Affiche un trajet avec les utilisateurs associés.
+     *
+     * @return void
+     */
     public function getRideWithUsersById(): void
     {
         // Récupération du token
@@ -398,17 +430,8 @@ class RideController extends BaseController
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
-            // Récupération des données
-            $data = $this->getJsonBody();
-
-            // Vérification de la validité des données reçues
-            if (!is_array($data) || empty($data)) {
-                $this->errorResponse("JSON invalide ou vide.", 400);
-                return;
-            }
-
             // Récupération des paramétres depuis la requête
-            $rideId = $data['ride_id'] ?? null;
+            $rideId = $_GET['ride_id'] ?? null;
 
             // Récupération des infos
             $ride = $this->rideService->getRideWithUsersById($rideId, $userId);
@@ -421,7 +444,11 @@ class RideController extends BaseController
         }
     }
 
-    // Affiche une réservation 
+    /**
+     * Affiche une réservation 
+     *
+     * @return void
+     */
     public function getBookingById(): void
     {
         // Récupération du token
@@ -440,17 +467,8 @@ class RideController extends BaseController
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
-            // Récupération des données
-            $data = $this->getJsonBody();
-
-            // Vérification de la validité des données reçues
-            if (!is_array($data) || empty($data)) {
-                $this->errorResponse("JSON invalide ou vide.", 400);
-                return;
-            }
-
             // Récupération des paramétres depuis la requête
-            $bookingId = $data['booking_id'] ?? null;
+            $bookingId = $_GET['booking_id'] ?? null;
 
             // Récupération des infos
             $booking = $this->rideService->getbookingById($bookingId, $userId);
@@ -463,23 +481,20 @@ class RideController extends BaseController
         }
     }
 
-    // Affiche les trajets disponibles en fonction de la date de départ et les ville de départ et d'arrivée
+    /**
+     * Affiche les trajets disponibles en fonction de la date de départ et les ville de départ et d'arrivée
+     *
+     * @return void
+     */
     public function listRidesByDateAndPlaces(): void
     {
         try {
-            // Récupération des données
-            $data = $this->getJsonBody();
 
-            // Vérification de la validité des données reçues
-            if (!is_array($data) || empty($data)) {
-                $this->errorResponse("JSON invalide ou vide.", 400);
-                return;
-            }
 
             // Récupération des paramétres depuis la requête
-            $departurePlace = $data['departure_place'] ?? null;
-            $arrivalPlace = $data['arrival_place'] ?? null;
-            $date = $data['departure_date_time'] ?? null;
+            $departurePlace = $_GET['departure_place'] ?? null;
+            $arrivalPlace = $_GET['arrival_place'] ?? null;
+            $date = $_GET['departure_date_time'] ?? null;
 
             if (!$date || !$departurePlace || !$arrivalPlace) {
                 throw new InvalidArgumentException("Tous les paramètres sont requis");
@@ -501,7 +516,11 @@ class RideController extends BaseController
 
     //-------------Pour les conducteurs------------------
 
-    // Affiche tous les trajets à venir d'un conducteur.
+    /**
+     * Affiche tous les trajets à venir d'un conducteur.
+     *
+     * @return void
+     */
     public function listUpcomingRidesByDriver(): void
     {
         // Récupération du token
@@ -520,17 +539,8 @@ class RideController extends BaseController
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
-            // Récupération des données
-            $data = $this->getJsonBody();
-
-            // Vérification de la validité des données reçues
-            if (!is_array($data) || empty($data)) {
-                $this->errorResponse("JSON invalide ou vide.", 400);
-                return;
-            }
-
             // Récupération des paramétres depuis la requête
-            $driverId = $data['driver_id'] ?? null;
+            $driverId = $_GET['driver_id'] ?? null;
 
             // Récupération des infos
             $rides = $this->rideService->listUpcomingRidesByDriver($driverId, $userId);
@@ -543,7 +553,11 @@ class RideController extends BaseController
         }
     }
 
-    // Affiche tous les trajets passés d'un conducteur.
+    /**
+     * Affiche tous les trajets passés d'un conducteur.
+     *
+     * @return void
+     */
     public function listPastRidesByDriver(): void
     {
         // Récupération du token
@@ -562,17 +576,9 @@ class RideController extends BaseController
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
-            // Récupération des données
-            $data = $this->getJsonBody();
-
-            // Vérification de la validité des données reçues
-            if (!is_array($data) || empty($data)) {
-                $this->errorResponse("JSON invalide ou vide.", 400);
-                return;
-            }
 
             // Récupération des paramétres depuis la requête
-            $driverId = $data['driver_id'] ?? null;
+            $driverId = $_GET['driver_id'] ?? null;
 
             // Récupération des infos
             $rides = $this->rideService->listPastRidesByDriver($driverId, $userId);
@@ -590,7 +596,11 @@ class RideController extends BaseController
 
     //-------------Pour les Passagers------------------
 
-
+    /**
+     * Affiche toutes les réservations à venir d'un passager.
+     *
+     * @return void
+     */
     public function listUpcomingBookingsByPassenger(): void
     {
         // Récupération du token
@@ -609,17 +619,9 @@ class RideController extends BaseController
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
-            // Récupération des données
-            $data = $this->getJsonBody();
-
-            // Vérification de la validité des données reçues
-            if (!is_array($data) || empty($data)) {
-                $this->errorResponse("JSON invalide ou vide.", 400);
-                return;
-            }
 
             // Récupération des paramétres depuis la requête
-            $passengerId = $data['passenger_id'] ?? null;
+            $passengerId = $_GET['passenger_id'] ?? null;
 
             // Récupération des infos
             $bookings = $this->rideService->listUpcomingBookingsByPassenger($passengerId, $userId);
@@ -632,6 +634,11 @@ class RideController extends BaseController
         }
     }
 
+    /**
+     * Affiche toutes les réservations passés d'un passager.
+     *
+     * @return void
+     */
     public function listPastBookingsByPassenger(): void
     {
         // Récupération du token
@@ -650,17 +657,9 @@ class RideController extends BaseController
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
-            // Récupération des données
-            $data = $this->getJsonBody();
-
-            // Vérification de la validité des données reçues
-            if (!is_array($data) || empty($data)) {
-                $this->errorResponse("JSON invalide ou vide.", 400);
-                return;
-            }
 
             // Récupération des paramétres depuis la requête
-            $passengerId = $data['passenger_id'] ?? null;
+            $passengerId = $_GET['passenger_id'] ?? null;
 
             // Récupération des infos
             $bookings = $this->rideService->listPastBookingsByPassenger($passengerId, $userId);
