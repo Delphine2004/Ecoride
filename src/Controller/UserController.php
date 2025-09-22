@@ -4,8 +4,8 @@ namespace App\Controller;
 
 use App\Controller\BaseController;
 use App\Security\AuthService;
-use App\Model\User;
 use App\DTO\CreateUserDTO;
+use App\DTO\UpdateUserDTO;
 use InvalidArgumentException;
 
 class UserController extends BaseController
@@ -21,16 +21,15 @@ class UserController extends BaseController
     // Permet à un visiteur de créer un compte
     public function createUser(): void
     {
-        // Récupération des données
-        $data = $this->getJsonBody();
-
-        // Vérification de la validité des données reçues
-        if (!is_array($data) || empty($data)) {
-            $this->errorResponse("JSON invalide ou vide.", 400);
-            return;
-        }
-
         try {
+            // Récupération des données
+            $data = $this->getJsonBody();
+
+            // Vérification de la validité des données reçues
+            if (!is_array($data) || empty($data)) {
+                $this->errorResponse("JSON invalide ou vide.", 400);
+                return;
+            }
 
             // Conversion des données en DTO
             $dto = new CreateUserDTO($data);
@@ -45,33 +44,43 @@ class UserController extends BaseController
             } elseif (is_array($user)) {
                 $userId = $user['id'] ?? $user['user_id'] ?? null;
             }
-            // Envoi de la réponse positive
-            $this->successResponse($user, 201, "/users/{$userId}/users/{$userId}");
+
+            $this->successResponse($user, 201, "/users/{$userId}");
         } catch (InvalidArgumentException $e) {
-            // // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
             $this->errorResponse($e->getMessage(), 400);
         } catch (\Exception $e) {
-            // Attrappe les erreurs "Internal Server Error"
             $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
         }
     }
 
     // Autorise un admin à créer un employé
-    public function createEmployee(
-        string $jwtToken
-    ): void {
-        // Récupération des données
-        $data = $this->getJsonBody();
+    public function createEmployee(): void
+    {
+        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
 
-        // Vérification de la validité des données reçues
-        if (!is_array($data) || empty($data)) {
-            $this->errorResponse("JSON invalide ou vide.", 400);
+
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
             return;
         }
 
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
+
+            // Récupération des données
+            $data = $this->getJsonBody();
+
+            // Vérification de la validité des données reçues
+            if (!is_array($data) || empty($data)) {
+                $this->errorResponse("JSON invalide ou vide.", 400);
+                return;
+            }
 
             // Conversion des données en DTO
             $dto = new CreateUserDTO($data);
@@ -86,29 +95,50 @@ class UserController extends BaseController
             } elseif (is_array($user)) {
                 $userId = $user['id'] ?? $user['user_id'] ?? null;
             }
-            // Envoi de la réponse positive
-            $this->successResponse($user, 201, "/users/{$userId}/users/{$userId}");
+
+            $this->successResponse($user, 201, "/users/{$userId}");
         } catch (InvalidArgumentException $e) {
-            // // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
             $this->errorResponse($e->getMessage(), 400);
         } catch (\Exception $e) {
-            // Attrappe les erreurs "Internal Server Error"
             $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
         }
     }
 
     // ------------------------PUT--------------------------------
     // Autorise un utilisateur à modifier son profil
-    public function updateProfile(
-        User $user,
-        string $jwtToken
-    ): void {
+    public function updateProfile(): void
+    {
+        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
+
+
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
+            return;
+        }
+
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
+            // Récupération des données
+            $data = $this->getJsonBody();
+
+            // Vérification de la validité des données reçues
+            if (!is_array($data) || empty($data)) {
+                $this->errorResponse("JSON invalide ou vide.", 400);
+                return;
+            }
+
+            // Conversion des données en DTO
+            $dto = new UpdateUserDTO($data);
+
             // Récupération de l'utilisateur à modifier
-            $userToUpdate = $this->updateProfile($user, $userId);
+            $userToUpdate = $this->authService->updateProfile($dto, $userId);
 
             // Vérification de l'existence de l'utilisateur à modifier
             if ($userToUpdate) {
@@ -117,25 +147,47 @@ class UserController extends BaseController
                 $this->errorResponse("Utilisateur introuvable", 404);
             }
         } catch (InvalidArgumentException $e) {
-            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
             $this->errorResponse($e->getMessage(), 400);
         } catch (\Exception $e) {
-            // Attrappe les erreurs "Internal Server Error"
             $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
         }
     }
 
     // Autorise un utilisateur à modifier son mot de passe
-    public function modifyPassword(
-        User $user,
-        string $jwtToken
-    ): void {
+    public function modifyPassword(): void
+    {
+        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
+
+
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
+            return;
+        }
+
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
+
+            // Récupération des données
+            $data = $this->getJsonBody();
+
+            // Vérification de la validité des données reçues
+            if (!is_array($data) || empty($data)) {
+                $this->errorResponse("JSON invalide ou vide.", 400);
+                return;
+            }
+
+            $newPassword = $data['new_password'] ?? null;
+            $oldPassword = $data['old_password'] ?? null;
+
             // Récupération de l'utilisateur à modifier
-            $userToUpdate = $this->modifyPassword($user, $userId);
+            $userToUpdate = $this->authService->modifyPassword($newPassword, $oldPassword, $userId);
 
             // Vérification de l'existence de l'utilisateur à modifier
             if ($userToUpdate) {
@@ -144,25 +196,47 @@ class UserController extends BaseController
                 $this->errorResponse("Utilisateur introuvable", 404);
             }
         } catch (InvalidArgumentException $e) {
-            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
             $this->errorResponse($e->getMessage(), 400);
         } catch (\Exception $e) {
-            // Attrappe les erreurs "Internal Server Error"
             $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
         }
     }
 
-    // Autorise un utilisateur à ajouter le rôle CONDUCTEY
-    public function becomeDriver(
-        User $user,
-        string $jwtToken
-    ): void {
+    // Autorise un utilisateur à ajouter le rôle CONDUCTEUR
+    public function becomeDriver(): void
+    {
+        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
+
+
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
+            return;
+        }
+
+
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
+            // Récupération des données
+            $data = $this->getJsonBody();
+
+            // Vérification de la validité des données reçues
+            if (!is_array($data) || empty($data)) {
+                $this->errorResponse("JSON invalide ou vide.", 400);
+                return;
+            }
+
+            // Conversion des données en DTO
+            $dto = new UpdateUserDTO($data);
+
             // Récupération de l'utilisateur à modifier
-            $userToUpdate = $this->becomeDriver($user, $userId);
+            $userToUpdate = $this->authService->becomeDriver($dto, $userId);
 
             // Vérification de l'existence de l'utilisateur à modifier
             if ($userToUpdate) {
@@ -171,10 +245,8 @@ class UserController extends BaseController
                 $this->errorResponse("Utilisateur introuvable", 404);
             }
         } catch (InvalidArgumentException $e) {
-            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
             $this->errorResponse($e->getMessage(), 400);
         } catch (\Exception $e) {
-            // Attrappe les erreurs "Internal Server Error"
             $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
         }
     }
@@ -182,9 +254,20 @@ class UserController extends BaseController
 
     // --------------------------DELETE------------------------------
     // Autorise un utilisateur à supprimer son compte
-    public function deleteAccount(
-        string $jwtToken
-    ): void {
+    public function deleteAccount(): void
+    {
+        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
+
+
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
+            return;
+        }
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
@@ -199,36 +282,56 @@ class UserController extends BaseController
                 $this->errorResponse("Utilisateur introuvable", 404);
             }
         } catch (InvalidArgumentException $e) {
-            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
             $this->errorResponse($e->getMessage(), 400);
         } catch (\Exception $e) {
-            // Attrappe les erreurs "Internal Server Error"
             $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
         }
     }
 
     // Autorise un admin à supprimer un autre compte
-    public function deleteUserByAdmin(
-        int $userId,
-        string $jwtToken
-    ): void {
+    public function deleteUserByAdmin(): void
+    {
+        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
+
+
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
+            return;
+        }
+
         try {
             // Récupération de l'id de l'utilisateur
             $adminId = $this->getUserIdFromToken($jwtToken);
+
+            // Récupération des données
+            $data = $this->getJsonBody();
+
+            // Vérification de la validité des données reçues
+            if (!is_array($data) || empty($data)) {
+                $this->errorResponse("JSON invalide ou vide.", 400);
+                return;
+            }
+
+            // Récupération des paramétres depuis la requête
+            $userId = $data['user_id'] ?? null;
+
             // Suppression de l'utilisateur
             $removed = $this->authService->deleteAccountByAdmin($userId, $adminId);
 
             // Vérification de l'existence de l'utilisateur
             if ($removed) {
-                $this->successResponse(["message" => "Utilisateur supprimé."]);
+                $this->successResponse(["message" => "Utilisateur supprimé."], 204);
             } else {
                 $this->errorResponse("Utilisateur introuvable", 404);
             }
         } catch (InvalidArgumentException $e) {
-            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
             $this->errorResponse($e->getMessage(), 400);
         } catch (\Exception $e) {
-            // Attrappe les erreurs "Internal Server Error"
             $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
         }
     }
@@ -241,19 +344,31 @@ class UserController extends BaseController
      * @param integer $userId
      * @return void
      */
-    public function getUserById(
-        int $userId
-    ): void {
+    public function getUserById(): void
+    {
+        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
+
+
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
+            return;
+        }
         try {
+            // Récupération de l'id de l'utilisateur
+            $userId = $this->getUserIdFromToken($jwtToken);
+
             // Récupération des infos
             $user = $this->authService->getUserById($userId);
-            // Envoi de la réponse positive
+
             $this->successResponse($user, 200);
         } catch (InvalidArgumentException $e) {
-
             $this->errorResponse($e->getMessage(), 400);
         } catch (\Exception $e) {
-
             $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
         }
     }

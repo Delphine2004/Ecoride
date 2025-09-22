@@ -34,13 +34,10 @@ class StaffController extends BaseController
             // Récupération
             $numberOfRides = $this->staffService->listRidesByCreationDate($creationDate, $userId);
 
-            // Envoi de la réponse positive
-            $this->successResponse($numberOfRides);
+            $this->successResponse($numberOfRides, 200);
         } catch (InvalidArgumentException $e) {
-            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
             $this->errorResponse($e->getMessage(), 400);
         } catch (\Exception $e) {
-            // Attrappe les erreurs "Internal Server Error"
             $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
         }
     }
@@ -56,13 +53,10 @@ class StaffController extends BaseController
             // Récupération
             $numberOfRides = $this->staffService->getNumberOfRidesFromToday($userId);
 
-            // Envoi de la réponse positive
-            $this->successResponse($numberOfRides);
+            $this->successResponse($numberOfRides, 200);
         } catch (InvalidArgumentException $e) {
-            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
             $this->errorResponse($e->getMessage(), 400);
         } catch (\Exception $e) {
-            // Attrappe les erreurs "Internal Server Error"
             $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
         }
     }
@@ -80,13 +74,10 @@ class StaffController extends BaseController
             // Récupération
             $numberOfRides = $this->staffService->getNumberOfRidesOverPeriod($start, $end, $userId);
 
-            // Envoi de la réponse positive
-            $this->successResponse($numberOfRides);
+            $this->successResponse($numberOfRides, 200);
         } catch (InvalidArgumentException $e) {
-            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
             $this->errorResponse($e->getMessage(), 400);
         } catch (\Exception $e) {
-            // Attrappe les erreurs "Internal Server Error"
             $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
         }
     }
@@ -105,13 +96,10 @@ class StaffController extends BaseController
             // Récupération
             $commissionOfTheDay = $this->staffService->getTotalCommissionFromToday($userId);
 
-            // Envoi de la réponse positive
-            $this->successResponse($commissionOfTheDay);
+            $this->successResponse($commissionOfTheDay, 200);
         } catch (InvalidArgumentException $e) {
-            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
             $this->errorResponse($e->getMessage(), 400);
         } catch (\Exception $e) {
-            // Attrappe les erreurs "Internal Server Error"
             $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
         }
     }
@@ -129,13 +117,10 @@ class StaffController extends BaseController
             // Récupération 
             $totalCommission = $this->staffService->getTotalCommissionOverPeriod($start, $end, $userId);
 
-            // Envoi de la réponse positive
-            $this->successResponse($totalCommission);
+            $this->successResponse($totalCommission, 200);
         } catch (InvalidArgumentException $e) {
-            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
             $this->errorResponse($e->getMessage(), 400);
         } catch (\Exception $e) {
-            // Attrappe les erreurs "Internal Server Error"
             $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
         }
     }
@@ -156,13 +141,10 @@ class StaffController extends BaseController
             // Récupération
             $bookings = $this->staffService->listBookingsByBookingStatus($bookingStatus, $userId);
 
-            // Envoi de la réponse positive
-            $this->successResponse($bookings);
+            $this->successResponse($bookings, 200);
         } catch (InvalidArgumentException $e) {
-            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
             $this->errorResponse($e->getMessage(), 400);
         } catch (\Exception $e) {
-            // Attrappe les erreurs "Internal Server Error"
             $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
         }
     }
@@ -179,13 +161,10 @@ class StaffController extends BaseController
             // Récupération
             $bookings = $this->staffService->listBookingsByCreatedAt($createdAtDate, $userId);
 
-            // Envoi de la réponse positive
-            $this->successResponse($bookings);
+            $this->successResponse($bookings, 200);
         } catch (InvalidArgumentException $e) {
-            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
             $this->errorResponse($e->getMessage(), 400);
         } catch (\Exception $e) {
-            // Attrappe les erreurs "Internal Server Error"
             $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
         }
     }

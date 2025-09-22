@@ -66,7 +66,7 @@ class CarController extends BaseController
                 $carId = $car['id'] ?? $car['car_id'] ?? null;
             }
 
-            $this->successResponse($car, 201, "/users/{$userId}/cars/{$carId}");
+            $this->successResponse($car, 201, "/users/{$userId}/car/{$carId}");
         } catch (InvalidArgumentException $e) {
             $this->errorResponse($e->getMessage(), 400);
         } catch (\Exception $e) {
@@ -105,23 +105,30 @@ class CarController extends BaseController
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
+            // Récupération des données
+            $data = $this->getJsonBody();
+
+            // Vérification de la validité des données reçues
+            if (!is_array($data) || empty($data)) {
+                $this->errorResponse("JSON invalide ou vide.", 400);
+                return;
+            }
+
             // Récupération des paramétres depuis la requête
-            $carId = $_GET['car_id'] ?? null;
+            $carId = $data['car_id'] ?? null;
 
             // Suppression de la voiture
             $removed = $this->carService->removeCar($carId, $userId);
 
             // Vérification de l'existence de la voiture
             if ($removed) {
-                $this->successResponse(["message" => "Voiture supprimée."]);
+                $this->successResponse(["message" => "Voiture supprimée."], 204);
             } else {
                 $this->errorResponse("Voiture introuvable.", 404);
             }
         } catch (InvalidArgumentException $e) {
-            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
             $this->errorResponse($e->getMessage(), 400);
         } catch (\Exception $e) {
-            // Attrappe les erreurs "Internal Server Error"
             $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
         }
     }
@@ -137,21 +144,26 @@ class CarController extends BaseController
      */
     public function getCarById(): void
     {
-
         try {
+            // Récupération des données
+            $data = $this->getJsonBody();
+
+            // Vérification de la validité des données reçues
+            if (!is_array($data) || empty($data)) {
+                $this->errorResponse("JSON invalide ou vide.", 400);
+                return;
+            }
+
             // Récupération des paramétres depuis la requête
             $carId = $_GET['car_id'] ?? null;
 
             // Récupération des infos
             $car = $this->carService->getCarById($carId);
 
-            // Envoi de la réponse positive
             $this->successResponse($car, 200);
         } catch (InvalidArgumentException $e) {
-
             $this->errorResponse($e->getMessage(), 400);
         } catch (\Exception $e) {
-
             $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
         }
     }
@@ -181,19 +193,25 @@ class CarController extends BaseController
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
+            // Récupération des données
+            $data = $this->getJsonBody();
+
+            // Vérification de la validité des données reçues
+            if (!is_array($data) || empty($data)) {
+                $this->errorResponse("JSON invalide ou vide.", 400);
+                return;
+            }
+
             // Récupération des paramétres depuis la requête
             $driverId = $_GET['owner_id'] ?? null;
 
             // Récupération de la liste de voiture
             $cars = $this->carService->listCarsByDriver($driverId, $userId);
 
-            // Envoi de la réponse positive
-            $this->successResponse($cars);
+            $this->successResponse($cars, 200);
         } catch (InvalidArgumentException $e) {
-            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
             $this->errorResponse($e->getMessage(), 400);
         } catch (\Exception $e) {
-            // Attrappe les erreurs "Internal Server Error"
             $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
         }
     }

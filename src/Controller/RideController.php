@@ -4,8 +4,6 @@ namespace App\Controller;
 
 use App\Service\RideService;
 use App\Security\AuthService;
-use App\Model\User;
-use App\Model\Ride;
 use App\DTO\CreateRideDTO;
 use DateTimeImmutable;
 use InvalidArgumentException;
@@ -23,20 +21,50 @@ class RideController extends BaseController
 
     // ------------------------POST--------------------------------
     // Autorise un utilisateur à créer un trajet
-    public function createRide(
-        CreateRideDTO $dto,
-        string $jwtToken
-    ): void {
+    public function createRide(): void
+    {
+        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
+
+
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
+            return;
+        }
 
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
+            // Récupération des données
+            $data = $this->getJsonBody();
+
+            // Vérification de la validité des données reçues
+            if (!is_array($data) || empty($data)) {
+                $this->errorResponse("JSON invalide ou vide.", 400);
+                return;
+            }
+
+            // Conversion des données en DTO
+            $dto = new CreateRideDTO($data);
+
             // Ajout du trajet
             $ride = $this->rideService->createRide($dto, $userId);
 
-            // Envoi de la réponse positive
-            $this->successResponse($ride, 201);
+
+            // Définir le header Location
+            $rideId = null;
+            if (is_object($ride) && method_exists($ride, 'getRideId')) {
+                $rideId = $ride->getRideId();
+            } elseif (is_array($ride)) {
+                $rideId = $ride['id'] ?? $ride['ride_id'] ?? null;
+            }
+
+            $this->successResponse($ride, 201, "/users/{$userId}/ride/{$rideId}");
         } catch (InvalidArgumentException $e) {
 
             $this->errorResponse($e->getMessage(), 400);
@@ -47,18 +75,18 @@ class RideController extends BaseController
     }
 
     // Autorise un utilisateur à faire une réservation
-    public function createBooking(
-        Ride $ride,
-        User $driver,
-        User $passenger,
-        string $jwtToken
-    ): void {
-        // Récupération des données
-        $data = $this->getJsonBody();
+    public function createBooking(): void
+    {
 
-        // Vérification de la validité des données reçues
-        if (!is_array($data) || empty($data)) {
-            $this->errorResponse("JSON invalide ou vide.", 400);
+        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
+
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
             return;
         }
 
@@ -66,9 +94,22 @@ class RideController extends BaseController
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
+            // Récupération des données
+            $data = $this->getJsonBody();
+
+            // Vérification de la validité des données reçues
+            if (!is_array($data) || empty($data)) {
+                $this->errorResponse("JSON invalide ou vide.", 400);
+                return;
+            }
+
+            // Récupération des paramétres depuis la requête
+            $rideId = $data['ride_id'] ?? null;
+            $passengerId = $data['passenger_id'] ?? $userId;
+
 
             // Ajout du trajet
-            $booking = $this->rideService->createBooking($ride, $driver, $passenger, $userId);
+            $booking = $this->rideService->createBooking($rideId, $passengerId);
 
             // Définir le header Location
             $bookingId = null;
@@ -78,13 +119,10 @@ class RideController extends BaseController
                 $bookingId = $booking['id'] ?? $booking['booking_id'] ?? null;
             }
 
-            // Envoi de la réponse positive
             $this->successResponse($booking, 201, "/users/{$userId}/booking/{$bookingId}");
         } catch (InvalidArgumentException $e) {
-            // // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
             $this->errorResponse($e->getMessage(), 400);
         } catch (\Exception $e) {
-            // Attrappe les erreurs "Internal Server Error"
             $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
         }
     }
@@ -92,17 +130,39 @@ class RideController extends BaseController
 
     // ------------------------PUT--------------------------------
     // Autorise un utilisateur à annuler un trajet.
-    public function cancelRide(
-        int $rideId,
-        string $jwtToken
-    ): void {
+    public function cancelRide(): void
+    {
+        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
+
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
+            return;
+        }
+
         try {
 
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
+            // Récupération des données
+            $data = $this->getJsonBody();
+
+            // Vérification de la validité des données reçues
+            if (!is_array($data) || empty($data)) {
+                $this->errorResponse("JSON invalide ou vide.", 400);
+                return;
+            }
+
+            // Récupération des paramétres depuis la requête
+            $rideId = $data['ride_id'] ?? null;
+
             // Récupération du trajet annulé
-            $canceled = $this->rideService->cancelRide($userId, $rideId);
+            $canceled = $this->rideService->cancelRide($rideId, $userId);
 
             // Vérification de l'existence du trajet
             if ($canceled) {
@@ -120,19 +180,41 @@ class RideController extends BaseController
     }
 
     // Autorise un utilisateur à démarrer un trajet.
-    public function startRide(
-        int $rideId,
-        string $jwtToken
-    ): void {
+    public function startRide(): void
+    {
+        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
+
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
+            return;
+        }
+
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
+            // Récupération des données
+            $data = $this->getJsonBody();
+
+            // Vérification de la validité des données reçues
+            if (!is_array($data) || empty($data)) {
+                $this->errorResponse("JSON invalide ou vide.", 400);
+                return;
+            }
+
+            // Récupération des paramétres depuis la requête
+            $rideId = $data['ride_id'] ?? null;
+
             // Récupération du trajet à démarrer
-            $rideToStart = $this->rideService->startRide($rideId, $userId);
+            $ride = $this->rideService->startRide($rideId, $userId);
 
             // Vérification de l'existence du trajet
-            if ($rideToStart) {
+            if ($ride) {
                 $this->successResponse(["message" => "Trajet démarré"], 200);
             } else {
                 $this->errorResponse("Trajet introuvable", 404);
@@ -147,22 +229,90 @@ class RideController extends BaseController
     }
 
     // Autorise un utilisateur à arrêter un trajet.
-    public function stopRide() {}
+    public function stopRide(): void
+    {
+        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
 
-    // Autorise un utilisateur à finaliser un trajet.
-    public function finalizeRide(
-        int $rideId,
-        string $jwtToken
-    ): void {
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
+            return;
+        }
+
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
-            // Récupération du trajet à finaliser
-            $rideToStart = $this->rideService->finalizeRide($rideId, $userId);
+            // Récupération des données
+            $data = $this->getJsonBody();
+
+            // Vérification de la validité des données reçues
+            if (!is_array($data) || empty($data)) {
+                $this->errorResponse("JSON invalide ou vide.", 400);
+                return;
+            }
+
+            // Récupération des paramétres depuis la requête
+            $rideId = $data['ride_id'] ?? null;
+
+            // Récupération du trajet à démarrer
+            $ride = $this->rideService->stopRide($rideId, $userId);
 
             // Vérification de l'existence du trajet
-            if ($rideToStart) {
+            if ($ride) {
+                $this->successResponse(["message" => "Trajet arrêté"], 200);
+            } else {
+                $this->errorResponse("Trajet introuvable", 404);
+            }
+        } catch (InvalidArgumentException $e) {
+
+            $this->errorResponse($e->getMessage(), 400);
+        } catch (\Exception $e) {
+
+            $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
+        }
+    }
+
+    // Autorise un utilisateur à finaliser un trajet.
+    public function finalizeRide(): void
+    {
+        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
+
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
+            return;
+        }
+
+        try {
+            // Récupération de l'id de l'utilisateur
+            $userId = $this->getUserIdFromToken($jwtToken);
+
+            // Récupération des données
+            $data = $this->getJsonBody();
+
+            // Vérification de la validité des données reçues
+            if (!is_array($data) || empty($data)) {
+                $this->errorResponse("JSON invalide ou vide.", 400);
+                return;
+            }
+
+            // Récupération des paramétres depuis la requête
+            $rideId = $data['ride_id'] ?? null;
+
+            // Récupération du trajet à finaliser
+            $ride = $this->rideService->finalizeRide($rideId, $userId);
+
+            // Vérification de l'existence du trajet
+            if ($ride) {
                 $this->successResponse(["message" => "Trajet finalisé"], 200);
             } else {
                 $this->errorResponse("Trajet introuvable", 404);
@@ -177,29 +327,48 @@ class RideController extends BaseController
     }
 
     //  Autorise un utilisateur à annuler une réservation
-    public function cancelBooking(
-        int $bookingId,
-        string $jwtToken
-    ): void {
-        try {
+    public function cancelBooking(): void
+    {
+        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
 
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
+            return;
+        }
+
+        try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
+            // Récupération des données
+            $data = $this->getJsonBody();
+
+            // Vérification de la validité des données reçues
+            if (!is_array($data) || empty($data)) {
+                $this->errorResponse("JSON invalide ou vide.", 400);
+                return;
+            }
+
+            // Récupération des paramétres depuis la requête
+            $bookingId = $data['booking_id'] ?? null;
+
             // Récupération du trajet annulé
-            $canceled = $this->rideService->cancelBooking($userId, $bookingId);
+            $canceled = $this->rideService->cancelBooking($bookingId, $userId);
 
             // Vérification de l'existence du trajet
             if ($canceled) {
-                $this->successResponse(["message" => "Trajet annulé"], 200);
+                $this->successResponse(["message" => "Réservation annulé"], 200);
             } else {
-                $this->errorResponse("Trajet introuvable", 404);
+                $this->errorResponse("Réservation introuvable", 404);
             }
         } catch (InvalidArgumentException $e) {
-            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
             $this->errorResponse($e->getMessage(), 400);
         } catch (\Exception $e) {
-            // Attrappe les erreurs "Internal Server Error"
             $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
         }
     }
@@ -211,47 +380,85 @@ class RideController extends BaseController
     // --------------------------GET----------------------------------
 
     // Affiche un trajet avec les utilisateurs associés.
-    public function getRideWithUsersById(
-        int $rideId,
-        string $jwtToken
-    ): void {
+    public function getRideWithUsersById(): void
+    {
+        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
+
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
+            return;
+        }
+
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
-            // Récupération des infos
-            $ride = $this->rideService->getRideWithUsersByid($userId, $rideId);
+            // Récupération des données
+            $data = $this->getJsonBody();
 
-            // Envoi de la réponse positive
+            // Vérification de la validité des données reçues
+            if (!is_array($data) || empty($data)) {
+                $this->errorResponse("JSON invalide ou vide.", 400);
+                return;
+            }
+
+            // Récupération des paramétres depuis la requête
+            $rideId = $data['ride_id'] ?? null;
+
+            // Récupération des infos
+            $ride = $this->rideService->getRideWithUsersById($rideId, $userId);
+
             $this->successResponse($ride, 200);
         } catch (InvalidArgumentException $e) {
-
             $this->errorResponse($e->getMessage(), 400);
         } catch (\Exception $e) {
-
             $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
         }
     }
 
     // Affiche une réservation 
-    public function getBookingById(
-        int $bookingId,
-        string $jwtToken
-    ): void {
+    public function getBookingById(): void
+    {
+        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
+
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
+            return;
+        }
+
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
+            // Récupération des données
+            $data = $this->getJsonBody();
+
+            // Vérification de la validité des données reçues
+            if (!is_array($data) || empty($data)) {
+                $this->errorResponse("JSON invalide ou vide.", 400);
+                return;
+            }
+
+            // Récupération des paramétres depuis la requête
+            $bookingId = $data['booking_id'] ?? null;
+
             // Récupération des infos
             $booking = $this->rideService->getbookingById($bookingId, $userId);
 
-            // Envoi de la réponse positive
-            $this->successResponse($booking);
+            $this->successResponse($booking, 200);
         } catch (InvalidArgumentException $e) {
-            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
             $this->errorResponse($e->getMessage(), 400);
         } catch (\Exception $e) {
-            // Attrappe les erreurs "Internal Server Error"
             $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
         }
     }
@@ -259,28 +466,35 @@ class RideController extends BaseController
     // Affiche les trajets disponibles en fonction de la date de départ et les ville de départ et d'arrivée
     public function listRidesByDateAndPlaces(): void
     {
-
-        $departurePlace = $_GET['departure_place'] ?? null;
-        $arrivalPlace = $_GET['arrival_place'] ?? null;
-        $date = $_GET['departure_date_time'] ?? null;
-
-        if (!$date || !$departurePlace || !$arrivalPlace) {
-            throw new InvalidArgumentException("Tous les paramètres sont requis");
-        }
         try {
+            // Récupération des données
+            $data = $this->getJsonBody();
+
+            // Vérification de la validité des données reçues
+            if (!is_array($data) || empty($data)) {
+                $this->errorResponse("JSON invalide ou vide.", 400);
+                return;
+            }
+
+            // Récupération des paramétres depuis la requête
+            $departurePlace = $data['departure_place'] ?? null;
+            $arrivalPlace = $data['arrival_place'] ?? null;
+            $date = $data['departure_date_time'] ?? null;
+
+            if (!$date || !$departurePlace || !$arrivalPlace) {
+                throw new InvalidArgumentException("Tous les paramètres sont requis");
+            }
+
             // Transformation de la date string en date objet
             $dateObj = new DateTimeImmutable($date);
 
             // Récupération de la liste des trajets avec vérification des droits incluse
             $rides = $this->rideService->listRidesByDateAndPlaces($dateObj, $departurePlace, $arrivalPlace);
 
-            // Envoi de la réponse positive
             $this->successResponse($rides, 200);
         } catch (InvalidArgumentException $e) {
-
             $this->errorResponse($e->getMessage(), 400);
         } catch (\Exception $e) {
-
             $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
         }
     }
@@ -288,41 +502,81 @@ class RideController extends BaseController
     //-------------Pour les conducteurs------------------
 
     // Affiche tous les trajets à venir d'un conducteur.
-    public function listUpcomingRidesByDriver(
-        int $driverId,
-        string $jwtToken
-    ): void {
+    public function listUpcomingRidesByDriver(): void
+    {
+        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
+
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
+            return;
+        }
+
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
-            // Récupération des infos
-            $rides = $this->rideService->listUpcomingRidesByDriver($userId, $driverId);
+            // Récupération des données
+            $data = $this->getJsonBody();
 
-            // Envoi de la réponse positive
+            // Vérification de la validité des données reçues
+            if (!is_array($data) || empty($data)) {
+                $this->errorResponse("JSON invalide ou vide.", 400);
+                return;
+            }
+
+            // Récupération des paramétres depuis la requête
+            $driverId = $data['driver_id'] ?? null;
+
+            // Récupération des infos
+            $rides = $this->rideService->listUpcomingRidesByDriver($driverId, $userId);
+
             $this->successResponse($rides, 200);
         } catch (InvalidArgumentException $e) {
-
             $this->errorResponse($e->getMessage(), 400);
         } catch (\Exception $e) {
-
             $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
         }
     }
 
     // Affiche tous les trajets passés d'un conducteur.
-    public function listPastRidesByDriver(
-        int $driverId,
-        string $jwtToken
-    ): void {
+    public function listPastRidesByDriver(): void
+    {
+        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
+
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
+            return;
+        }
+
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
-            // Récupération des infos
-            $rides = $this->rideService->listPastRidesByDriver($userId, $driverId);
+            // Récupération des données
+            $data = $this->getJsonBody();
 
-            // Envoi de la réponse positive
+            // Vérification de la validité des données reçues
+            if (!is_array($data) || empty($data)) {
+                $this->errorResponse("JSON invalide ou vide.", 400);
+                return;
+            }
+
+            // Récupération des paramétres depuis la requête
+            $driverId = $data['driver_id'] ?? null;
+
+            // Récupération des infos
+            $rides = $this->rideService->listPastRidesByDriver($driverId, $userId);
+
             $this->successResponse($rides, 200);
         } catch (InvalidArgumentException $e) {
 
@@ -337,46 +591,84 @@ class RideController extends BaseController
     //-------------Pour les Passagers------------------
 
 
-    public function listUpcomingBookingsByPassenger(
-        int $passengerId,
-        string $jwtToken
-    ): void {
+    public function listUpcomingBookingsByPassenger(): void
+    {
+        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
+
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
+            return;
+        }
+
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
+
+            // Récupération des données
+            $data = $this->getJsonBody();
+
+            // Vérification de la validité des données reçues
+            if (!is_array($data) || empty($data)) {
+                $this->errorResponse("JSON invalide ou vide.", 400);
+                return;
+            }
+
+            // Récupération des paramétres depuis la requête
+            $passengerId = $data['passenger_id'] ?? null;
 
             // Récupération des infos
             $bookings = $this->rideService->listUpcomingBookingsByPassenger($passengerId, $userId);
 
-            // Envoi de la réponse positive
-            $this->successResponse($bookings);
+            $this->successResponse($bookings, 200);
         } catch (InvalidArgumentException $e) {
-            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
             $this->errorResponse($e->getMessage(), 400);
         } catch (\Exception $e) {
-            // Attrappe les erreurs "Internal Server Error"
             $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
         }
     }
 
-    public function listPastBookingsByPassenger(
-        int $passengerId,
-        string $jwtToken
-    ): void {
+    public function listPastBookingsByPassenger(): void
+    {
+        // Récupération du token
+        $headers = getallheaders();
+        $jwtToken = $headers['Authorization'] ?? null;
+
+        if ($jwtToken && str_starts_with($jwtToken, 'Bearer ')) {
+            $jwtToken = substr($jwtToken, 7);
+        }
+        if (!$jwtToken) {
+            $this->errorResponse("Token manquant", 401);
+            return;
+        }
+
         try {
             // Récupération de l'id de l'utilisateur
             $userId = $this->getUserIdFromToken($jwtToken);
 
+            // Récupération des données
+            $data = $this->getJsonBody();
+
+            // Vérification de la validité des données reçues
+            if (!is_array($data) || empty($data)) {
+                $this->errorResponse("JSON invalide ou vide.", 400);
+                return;
+            }
+
+            // Récupération des paramétres depuis la requête
+            $passengerId = $data['passenger_id'] ?? null;
+
             // Récupération des infos
             $bookings = $this->rideService->listPastBookingsByPassenger($passengerId, $userId);
 
-            // Envoi de la réponse positive
-            $this->successResponse($bookings);
+            $this->successResponse($bookings, 200);
         } catch (InvalidArgumentException $e) {
-            // Attrappe les erreurs "bad request" (la validation du DTO ou donnée invalide envoyée par le client)
             $this->errorResponse($e->getMessage(), 400);
         } catch (\Exception $e) {
-            // Attrappe les erreurs "Internal Server Error"
             $this->errorResponse("Erreur serveur : " . $e->getMessage(), 500);
         }
     }
