@@ -35,7 +35,7 @@ class Database
                 //On crée l'instance de PDO et on la stock
                 self::$instance = new PDO($dsn, Config::get('DB_USER'), Config::get('DB_PASSWORD'), $options);
             } catch (PDOException $e) {
-                die("Erreur de connexion à la base de données : " . $e->getMessage());
+                throw new \Exception("Erreur de connexion à la base de données : " . $e->getMessage());
             }
         }
         return self::$instance;

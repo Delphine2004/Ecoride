@@ -9,14 +9,19 @@ use App\Repository\CarRepository;
 use App\Repository\RideRepository;
 use App\Repository\BookingRepository;
 use App\Repository\UserRepository;
+use App\Repository\ReviewRepository;
 use App\Service\CarService;
 use App\Service\RideService;
+use App\Service\NotificationService;
+use App\Service\StaffService;
+use App\Service\UserService;
 use App\Security\AuthService;
 use App\Controller\CarController;
 use App\Controller\RideController;
 use App\Controller\UserController;
-use App\Service\NotificationService;
+use App\Controller\StaffController;
 
+use MongoDB\Client;
 
 // Activer le débogage
 ini_set('display_errors', 1);
@@ -30,49 +35,66 @@ session_start();
 // Charger les variables d'environnement
 Config::load();
 
+
 // Instancier les dépendances
 $carRepository = new CarRepository();
 $rideRepository = new RideRepository();
 $userRepository = new UserRepository();
 $bookingRepository = new BookingRepository();
 
+
+$reviewRepository = new ReviewRepository($mongoClient, $databaseName);
+
 $notificationService = new NotificationService();
 
 $authService = new AuthService($userRepository);
-
-
 $carService = new CarService($carRepository, $authService);
 $rideService = new RideService($rideRepository, $bookingRepository, $authService, $carService, $notificationService);
-
+$userService = new UserService($userRepository);
+$staffService = new StaffService($rideRepository, $bookingRepository, $reviewRepository, $userService);
+$notificationService = new NotificationService();
 
 $carController = new CarController($carService, $authService);
 $rideController = new RideController($rideService, $authService);
-
+$userController = new UserController($authService);
+$staffController = new StaffController($staffService, $authService);
 
 
 // Création du dispatcher avec la définition des routes
-$dispatcher = FastRoute\simpleDispatcher(function (RouteCollector $r) use ($carController, $rideController) {
+$dispatcher = FastRoute\simpleDispatcher(function (RouteCollector $r) use ($carController, $rideController, $userController, $staffController) {
     // ---------------------CAR------------------------------------
-    $r->addRoute('POST', '/cars/{car_id}/created', [$carController, 'createCar']);
-    $r->addRoute('DELETE', '/cars/{car_id}', [$carController, 'deleteCar']);
-    $r->addRoute('GET', '/users/{car_id}/cars', [$carController, 'listCarsbyDriver']);
+    //$r->addRoute('POST', '/cars/{car_id}/created', [$carController, 'createCar']);
+
+    //$r->addRoute('DELETE', '/cars/{car_id}/deleted', [$carController, 'deleteCar']);
+
+    //$r->addRoute('GET', '/cars/{user_id}', [$carController, 'listCarsbyDriver']);
+    //$r->addRoute('GET', '/users/{user_id}/cars', [$carController, 'listCarsbyDriver']);
 
     // --------------------RIDE---------------------------------------
-    $r->addRoute('POST', '/rides/{ride_id}/created', [$rideController, 'createRide']);
-    $r->addRoute('PUT', '/rides/{ride_id}/cancel', [$rideController, 'cancelRide']);
+    $r->addRoute('POST', '/api.php/publier', [$rideController, 'createRide']);
 
-    $r->addRoute('POST', '/rides/{ride_id}/start', [$rideController, 'startRide']);
-    $r->addRoute('POST', '/rides/{ride_id}/finalize', [$rideController, 'finalizeRide']);
+    //$r->addRoute('PUT', '/rides/{ride_id}/cancelled', [$rideController, 'cancelRide']);
+    //$r->addRoute('PUT', '/rides/{ride_id}/started', [$rideController, 'startRide']);
+    //$r->addRoute('PUT', '/rides/{ride_id}/stoped', [$rideController, 'stopRide']);
+    //$r->addRoute('PUT', '/rides/{ride_id}/finalized', [$rideController, 'finalizeRide']);
 
+    //$r->addRoute('GET', '/rides/{ride_id}', [$rideController, 'getRideWithPassengers']);
+    $r->addRoute('GET', '/api.php/rechercher', [$rideController, 'listRidesByDateAndPlaces']); // Fonctionne
 
-    $r->addRoute('GET', '/rides/{ride_id}', [$rideController, 'getRideWithPassengers']);
-    $r->addRoute('GET', '/api.php/rechercher', [$rideController, 'listRidesByDateAndPlaces']);
+    // -------------------BOOKING--------------------------------------
+    //$r->addRoute('POST', '/bookings/{booking_id}/created', [$rideController, 'createBooking']);
 
-    // user
+    //$r->addRoute('PUT', '/bookings/{booking_id}/cancelled', [$rideController, 'cancelBooking']);
 
-    // user
+    // ------------------USER-------------------------------------------
+    $r->addRoute('POST', '/api.php/inscription', [$userController, 'createUser']);
 
-    // staff
+    //$r->addRoute('POST', '/users/{user_id}/created', [$userController, 'getRideWithPassengers']);
+
+    //$r->addRoute('GET', '/users/{user_id}', [$userController, 'getRideWithPassengers']);
+
+    // -------------------STAFF------------------------------------------
+
 });
 
 // Récupérer les informations de la requête
