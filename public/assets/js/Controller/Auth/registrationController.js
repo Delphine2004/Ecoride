@@ -17,8 +17,13 @@ export function registration() {
 
   // Stockage des éléments dans un objet
   const inputs = {
-    prenom: document.getElementById("first-name"),
-    nom: document.getElementById("last-name"),
+    first_name: document.getElementById("first-name"),
+    last_name: document.getElementById("last-name"),
+    login: document.getElementById("login"),
+    phone: document.getElementById("phone"),
+    address: document.getElementById("address"),
+    city: document.getElementById("city"),
+    zip_code: document.getElementById("zip-code"),
     email: document.getElementById("email"),
     password: document.getElementById("password"),
   };

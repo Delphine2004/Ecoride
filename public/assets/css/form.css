@@ -105,7 +105,7 @@
 }
 
 .card-body {
-  padding: 1rem;
+  padding: 2rem;
 }
 
 .card-body p {
@@ -140,11 +140,23 @@
   #addRide-form input,
   #addRide-form select {
     margin: 0.5rem auto;
+    width: 100%;
   }
 
   #feedback-form {
     height: auto;
     min-height: 5rem;
+  }
+
+  .items {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+
+  .item {
+    width: 95%;
+    margin: auto 1rem;
   }
 
   /* Les cartes*/
@@ -190,26 +202,8 @@
     height: 100%;
   }
 
-  #addRide-form .cities,
-  #addRide-form .period,
-  #addRide-form .others,
-  #addRide-form .vehicules {
-    display: flex;
-  }
-
   #addRide-form .big-screen {
     margin: 1rem auto;
-  }
-
-  .addRide-form .card-body {
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-  }
-
-  #addRide-form .item {
-    width: 90%;
-    margin: auto 1rem;
   }
 
   #addRide-form .small-screen #feedback-form {

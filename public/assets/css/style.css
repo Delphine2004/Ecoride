@@ -27,7 +27,8 @@ header,
 footer,
 .card-header,
 button,
-.btn {
+.btn,
+#rides-controller {
   background-color: #93b48b;
   color: #f7fff6;
   border: none;
