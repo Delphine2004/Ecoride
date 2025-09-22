@@ -1,0 +1,86 @@
+/* Le header*/
+
+#header-banner {
+  position: fixed;
+  display: flex;
+  justify-content: center;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4rem;
+  z-index: 1000;
+}
+
+.bigNav {
+  display: none;
+}
+
+.d-none {
+  display: none;
+}
+
+.smallNav {
+  display: flex;
+  width: 100%;
+}
+
+.smallNav nav {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  width: 100%;
+}
+
+.smallNav .icons {
+  display: inline-flex;
+  gap: 0.5rem;
+}
+
+/* Taille des images dans le header*/
+.smallNav .logo img {
+  width: 2.5rem; /* Plus gros que les icônes */
+  height: 2.5rem;
+}
+
+.smallNav .user-icon img,
+.smallNav .icons img {
+  width: 2rem; /* Plus petit que le logo */
+  height: 2rem;
+}
+
+@media (min-width: 768px) {
+  #header-banner {
+    height: 5rem;
+  }
+
+  .smallNav {
+    display: none;
+  }
+
+  .bigNav {
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 50px;
+    width: 100%;
+  }
+
+  .bigNav nav ul {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    margin: 0;
+    padding: 10px;
+  }
+
+  .bigNav nav ul li a {
+    font-weight: 500;
+    font-size: 1.4rem;
+  }
+
+  .bigNav .logo img {
+    width: 60px;
+    height: auto;
+  }
+}

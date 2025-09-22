@@ -1,0 +1,32 @@
+/* Section hero*/
+
+#hero {
+  background-image: url("../img/photo/landing-page-mobile.webp");
+  background-size: cover; /* L'image couvre toute la section */
+  background-position: center; /* Centre l'image */
+  background-repeat: no-repeat;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.hero-title h2 {
+  margin-bottom: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-title h2 {
+    margin-bottom: 2rem;
+  }
+}
+
+@media (min-width: 992px) {
+  #hero {
+    background-image: url("../img/photo/landing-page-desktop.webp");
+  }
+  #hero.search {
+    min-height: 60vh;
+  }
+}

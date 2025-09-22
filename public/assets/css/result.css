@@ -1,0 +1,110 @@
+/* Barre de filtre*/
+#rides-controller {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 20rem;
+  padding: 2rem;
+  margin: 3rem auto;
+}
+
+#rides-controller .item {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+#rides-count {
+  margin: 1rem;
+}
+
+/* Résultats*/
+#results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 2rem auto;
+}
+
+/* Résultat*/
+.ride-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin: 1rem auto;
+  padding: 2rem;
+  gap: 0.5rem;
+}
+
+.ride-item {
+  padding: 0.4rem;
+}
+
+.driver-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-picture {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+}
+
+.price {
+  font-weight: bold;
+}
+
+/* Desktop version */
+@media (min-width: 768px) {
+  #rides-controller {
+    flex-direction: row;
+    height: 5rem;
+    padding: 0;
+  }
+
+  .ride-info .big-screen {
+    display: none;
+  }
+
+  .ride-info {
+    flex-direction: row;
+    padding: 0.9rem;
+  }
+  #rides-controller .item {
+    height: 3rem;
+    margin: 0.2rem;
+  }
+
+  #rides-controller .item .input-filter {
+    height: 100%;
+    padding: 0.5rem;
+  }
+
+  #results {
+    width: 100%;
+  }
+
+  .ride-card {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .ride-details {
+    grid-template-columns: auto auto;
+    flex: 1;
+  }
+
+  .ride-action {
+    flex-shrink: 0;
+  }
+}

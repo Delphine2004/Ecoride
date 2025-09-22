@@ -1,0 +1,212 @@
+/* ------ Communes à tous les formulaires------*/
+.sr-only {
+  position: absolute;
+  height: 1px;
+  overflow: hidden;
+}
+
+#search-form input,
+#search-form button,
+#login-form input,
+#registration-form input,
+#addRide-form input,
+#addRide-form select option {
+  width: 100%;
+  margin: 0.3rem auto;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+#number-person {
+  background-image: url("../img/icons/person.png");
+  background-repeat: no-repeat;
+  background-position: 1rem center;
+  background-size: 2rem;
+  padding-left: 3rem; /* pour ne pas que le texte chevauche l'icône */
+}
+
+/* Message d'erreur des formulaires */
+
+#feedback-form {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-height: 5rem;
+  color: rgba(222, 21, 21, 0.92);
+  font-size: 0.8em;
+  margin: 0.5rem auto;
+}
+
+.input-error {
+  border: 2px solid rgba(222, 21, 21, 0.92);
+}
+
+/* ----- Barre de recherche ------*/
+
+#search-form {
+  width: 100%;
+}
+
+#search-form .small-screen {
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto;
+  width: 100%;
+}
+
+#search-form .small-screen #feedback-form {
+  width: 100%;
+  height: auto;
+  padding: 0.5rem 0;
+}
+
+/* ----Formulaires de connexion et d'inscription -----*/
+#login-form {
+  width: 100%;
+}
+
+#registration-form {
+  width: 100%;
+}
+
+#registration-form .small-screen #feedback-form {
+  width: 100%;
+  height: 9rem;
+}
+
+/* ------ Formulaire d'ajout de trajet */
+#addRide-form {
+  width: 100%;
+  height: 100%;
+}
+
+/* ---- La carte ------*/
+.card {
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  width: 100%;
+  margin-top: 4rem;
+}
+
+.card-header {
+  padding: 1rem;
+}
+
+.card h3 {
+  margin: 0;
+}
+
+.card-body {
+  padding: 2rem;
+}
+
+.card-body p {
+  margin-bottom: 0.2rem;
+}
+
+@media (min-width: 768px) {
+  .card {
+    width: 70%;
+  }
+
+  #search-form .item {
+    width: 100%;
+  }
+
+  #login-form input,
+  #registration-form input {
+    width: 90%;
+  }
+
+  #search-form button.btn {
+    font-size: 1.1rem;
+  }
+}
+
+@media (min-width: 992px) {
+  /* MEP Communnes à tous les formulaires*/
+  #search-form input,
+  #search-form button,
+  #login-form input,
+  #registration-form input,
+  #addRide-form input,
+  #addRide-form select {
+    margin: 0.5rem auto;
+    width: 100%;
+  }
+
+  #feedback-form {
+    height: auto;
+    min-height: 5rem;
+  }
+
+  .items {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+
+  .item {
+    width: 95%;
+    margin: auto 1rem;
+  }
+
+  /* Les cartes*/
+
+  /* Formulaire de recherche de trajet*/
+  .search-form {
+    margin: 5rem auto;
+  }
+
+  #search-form .big-screen {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: stretch;
+    width: 100%;
+    gap: 0.2rem;
+    margin: 0 auto;
+  }
+
+  #search-form .city {
+    width: 40%;
+  }
+
+  #search-form .date {
+    width: 30%;
+  }
+
+  #search-form .person {
+    width: 20%;
+  }
+
+  #search-form button {
+    width: 30%;
+  }
+
+  #search-form .small-screen #feedback-form {
+    height: 9rem;
+  }
+
+  /* Formulaire d'ajout de trajet*/
+  #addRide-form {
+    width: 100%;
+    height: 100%;
+  }
+
+  #addRide-form .big-screen {
+    margin: 1rem auto;
+  }
+
+  #addRide-form .small-screen #feedback-form {
+    height: 9rem;
+  }
+}

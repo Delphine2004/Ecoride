@@ -1,0 +1,96 @@
+<section id="hero" class="search">
+  <div class="sub-container hero-title">
+    <h1>EcoRide</h1>
+    <h2>Voyagez malin, voyagez durable.</h2>
+  </div>
+  <div class="sub-container search-form">
+    <form id="search-form" method="GET" novalidate>
+      <!-- sr-only = screen reader only -->
+      <div class="big-screen small-screen">
+        <div class="item city">
+          <label class="sr-only" for="departure-place">Ville de départ</label>
+          <input
+            class="input-form"
+            id="departure-place"
+            name="departure_place"
+            type="text"
+            data-type="onlytext"
+            maxlength="25"
+            placeholder="Ville de départ"
+            required
+          />
+        </div>
+        <div class="item city">
+          <label class="sr-only" for="arrival-place">Ville d'arrivée</label>
+          <input
+            class="input-form"
+            id="arrival-place"
+            name="arrival_place"
+            type="text"
+            data-type="onlytext"
+            maxlength="25"
+            placeholder="Ville d'arrivée"
+            required
+          />
+        </div>
+        <div class="item date">
+          <label class="sr-only" for="departure-date-time"
+            >Date de départ</label
+          >
+          <input
+            class="input-form"
+            id="departure-date-time"
+            name="departure_date_time"
+            type="date"
+            required
+          />
+        </div>
+        <button
+          class="btn"
+          type="submit"
+          aria-label="Rechercher le trajet sur ecoride"
+        >
+          Rechercher
+        </button>
+      </div>
+    </form>
+    <div id="feedback-form" role="alert"></div>
+  </div>
+</section>
+
+<section id="rides-section" class="sub-container">
+  <h3>Filtrer</h3>
+  <div id="rides-controller">
+    <div class="item">
+      <label for="filter-power">Véhicule écologique</label>
+      <input type="checkbox" class="input-filter" id="filter-power" />
+    </div>
+
+    <div class="item">
+      <label for="filter-driver-rate">Super conducteur</label>
+      <input type="checkbox" class="input-filter" id="filter-driver-rate" />
+    </div>
+
+    <div class="item">
+      <label class="sr-only" for="filter-price">Prix max</label>
+      <input
+        type="number"
+        class="input-filter"
+        id="filter-price"
+        placeholder="Prix maximum"
+      />
+    </div>
+
+    <div class="item">
+      <label class="sr-only" for="filter-duration">Durée max</label>
+      <input
+        type="number"
+        class="input-filter"
+        id="filter-duration"
+        placeholder="Durée maximum"
+      />
+    </div>
+  </div>
+  <div id="rides-count"></div>
+  <div id="results"></div>
+</section>
