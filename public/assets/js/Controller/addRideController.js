@@ -15,13 +15,13 @@ export function addRide() {
 
   // Stockage des éléments dans un objet
   const inputs = {
-    ville_Depart: document.getElementById("departure-place"),
-    ville_arrivee: document.getElementById("arrival-place"),
-    date_depart: document.getElementById("departure-date"),
-    heure_depart: document.getElementById("departure-time"),
-    siege_dispo: document.getElementById("available_seats"),
-    prix: document.getElementById("price"),
-    vehicule: document.getElementById("car"), // voir si modifié dans addform
+    departure_place: document.getElementById("departure-place"),
+    arrival_place: document.getElementById("arrival-place"),
+    departure_date: document.getElementById("departure-date"),
+    departure_time: document.getElementById("departure-time"),
+    available_seats: document.getElementById("available-seats"),
+    price: document.getElementById("price"),
+    car: document.getElementById("car"), // voir si modifié dans addform
   };
 
   // Boucle de validation en temps réel sur les éléments du formulaire -(Il faut que les champs aient un attribut type)
@@ -44,8 +44,18 @@ export function addRide() {
     const isValid = formManager.validateForm(inputs);
     if (!isValid) return;
 
-    // Puis les stocker dans un objet
-    const cleanInputs = formManager.getCleanInputs(inputs);
+    // Fusion date + heure
+    const departureDateTime = `${inputs.departure_date.value}T${inputs.departure_time.value}:00`;
+
+    // Stocker les valeurs vérifiées
+    const cleanInputs = {
+      departure_place: inputs.departure_place.value,
+      arrival_place: inputs.arrival_place.value,
+      departure_date_time: departureDateTime,
+      available_seats: inputs.available_seats.value,
+      price: inputs.price.value,
+      car: inputs.car.value,
+    };
     //console.log("Données nettoyées à envoyer :", cleanInputs);
 
     // Instanciation de la class Api
@@ -60,6 +70,6 @@ export function addRide() {
     } catch (error) {
       console.error("Erreur lors de l’appel à l’API :", error);
       results.textContent = `Erreur : ${error.message}`;
-    } // rajouter finally
+    }
   });
 }
