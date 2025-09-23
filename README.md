@@ -58,7 +58,10 @@ Elle permet aux utilisateurs de rechercher et de proposer des trajets ainsi que 
 
 4. Lancer le serveur local avec php et MySql.
 
-5. Accéder au projet via http://localhost/ecoride/public/
+5. Accéder au projet via PHP server
+   ```bash
+   php -S localhost:8001 -t public
+   ```
 
 ## 4. Fonctionnalités principales
 
