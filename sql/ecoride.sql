@@ -51,7 +51,7 @@ CREATE TABLE cars(
         car_brand VARCHAR (100) NOT NULL ,
         car_model VARCHAR (100) NOT NULL ,
         car_color VARCHAR (50) NOT NULL ,
-        car_year YEAR NOT NULL,
+        car_year VARCHAR(10) NOT NULL,
         car_power VARCHAR(20) NOT NULL,
         seats_number TINYINT UNSIGNED NOT NULL ,
         registration_number VARCHAR (20) UNIQUE NOT NULL ,
