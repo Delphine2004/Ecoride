@@ -6,7 +6,7 @@ USE ecoride_db;
 
 # ---------Script MySQL------------
 
-# ------------Table: users---------
+# Table: users
 CREATE TABLE users(
         user_id INT AUTO_INCREMENT PRIMARY KEY,
         last_name VARCHAR (50) NOT NULL,
@@ -26,14 +26,14 @@ CREATE TABLE users(
         updated_at TIMESTAMP NOT NULL
 );
 
-# ------------Table: roles----------
+# Table: roles
 CREATE TABLE roles(
         role_id INT AUTO_INCREMENT PRIMARY KEY,
         role_name VARCHAR(50) UNIQUE NOT NULL
 );
 
 
-# --------Table: user_roles----------
+# Table: user_roles
 # Permet d'associer plusieurs rôles à un utilisateur
 CREATE TABLE user_roles (
         user_id INT NOT NULL,
@@ -44,7 +44,7 @@ CREATE TABLE user_roles (
 );
 
 
-# --------Table: cars----------------
+# Table: cars
 CREATE TABLE cars(
         car_id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
@@ -106,12 +106,12 @@ CREATE TABLE bookings(
 );
 
 
-#-------Remplissage de la table rôles avec la définission des rôles------
+# Remplissage de la table rôles avec la définission des rôles
 INSERT INTO roles(role_name) VALUES ('passager'), ('conducteur'), ('employé'), ('admin');
 
 
 
-#-------Ajout d'utilisateurs conducteur -------------------
+# Ajout d'utilisateurs conducteur
 INSERT INTO users(
         user_id, last_name, first_name, email, password, login, phone, address, city, zip_code, picture, licence_no, credits, preferences
 ) VALUES
@@ -185,10 +185,10 @@ INSERT INTO users(
 INSERT INTO user_roles(user_id, role_id) VALUE(2,2),(3,2),(4,2);
 
 
-#----------------Ajout des trajets----------------------------
+#Ajout des trajets 
 INSERT into rides(
         driver_id, departure_date_time,departure_place, arrival_date_time, arrival_place, price, available_seats, ride_status, commission
 ) VALUES 
-        (1, '2025-09-25 09:00:00','Paris','2025-09-25 12:00:00','Lyon',25,3,'Disponible',2), 
-        (2, '2025-09-25 10:00:00','Paris','2025-09-25 13:00:00','Lyon',20,1,'Disponible',2), 
-        (3, '2025-09-25 10:00:00','Paris','2025-09-25 13:00:00','Lyon',20,0,'Complet',2);
+        (2, '2025-09-25 09:00:00','Paris','2025-09-25 12:00:00','Lyon',25,3,'Disponible',2), 
+        (3, '2025-09-25 10:00:00','Paris','2025-09-25 13:00:00','Lyon',20,1,'Disponible',2), 
+        (4, '2025-09-25 10:00:00','Paris','2025-09-25 13:00:00','Lyon',20,0,'Complet',2);
