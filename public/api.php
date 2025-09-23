@@ -9,7 +9,7 @@ use App\Repository\CarRepository;
 use App\Repository\RideRepository;
 use App\Repository\BookingRepository;
 use App\Repository\UserRepository;
-use App\Repository\ReviewRepository;
+//use App\Repository\ReviewRepository;
 use App\Service\CarService;
 use App\Service\RideService;
 use App\Service\NotificationService;
@@ -43,7 +43,7 @@ $userRepository = new UserRepository();
 $bookingRepository = new BookingRepository();
 
 
-$reviewRepository = new ReviewRepository($mongoClient, $databaseName);
+//$reviewRepository = new ReviewRepository($mongoClient, $databaseName);
 
 $notificationService = new NotificationService();
 
@@ -51,17 +51,17 @@ $authService = new AuthService($userRepository);
 $carService = new CarService($carRepository, $authService);
 $rideService = new RideService($rideRepository, $bookingRepository, $authService, $carService, $notificationService);
 $userService = new UserService($userRepository);
-$staffService = new StaffService($rideRepository, $bookingRepository, $reviewRepository, $userService);
+//$staffService = new StaffService($rideRepository, $bookingRepository, $reviewRepository, $userService);
 $notificationService = new NotificationService();
 
 $carController = new CarController($carService, $authService);
 $rideController = new RideController($rideService, $authService);
 $userController = new UserController($authService);
-$staffController = new StaffController($staffService, $authService);
+//$staffController = new StaffController($staffService, $authService);
 
 
 // Création du dispatcher avec la définition des routes
-$dispatcher = FastRoute\simpleDispatcher(function (RouteCollector $r) use ($carController, $rideController, $userController, $staffController) {
+$dispatcher = FastRoute\simpleDispatcher(function (RouteCollector $r) use ($carController, $rideController, $userController) {
     // ---------------------CAR------------------------------------
     //$r->addRoute('POST', '/cars/{car_id}/created', [$carController, 'createCar']);
 
